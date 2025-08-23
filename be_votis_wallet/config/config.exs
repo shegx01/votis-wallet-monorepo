@@ -49,6 +49,23 @@ config :be_votis_wallet, :turnkey,
   api_secret: {:system, "TURNKEY_API_SECRET"},
   organization_id: {:system, "TURNKEY_ORG_ID"}
 
+# Custom blockchain configurations
+# Add support for additional chains beyond the built-in ones (Bitcoin, Ethereum, Solana, Tron)
+# Each chain should follow the BeVotisWallet.BlockchainRegistry.Chain struct format
+# Example:
+# config :be_votis_wallet, :custom_chains, %{
+#   polygon: %BeVotisWallet.BlockchainRegistry.Chain{
+#     name: "Polygon",
+#     symbol: "MATIC",
+#     curve: "CURVE_SECP256K1",
+#     address_format: "ADDRESS_FORMAT_ETHEREUM",
+#     path: "m/44'/966'/0'/0/0",
+#     path_format: "PATH_FORMAT_BIP32",
+#     slip44_coin_type: 966
+#   }
+# }
+config :be_votis_wallet, :custom_chains, %{}
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
