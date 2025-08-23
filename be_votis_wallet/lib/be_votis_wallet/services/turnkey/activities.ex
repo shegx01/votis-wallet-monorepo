@@ -55,13 +55,14 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       params: activity_params,
       auth_type: Keyword.get(opts, :auth_type, :api_key)
     ]
-    
+
     # Add optional client_signature if provided (required for WebAuthn)
-    execute_activity_opts = case Keyword.get(opts, :client_signature) do
-      nil -> execute_activity_opts
-      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
-    end
-    
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
     execute_activity(execute_activity_opts)
   end
 
@@ -96,13 +97,14 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       organization_id: organization_id,
       auth_type: Keyword.get(opts, :auth_type, :api_key)
     ]
-    
+
     # Add optional client_signature if provided
-    execute_activity_opts = case Keyword.get(opts, :client_signature) do
-      nil -> execute_activity_opts
-      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
-    end
-    
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
     execute_activity(execute_activity_opts)
   end
 
@@ -140,13 +142,14 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       organization_id: organization_id,
       auth_type: Keyword.get(opts, :auth_type, :api_key)
     ]
-    
+
     # Add optional client_signature if provided
-    execute_activity_opts = case Keyword.get(opts, :client_signature) do
-      nil -> execute_activity_opts
-      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
-    end
-    
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
     execute_activity(execute_activity_opts)
   end
 
@@ -177,13 +180,14 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       organization_id: organization_id,
       auth_type: Keyword.get(opts, :auth_type, :api_key)
     ]
-    
+
     # Add optional client_signature if provided
-    execute_activity_opts = case Keyword.get(opts, :client_signature) do
-      nil -> execute_activity_opts
-      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
-    end
-    
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
     execute_activity(execute_activity_opts)
   end
 
@@ -216,13 +220,14 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       organization_id: organization_id,
       auth_type: Keyword.get(opts, :auth_type, :api_key)
     ]
-    
+
     # Add optional client_signature if provided
-    execute_activity_opts = case Keyword.get(opts, :client_signature) do
-      nil -> execute_activity_opts
-      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
-    end
-    
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
     execute_activity(execute_activity_opts)
   end
 
@@ -232,7 +237,7 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     # Required arguments - use fetch! for clear error messages
     activity_type = Keyword.fetch!(opts, :activity_type)
     params = Keyword.fetch!(opts, :params)
-    
+
     # Optional arguments with defaults
     org_id = Keyword.get(opts, :organization_id) || get_default_organization_id()
     auth_type = Keyword.get(opts, :auth_type, :api_key)
@@ -280,58 +285,63 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
 
   defp build_activities_headers_with_signature(request_body, auth_type, client_signature) do
     base_headers = build_activities_headers()
-    
+
     case {auth_type, client_signature} do
       # Client-provided signature (WebAuthn/Passkey) - mobile clients
       {:webauthn, signature} when is_binary(signature) ->
         stamp_header = get_stamp_header_name(:webauthn)
         [{stamp_header, signature} | base_headers]
-      
+
       {:passkey, signature} when is_binary(signature) ->
         stamp_header = get_stamp_header_name(:passkey)
         [{stamp_header, signature} | base_headers]
-      
+
       # Server-side API key signing
       {:api_key, nil} ->
         case get_config(:api_private_key) do
-          nil -> 
+          nil ->
             Logger.warning("No API private key configured - request will be unsigned")
             base_headers
-          
+
           private_key_pem when is_binary(private_key_pem) ->
             case Crypto.create_request_stamp(request_body, private_key_pem) do
-              {:ok, stamp} -> 
+              {:ok, stamp} ->
                 stamp_header = get_stamp_header_name(:api_key)
                 [{stamp_header, stamp} | base_headers]
-              
-              {:error, reason} -> 
+
+              {:error, reason} ->
                 Logger.error("Failed to sign request", reason: reason)
                 base_headers
             end
-          
-          invalid_key -> 
+
+          invalid_key ->
             Logger.error("Invalid API private key format", key_type: inspect(invalid_key))
             base_headers
         end
-      
+
       # Error cases
       {auth_type, nil} when auth_type in [:webauthn, :passkey] ->
         Logger.error("Client signature required for #{auth_type} authentication")
         base_headers
-      
+
       {auth_type, signature} when auth_type == :api_key and is_binary(signature) ->
         Logger.warning("Ignoring client signature for API key authentication")
         build_activities_headers_with_signature(request_body, :api_key, nil)
-      
+
       _ ->
-        Logger.warning("Unknown auth configuration", auth_type: auth_type, has_signature: is_binary(client_signature))
+        Logger.warning("Unknown auth configuration",
+          auth_type: auth_type,
+          has_signature: is_binary(client_signature)
+        )
+
         base_headers
     end
   end
 
   defp get_stamp_header_name(:api_key), do: "X-Stamp"
   defp get_stamp_header_name(:webauthn), do: "X-Stamp-WebAuthn"
-  defp get_stamp_header_name(:passkey), do: "X-Stamp-WebAuthn"  # Alias for passkey
+  # Alias for passkey
+  defp get_stamp_header_name(:passkey), do: "X-Stamp-WebAuthn"
 
   defp build_activities_url(path) do
     base_url = get_config(:base_url)

@@ -22,25 +22,26 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   def generate_api_keypair do
     # Generate P-256 ECDSA key using the correct function that returns proper structure
     ec_private_key = :public_key.generate_key({:namedCurve, :secp256r1})
-    
+
     # Encode to DER first, then to PEM
     private_der = :public_key.der_encode(:ECPrivateKey, ec_private_key)
     private_pem = :public_key.pem_encode([{:ECPrivateKey, private_der, :not_encrypted}])
-    
+
     # Extract public key from the private key structure
     {:ECPrivateKey, _, _, _, public_key_point, _} = ec_private_key
-    
+
     # Create SubjectPublicKeyInfo structure for public key
     public_key_info = {
       :SubjectPublicKeyInfo,
-      {:AlgorithmIdentifier, {1, 2, 840, 10045, 2, 1}, {:namedCurve, {1, 2, 840, 10045, 3, 1, 7}}},
+      {:AlgorithmIdentifier, {1, 2, 840, 10045, 2, 1},
+       {:namedCurve, {1, 2, 840, 10045, 3, 1, 7}}},
       public_key_point
     }
-    
+
     # Encode public key to DER first, then to PEM
     public_der = :public_key.der_encode(:SubjectPublicKeyInfo, public_key_info)
     public_pem = :public_key.pem_encode([{:SubjectPublicKeyInfo, public_der, :not_encrypted}])
-    
+
     {public_pem, private_pem}
   end
 
@@ -52,24 +53,24 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   def generate_hpke_keypair do
     # Generate raw P-256 point for HPKE
     {public_point, private_scalar} = :crypto.generate_key(:ecdh, :secp256r1)
-    
+
     # Ensure uncompressed format (0x04 + x + y coordinates)
     public_uncompressed = ensure_uncompressed_point(public_point)
-    
+
     # Encode as hex strings for Turnkey API
     public_hex = Base.encode16(public_uncompressed, case: :lower)
     private_hex = Base.encode16(private_scalar, case: :lower)
-    
+
     {public_hex, private_hex}
   end
 
   @doc """
   Create Turnkey API stamp (signature) for request authentication.
-  
+
   ## Parameters
   - request_body: JSON request body as string
   - private_key_pem: PEM-encoded ECDSA private key
-  
+
   ## Returns
   - {:ok, stamp} - Base64-encoded signature
   - {:error, reason} - Error details
@@ -120,7 +121,7 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   ## Private Implementation Functions
 
   defp ensure_uncompressed_point(<<0x04, _x::256, _y::256>> = point), do: point
-  
+
   defp ensure_uncompressed_point(compressed_point) when byte_size(compressed_point) == 33 do
     try do
       %Curvy.Key{point: %Curvy.Point{x: x, y: y}} = Curvy.Key.from_pubkey(compressed_point)
@@ -133,7 +134,7 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
         {:error, :point_decompression_failed}
     end
   end
-  
+
   defp ensure_uncompressed_point(invalid_point) do
     Logger.error("Invalid point format", point_size: byte_size(invalid_point))
     {:error, :invalid_point_format}
@@ -142,8 +143,10 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   defp parse_private_key(private_key_pem) do
     try do
       [{:ECPrivateKey, key_der, _}] = :public_key.pem_decode(private_key_pem)
-      {:ECPrivateKey, _version, raw_private_key, _params, _public_key, _attrs} = 
+
+      {:ECPrivateKey, _version, raw_private_key, _params, _public_key, _attrs} =
         :public_key.der_decode(:ECPrivateKey, key_der)
+
       {:ok, raw_private_key}
     rescue
       error ->
@@ -178,13 +181,13 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   defp fetch_turnkey_public_key(key_id) when is_binary(key_id) do
     jwks_url = "https://api.turnkey.com/.well-known/jwks.json"
     headers = [{"Accept", "application/json"}]
-    
+
     payload = http_client().build_payload(:get, jwks_url, headers, nil)
-    
+
     case http_client().request(payload) do
       {:ok, data} ->
         parse_jwks_response(data, key_id)
-      
+
       {:error, status, error_message} ->
         Logger.error("JWKS fetch failed", status: status, url: jwks_url, error: error_message)
         {:error, {:http_error, status}}
@@ -196,17 +199,18 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   defp parse_jwks_response(response, key_id) do
     try do
       # Handle both string (from actual HTTP response) and map (from test mocks)
-      %{"keys" => keys} = case response do
-        response when is_map(response) -> response
-        response when is_binary(response) -> Jason.decode!(response)
-      end
-      
+      %{"keys" => keys} =
+        case response do
+          response when is_map(response) -> response
+          response when is_binary(response) -> Jason.decode!(response)
+        end
+
       case Enum.find(keys, &(&1["kid"] == key_id)) do
-        nil -> 
+        nil ->
           Logger.warning("Key ID not found in JWKS", key_id: key_id)
           {:error, :key_not_found}
-        
-        key -> 
+
+        key ->
           jwk = JOSE.JWK.from(key)
           {:ok, jwk}
       end
@@ -222,7 +226,7 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
       case JOSE.JWT.verify(jwk, jwt_token) do
         {true, %JOSE.JWT{fields: claims}, _jws} ->
           {:ok, claims}
-        
+
         {false, _, _} ->
           {:error, :invalid_signature}
       end
@@ -235,7 +239,7 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
 
   defp validate_claims(%{"exp" => exp, "sub" => _sub}) when is_integer(exp) do
     exp_time = DateTime.from_unix!(exp)
-    
+
     if DateTime.compare(DateTime.utc_now(), exp_time) == :lt do
       :ok
     else
@@ -274,8 +278,8 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
     end
   end
 
-  defp parse_hpke_ciphertext(<<encap_key_len::32-big, data::binary>>) 
-      when byte_size(data) >= encap_key_len do
+  defp parse_hpke_ciphertext(<<encap_key_len::32-big, data::binary>>)
+       when byte_size(data) >= encap_key_len do
     <<encap_key::binary-size(encap_key_len), ciphertext::binary>> = data
     {:ok, {encap_key, ciphertext}}
   end

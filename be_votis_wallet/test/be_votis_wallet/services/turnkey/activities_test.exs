@@ -45,7 +45,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         # Return a mock request payload
         %{method: method, url: url, headers: headers, body: body}
       end)
-      
+
       stub(Mock, :request, fn _payload ->
         {:ok, expected_response}
       end)
@@ -72,7 +72,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       stub(Mock, :build_payload, fn _, _, _, _ ->
         %{method: :post, url: "test", headers: [], body: ""}
       end)
-      
+
       stub(Mock, :request, fn _payload ->
         {:error, 400, error_message}
       end)
@@ -93,7 +93,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
         %{method: :post, url: "test", headers: [], body: body}
       end)
-      
+
       stub(Mock, :request, fn _payload ->
         {:ok, %{"activity" => %{"id" => "test"}}}
       end)
@@ -132,7 +132,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
         %{method: method, url: url, headers: headers, body: body}
       end)
-      
+
       stub(Mock, :request, fn _payload ->
         {:ok, expected_response}
       end)
@@ -179,7 +179,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
         %{method: :post, url: "test", headers: [], body: body}
       end)
-      
+
       stub(Mock, :request, fn _payload ->
         {:ok, expected_response}
       end)
@@ -216,7 +216,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
         %{method: :post, url: "test", headers: [], body: body}
       end)
-      
+
       stub(Mock, :request, fn _payload ->
         {:ok, expected_response}
       end)
@@ -274,118 +274,118 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       # Generate a test keypair
       alias BeVotisWallet.Services.Turnkey.Crypto
       {_public_pem, private_pem} = Crypto.generate_api_keypair()
-      
+
       # Temporarily set the API private key
       original_config = Application.get_env(:be_votis_wallet, :turnkey, [])
       new_config = Keyword.put(original_config, :api_private_key, private_pem)
       Application.put_env(:be_votis_wallet, :turnkey, new_config)
-      
+
       try do
         stub(Mock, :build_payload, fn _method, _url, headers, body ->
           decoded_body = Jason.decode!(body)
-          
+
           # Verify that the request does NOT contain a stamp in the body
           refute Map.has_key?(decoded_body, "stamp")
-          
+
           # Verify that the X-Stamp header is present
           stamp_header = Enum.find(headers, fn {name, _value} -> name == "X-Stamp" end)
           assert stamp_header != nil
           {"X-Stamp", stamp_value} = stamp_header
           assert is_binary(stamp_value)
-          
+
           # Verify the stamp is valid base64
           assert {:ok, _} = Base.decode64(stamp_value)
-          
+
           %{method: :post, url: "test", headers: headers, body: body}
         end)
-        
+
         stub(Mock, :request, fn _payload ->
           {:ok, %{"activity" => %{"id" => "test"}}}
         end)
-        
+
         # Execute a function that will trigger request signing
         result = Activities.create_sub_organization("Test Org")
         assert {:ok, _} = result
-        
       after
         # Restore original config
         Application.put_env(:be_votis_wallet, :turnkey, original_config)
       end
     end
-    
+
     test "handles signing failure gracefully" do
       # Set an invalid private key to trigger signing failure
       original_config = Application.get_env(:be_votis_wallet, :turnkey, [])
       new_config = Keyword.put(original_config, :api_private_key, "invalid-key")
       Application.put_env(:be_votis_wallet, :turnkey, new_config)
-      
+
       try do
         stub(Mock, :build_payload, fn _method, _url, _headers, body ->
           decoded_body = Jason.decode!(body)
-          
+
           # Verify that the request does NOT contain a stamp due to signing failure
           refute Map.has_key?(decoded_body, "stamp")
-          
+
           %{method: :post, url: "test", headers: [], body: body}
         end)
-        
+
         stub(Mock, :request, fn _payload ->
           {:ok, %{"activity" => %{"id" => "test"}}}
         end)
-        
+
         # Execute a function that will attempt request signing
         result = Activities.create_sub_organization("Test Org")
         # Should still succeed despite signing failure
         assert {:ok, _} = result
-        
       after
         # Restore original config
         Application.put_env(:be_votis_wallet, :turnkey, original_config)
       end
     end
-    
+
     test "uses X-Stamp-WebAuthn header for WebAuthn authentication" do
       # Simulate what a mobile client would do - create a client signature
       alias BeVotisWallet.Services.Turnkey.Crypto
       {_public_pem, private_pem} = Crypto.generate_api_keypair()
-      
+
       # Create a mock client signature (in reality, this would come from WebAuthn/hardware device)
       {:ok, client_signature} = Crypto.create_request_stamp("mock request body", private_pem)
-      
+
       stub(Mock, :build_payload, fn _method, _url, headers, body ->
         decoded_body = Jason.decode!(body)
-        
+
         # Verify that the request does NOT contain a stamp in the body
         refute Map.has_key?(decoded_body, "stamp")
-        
+
         # Verify that the X-Stamp-WebAuthn header is present (not X-Stamp)
         stamp_header = Enum.find(headers, fn {name, _value} -> name == "X-Stamp-WebAuthn" end)
         assert stamp_header != nil
         {"X-Stamp-WebAuthn", stamp_value} = stamp_header
         assert is_binary(stamp_value)
-        
+
         # Verify it's the client signature we provided
         assert stamp_value == client_signature
-        
+
         # Verify the stamp is valid base64
         assert {:ok, _} = Base.decode64(stamp_value)
-        
+
         # Verify X-Stamp header is NOT present
         x_stamp_header = Enum.find(headers, fn {name, _value} -> name == "X-Stamp" end)
         assert x_stamp_header == nil
-        
+
         %{method: :post, url: "test", headers: headers, body: body}
       end)
-      
+
       stub(Mock, :request, fn _payload ->
         {:ok, %{"activity" => %{"id" => "test"}}}
       end)
-      
+
       # Execute with WebAuthn auth type and client signature (as mobile would do)
-      result = Activities.create_sub_organization("Test Org", 
-        auth_type: :webauthn, 
-        client_signature: client_signature
-      )
+      result =
+        Activities.create_sub_organization("Test Org",
+          auth_type: :webauthn,
+          client_signature: client_signature
+        )
+
       assert {:ok, _} = result
     end
   end
