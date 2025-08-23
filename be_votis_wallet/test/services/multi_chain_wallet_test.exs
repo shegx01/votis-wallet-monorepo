@@ -4,8 +4,8 @@ defmodule BeVotisWallet.Services.MultiChainWalletTest do
   import Mox
 
   alias BeVotisWallet.Services.MultiChainWallet
+  alias BeVotisWallet.ChainConfig.Chain
   alias BeVotisWallet.HTTPClient.Mock
-  alias BeVotisWallet.BlockchainRegistry.Chain
 
   # Make sure mocks are verified when the test exits
   setup :verify_on_exit!
@@ -524,13 +524,16 @@ defmodule BeVotisWallet.Services.MultiChainWalletTest do
     } do
       # Register a custom chain
       custom_chain = %Chain{
+        chain_id: nil,
         name: "Polygon",
         symbol: "MATIC",
+        symbol_aliases: [],
         curve: "CURVE_SECP256K1",
         address_format: "ADDRESS_FORMAT_ETHEREUM",
         path: "m/44'/966'/0'/0/0",
         path_format: "PATH_FORMAT_BIP32",
-        slip44_coin_type: 966
+        slip44_coin_type: 966,
+        is_evm_compatible: true
       }
 
       Application.put_env(:be_votis_wallet, :custom_chains, %{polygon: custom_chain})
@@ -562,13 +565,16 @@ defmodule BeVotisWallet.Services.MultiChainWalletTest do
     } do
       # Register custom chain
       custom_chain = %Chain{
+        chain_id: nil,
         name: "Avalanche",
         symbol: "AVAX",
+        symbol_aliases: [],
         curve: "CURVE_SECP256K1",
         address_format: "ADDRESS_FORMAT_ETHEREUM",
         path: "m/44'/9000'/0'/0/0",
         path_format: "PATH_FORMAT_BIP32",
-        slip44_coin_type: 9000
+        slip44_coin_type: 9000,
+        is_evm_compatible: true
       }
 
       Application.put_env(:be_votis_wallet, :custom_chains, %{avalanche: custom_chain})

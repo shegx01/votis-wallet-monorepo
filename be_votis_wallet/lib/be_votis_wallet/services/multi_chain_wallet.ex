@@ -4,7 +4,7 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
 
   This service provides a high-level interface for wallet operations that abstracts away 
   blockchain-specific details like cryptographic curves and address formats. It builds on 
-  top of the Turnkey Activities service and uses the BlockchainRegistry to manage supported chains.
+  top of the Turnkey Activities service and uses the ChainConfig to manage supported chains.
 
   ## Features
 
@@ -59,15 +59,15 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
 
   require Logger
 
-  alias BeVotisWallet.BlockchainRegistry
-  alias BeVotisWallet.BlockchainRegistry.Chain
+  alias BeVotisWallet.ChainConfig
+  alias BeVotisWallet.ChainConfig.Chain
   alias BeVotisWallet.Services.Turnkey.Activities
 
   @type organization_id :: String.t()
   @type user_id :: String.t()
   @type wallet_id :: String.t()
   @type wallet_name :: String.t()
-  @type chain_identifier :: BlockchainRegistry.chain_identifier()
+  @type chain_identifier :: ChainConfig.chain_identifier()
   @type activity_result :: Activities.activity_result()
 
   @doc """
@@ -115,7 +115,7 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
       chain: chain
     )
 
-    case BlockchainRegistry.get(chain) do
+    case ChainConfig.get(chain) do
       {:ok, chain_config} ->
         account_spec = build_account_spec(chain_config)
 
@@ -301,7 +301,7 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
       chain: chain
     )
 
-    case BlockchainRegistry.get(chain) do
+    case ChainConfig.get(chain) do
       {:ok, chain_config} ->
         account_spec = build_account_spec(chain_config)
 
@@ -358,7 +358,7 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
   defp build_account_specs_for_chains(chains) do
     chains
     |> Enum.reduce_while({:ok, []}, fn chain, {:ok, acc} ->
-      case BlockchainRegistry.get(chain) do
+      case ChainConfig.get(chain) do
         {:ok, chain_config} ->
           account_spec = build_account_spec(chain_config)
           {:cont, {:ok, [account_spec | acc]}}

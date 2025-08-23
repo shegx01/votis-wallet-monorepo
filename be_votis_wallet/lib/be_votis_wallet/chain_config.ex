@@ -1,7 +1,7 @@
 defmodule BeVotisWallet.ChainConfig do
   @moduledoc """
   Centralized configuration for blockchain networks with support for EVM-compatible chains.
-  
+
   This module provides comprehensive chain configurations including chain IDs, SLIP-44 coin types,
   derivation paths, and automatic fallback to Ethereum configuration for EVM-compatible chains
   without registered SLIP-44 coin types.
@@ -19,7 +19,7 @@ defmodule BeVotisWallet.ChainConfig do
 
   ### Non-EVM Chains:
   These chains have registered SLIP-44 coin types and use their own unique derivation paths:
-  
+
   * **Bitcoin (BTC)** - SLIP-44: 0, Path: `m/44'/0'/0'/0/0`
   * **Solana (SOL)** - SLIP-44: 501, Path: `m/44'/501'/0'/0'`
   * **Tron (TRX)** - SLIP-44: 195, Path: `m/44'/195'/0'/0/0`
@@ -32,7 +32,7 @@ defmodule BeVotisWallet.ChainConfig do
 
   ### All EVM Chains Use:
   * **SLIP-44 coin type:** 60 (Ethereum's)
-  * **Derivation path:** `m/44'/60'/0'/0/0` 
+  * **Derivation path:** `m/44'/60'/0'/0/0`
   * **Curve:** `CURVE_SECP256K1`
   * **Address format:** `ADDRESS_FORMAT_ETHEREUM`
   * **Same address across all EVM chains:** ✅
@@ -73,7 +73,7 @@ defmodule BeVotisWallet.ChainConfig do
   ### Fallback EVM Chains:
   Any EVM-compatible chain not explicitly configured above will automatically use the same
   Ethereum derivation path. Examples:
-  
+
   * **Linea** (Chain ID: 59144)
   * **Mantle** (Chain ID: 5000)
   * **Scroll** (Chain ID: 534352)
@@ -90,14 +90,14 @@ defmodule BeVotisWallet.ChainConfig do
       # Get chain by chain_id (all EVM chains use same derivation path)
       iex> ChainConfig.get_by_chain_id(137)
       {:ok, %ChainConfig.Chain{name: "Polygon", path: "m/44'/60'/0'/0/0", ...}}
-      
-      iex> ChainConfig.get_by_chain_id(42161) 
+
+      iex> ChainConfig.get_by_chain_id(42161)
       {:ok, %ChainConfig.Chain{name: "Arbitrum One", path: "m/44'/60'/0'/0/0", ...}}
 
       # Get chain by symbol or alias
       iex> ChainConfig.get("POL")   # Primary symbol
       {:ok, %ChainConfig.Chain{name: "Polygon", symbol: "POL", ...}}
-      
+
       iex> ChainConfig.get("MATIC") # Alias - same chain, same address
       {:ok, %ChainConfig.Chain{name: "Polygon", symbol: "POL", ...}}
 
@@ -179,7 +179,7 @@ defmodule BeVotisWallet.ChainConfig do
 
   Supports lookup by:
   - Chain ID (integer): `1` for Ethereum, `137` for Polygon
-  - Symbol (string/atom): `"ETH"`, `:eth`, `"MATIC"`  
+  - Symbol (string/atom): `"ETH"`, `:eth`, `"MATIC"`
   - Name (string): `"Ethereum"`, `"Polygon"`
 
   ## Examples
@@ -187,7 +187,7 @@ defmodule BeVotisWallet.ChainConfig do
       iex> get(1)
       {:ok, %Chain{name: "Ethereum", chain_id: 1, ...}}
 
-      iex> get("MATIC") 
+      iex> get("MATIC")
       {:ok, %Chain{name: "Polygon", symbol: "MATIC", ...}}
 
       iex> get(:bitcoin)
@@ -222,7 +222,7 @@ defmodule BeVotisWallet.ChainConfig do
         cond do
           # Direct key match (e.g., "ethereum")
           Atom.to_string(key) == identifier_lower -> chain
-          # Symbol match (e.g., "ETH") 
+          # Symbol match (e.g., "ETH")
           String.downcase(chain.symbol) == identifier_lower -> chain
           # Symbol alias match (e.g., "MATIC" for Polygon)
           Enum.any?(chain.symbol_aliases, &(String.downcase(&1) == identifier_lower)) -> chain
@@ -367,19 +367,22 @@ defmodule BeVotisWallet.ChainConfig do
       iex> get_derivation_info(999999)
       {:fallback, "m/44'/60'/0'/0/0", "Uses Ethereum fallback derivation"}
   """
-  @spec get_derivation_info(non_neg_integer()) :: 
-    {:custom | :fallback, String.t(), String.t()}
+  @spec get_derivation_info(non_neg_integer()) ::
+          {:custom | :fallback, String.t(), String.t()}
   def get_derivation_info(chain_id) when is_integer(chain_id) do
     case Map.get(chain_id_mapping(), chain_id) do
       nil ->
         {:fallback, "m/44'/60'/0'/0/0", "Uses Ethereum fallback derivation"}
-        
+
       chain_key ->
         {:ok, chain} = get(chain_key)
-        reason = case chain.is_evm_compatible do
-          true -> "EVM chain with registered SLIP-44 coin type #{chain.slip44_coin_type}"
-          false -> "Non-EVM chain with registered SLIP-44 coin type #{chain.slip44_coin_type}"
-        end
+
+        reason =
+          case chain.is_evm_compatible do
+            true -> "EVM chain with registered SLIP-44 coin type #{chain.slip44_coin_type}"
+            false -> "Non-EVM chain with registered SLIP-44 coin type #{chain.slip44_coin_type}"
+          end
+
         {:custom, chain.path, reason}
     end
   end
@@ -414,10 +417,46 @@ defmodule BeVotisWallet.ChainConfig do
   @spec path_format() :: String.t()
   def path_format, do: @path_format
 
+  @doc """
+  Registers a new blockchain configuration at runtime.
+
+  This allows extending the registry with additional chains
+  beyond the built-in ones. Custom chains take precedence over built-in chains.
+
+  ## Examples
+
+      iex> chain = %Chain{
+      ...>   name: "Custom Polygon",
+      ...>   symbol: "MATIC",
+      ...>   curve: "CURVE_SECP256K1",
+      ...>   address_format: "ADDRESS_FORMAT_ETHEREUM",
+      ...>   path: "m/44'/966'/0'/0/0",
+      ...>   path_format: "PATH_FORMAT_BIP32",
+      ...>   slip44_coin_type: 966
+      ...> }
+      iex> register(:polygon, chain)
+      :ok
+
+      iex> get(:polygon)
+      {:ok, %Chain{name: "Custom Polygon", ...}}
+  """
+  @spec register(atom(), Chain.t()) :: :ok
+  def register(key, %Chain{} = chain) when is_atom(key) do
+    current_chains = get_custom_chains()
+    updated_chains = Map.put(current_chains, key, chain)
+    Application.put_env(:be_votis_wallet, :custom_chains, updated_chains)
+    :ok
+  end
+
   # Private functions
 
   defp all_chains do
-    built_in_chains()
+    # Custom chains take precedence over built-in chains
+    Map.merge(built_in_chains(), get_custom_chains())
+  end
+
+  defp get_custom_chains do
+    Application.get_env(:be_votis_wallet, :custom_chains, %{})
   end
 
   defp built_in_chains do
@@ -527,7 +566,8 @@ defmodule BeVotisWallet.ChainConfig do
         symbol: "APT",
         symbol_aliases: [],
         curve: "CURVE_ED25519",
-        address_format: "ADDRESS_FORMAT_SOLANA", # Aptos uses similar structure to Solana
+        # Aptos uses similar structure to Solana
+        address_format: "ADDRESS_FORMAT_SOLANA",
         path: "m/44'/637'/0'/0'",
         path_format: @path_format,
         slip44_coin_type: 637,
@@ -629,6 +669,142 @@ defmodule BeVotisWallet.ChainConfig do
         slip44_coin_type: 529,
         is_evm_compatible: false
       },
+      # Additional non-EVM chains from CoinGecko top 65
+      sui: %Chain{
+        chain_id: nil,
+        name: "Sui",
+        symbol: "SUI",
+        symbol_aliases: [],
+        curve: "CURVE_ED25519",
+        # Sui uses similar structure to Solana
+        address_format: "ADDRESS_FORMAT_SOLANA",
+        path: "m/44'/784'/0'/0'",
+        path_format: @path_format,
+        slip44_coin_type: 784,
+        is_evm_compatible: false
+      },
+      cardano: %Chain{
+        chain_id: nil,
+        name: "Cardano",
+        symbol: "ADA",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/1815'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 1815,
+        is_evm_compatible: false
+      },
+      near: %Chain{
+        chain_id: nil,
+        name: "Near Protocol",
+        symbol: "NEAR",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/397'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 397,
+        is_evm_compatible: false
+      },
+      ton: %Chain{
+        chain_id: nil,
+        name: "TON",
+        symbol: "TON",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/607'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 607,
+        is_evm_compatible: false
+      },
+      stellar: %Chain{
+        chain_id: nil,
+        name: "Stellar",
+        symbol: "XLM",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/148'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 148,
+        is_evm_compatible: false
+      },
+      starknet: %Chain{
+        chain_id: nil,
+        name: "StarkNet",
+        symbol: "STRK",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        # Uses Cairo VM, fallback to Ethereum path
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: false
+      },
+      stacks: %Chain{
+        chain_id: nil,
+        name: "Stacks",
+        symbol: "STX",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/5757'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 5757,
+        is_evm_compatible: false
+      },
+      xrp: %Chain{
+        chain_id: nil,
+        name: "XRP Ledger",
+        symbol: "XRP",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/144'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 144,
+        is_evm_compatible: false
+      },
+      osmosis: %Chain{
+        chain_id: nil,
+        name: "Osmosis",
+        symbol: "OSMO",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        # Uses Cosmos SDK
+        path: "m/44'/118'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 118,
+        is_evm_compatible: false
+      },
+      multiversx: %Chain{
+        chain_id: nil,
+        name: "MultiversX",
+        symbol: "EGLD",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/508'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 508,
+        is_evm_compatible: false
+      },
+      waves: %Chain{
+        chain_id: nil,
+        name: "Waves",
+        symbol: "WAVES",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/5741564'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 5_741_564,
+        is_evm_compatible: false
+      },
 
       # EVM-compatible chains - ALL USE ETHEREUM DERIVATION PATH FOR FUND ACCESSIBILITY
       ethereum: %Chain{
@@ -650,9 +826,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: ["MATIC"],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       arbitrum: %Chain{
@@ -662,9 +838,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       optimism: %Chain{
@@ -674,9 +850,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       bnb_smart_chain: %Chain{
@@ -686,9 +862,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       avalanche: %Chain{
@@ -698,9 +874,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       base: %Chain{
@@ -710,22 +886,22 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       # Additional major EVM chains from DeFiLlama top 100
       harmony: %Chain{
-        chain_id: 1666600000,
+        chain_id: 1_666_600_000,
         name: "Harmony",
         symbol: "ONE",
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       mantle: %Chain{
@@ -735,9 +911,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       celo: %Chain{
@@ -747,9 +923,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       sonic: %Chain{
@@ -759,9 +935,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       moonbeam: %Chain{
@@ -771,9 +947,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       fraxtal: %Chain{
@@ -783,21 +959,21 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       taiko: %Chain{
-        chain_id: 167000,
+        chain_id: 167_000,
         name: "Taiko",
         symbol: "ETH",
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       gnosis: %Chain{
@@ -807,9 +983,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: ["xDAI"],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       fantom: %Chain{
@@ -819,9 +995,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       zksync_era: %Chain{
@@ -831,9 +1007,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       linea: %Chain{
@@ -843,21 +1019,21 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       scroll: %Chain{
-        chain_id: 534352,
+        chain_id: 534_352,
         name: "Scroll",
         symbol: "ETH",
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       blast: %Chain{
@@ -867,9 +1043,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       polygon_zkevm: %Chain{
@@ -879,9 +1055,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       arbitrum_nova: %Chain{
@@ -891,9 +1067,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       cronos: %Chain{
@@ -903,9 +1079,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       manta: %Chain{
@@ -915,9 +1091,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       zircuit: %Chain{
@@ -927,9 +1103,9 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
         is_evm_compatible: true
       },
       klaytn: %Chain{
@@ -939,9 +1115,300 @@ defmodule BeVotisWallet.ChainConfig do
         symbol_aliases: [],
         curve: @evm_curve,
         address_format: @evm_address_format,
-        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path: "m/44'/60'/0'/0/0",
         path_format: @path_format,
-        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      # Additional EVM chains from CoinGecko top 65
+      unichain: %Chain{
+        chain_id: 1301,
+        name: "Unichain",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      katana: %Chain{
+        chain_id: 747_474,
+        name: "Katana",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      pulsechain: %Chain{
+        chain_id: 369,
+        name: "Pulsechain",
+        symbol: "PLS",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      berachain: %Chain{
+        chain_id: 80084,
+        name: "Berachain",
+        symbol: "BERA",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      core: %Chain{
+        chain_id: 1116,
+        name: "Core",
+        symbol: "CORE",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      rootstock: %Chain{
+        chain_id: 30,
+        name: "Rootstock RSK",
+        symbol: "RBTC",
+        symbol_aliases: ["RSK"],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      plume: %Chain{
+        chain_id: 98865,
+        name: "Plume Network",
+        symbol: "PLUME",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      bob: %Chain{
+        chain_id: 60808,
+        name: "Bob Network",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      hemi: %Chain{
+        chain_id: 43111,
+        name: "Hemi",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      flare: %Chain{
+        chain_id: 14,
+        name: "Flare Network",
+        symbol: "FLR",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      soneium: %Chain{
+        chain_id: 1868,
+        name: "Soneium",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      # Note: Kaia uses the same chain ID as Klaytn (8217) - they are the same network
+      # Additional remaining EVM chains from CoinGecko top 65
+      bouncebit: %Chain{
+        chain_id: 6001,
+        name: "BounceBit",
+        symbol: "BB",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      world_chain: %Chain{
+        chain_id: 480,
+        name: "World Chain",
+        symbol: "WLD",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      ronin: %Chain{
+        chain_id: 2020,
+        name: "Ronin",
+        symbol: "RON",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      abstract: %Chain{
+        chain_id: 11124,
+        name: "Abstract",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      merlin: %Chain{
+        chain_id: 4200,
+        name: "Merlin Chain",
+        symbol: "MERL",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      etherlink: %Chain{
+        chain_id: 42793,
+        name: "Etherlink",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      morph: %Chain{
+        chain_id: 2818,
+        name: "Morph L2",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      metis: %Chain{
+        chain_id: 1088,
+        name: "Metis Andromeda",
+        symbol: "METIS",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      filecoin: %Chain{
+        chain_id: 314,
+        name: "Filecoin",
+        symbol: "FIL",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      corn: %Chain{
+        chain_id: 21_000_000,
+        name: "Corn",
+        symbol: "CORN",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      story: %Chain{
+        chain_id: 1513,
+        name: "Story",
+        symbol: "STORY",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      rollux: %Chain{
+        chain_id: 570,
+        name: "Rollux",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
+        is_evm_compatible: true
+      },
+      swellchain: %Chain{
+        chain_id: 1923,
+        name: "Swellchain",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 60,
         is_evm_compatible: true
       }
     }
@@ -958,32 +1425,58 @@ defmodule BeVotisWallet.ChainConfig do
       56 => :bnb_smart_chain,
       43114 => :avalanche,
       8453 => :base,
-      
+
       # Non-EVM chains with chain IDs
       4689 => :iotex,
       295 => :hedera,
       747 => :flow,
-      
+
       # Additional major EVM chains from DeFiLlama top 100
-      1666600000 => :harmony,
+      1_666_600_000 => :harmony,
       5000 => :mantle,
       42220 => :celo,
       146 => :sonic,
       1284 => :moonbeam,
       252 => :fraxtal,
-      167000 => :taiko,
+      167_000 => :taiko,
       100 => :gnosis,
       250 => :fantom,
       324 => :zksync_era,
       59144 => :linea,
-      534352 => :scroll,
+      534_352 => :scroll,
       81457 => :blast,
       1101 => :polygon_zkevm,
       42170 => :arbitrum_nova,
       25 => :cronos,
       169 => :manta,
       48900 => :zircuit,
-      8217 => :klaytn
+      8217 => :klaytn,
+
+      # Additional EVM chains from CoinGecko top 65
+      1301 => :unichain,
+      747_474 => :katana,
+      369 => :pulsechain,
+      80084 => :berachain,
+      1116 => :core,
+      30 => :rootstock,
+      98865 => :plume,
+      60808 => :bob,
+      43111 => :hemi,
+      14 => :flare,
+      1868 => :soneium,
+      6001 => :bouncebit,
+      480 => :world_chain,
+      2020 => :ronin,
+      11124 => :abstract,
+      4200 => :merlin,
+      42793 => :etherlink,
+      2818 => :morph,
+      1088 => :metis,
+      314 => :filecoin,
+      21_000_000 => :corn,
+      1513 => :story,
+      570 => :rollux,
+      1923 => :swellchain
     }
   end
 
@@ -995,9 +1488,11 @@ defmodule BeVotisWallet.ChainConfig do
       symbol_aliases: [],
       curve: @evm_curve,
       address_format: @evm_address_format,
-      path: "m/44'/60'/0'/0/0", # Use Ethereum's derivation path
+      # Use Ethereum's derivation path
+      path: "m/44'/60'/0'/0/0",
       path_format: @path_format,
-      slip44_coin_type: 60, # Use Ethereum's SLIP-44 coin type
+      # Use Ethereum's SLIP-44 coin type
+      slip44_coin_type: 60,
       is_evm_compatible: true
     }
   end
