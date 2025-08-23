@@ -1,5 +1,5 @@
 defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   import Mox
 
@@ -30,9 +30,8 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         }
       }
 
-      # Set up mock expectation
-      Mock
-      |> expect(:build_payload, fn method, url, headers, body ->
+      # Set up mock stubs
+      stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
         assert String.contains?(url, "/public/v1/submit/activity")
         assert [{"Content-Type", "application/json"}, {"X-Turnkey-API-Key", _}] = headers
@@ -46,7 +45,8 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         # Return a mock request payload
         %{method: method, url: url, headers: headers, body: body}
       end)
-      |> expect(:request, fn _payload ->
+      
+      stub(Mock, :request, fn _payload ->
         {:ok, expected_response}
       end)
 
@@ -69,11 +69,11 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       org_name = "Test Organization"
       error_message = %{"message" => "Invalid organization name"}
 
-      Mock
-      |> expect(:build_payload, fn _, _, _, _ ->
+      stub(Mock, :build_payload, fn _, _, _, _ ->
         %{method: :post, url: "test", headers: [], body: ""}
       end)
-      |> expect(:request, fn _payload ->
+      
+      stub(Mock, :request, fn _payload ->
         {:error, 400, error_message}
       end)
 
@@ -86,15 +86,15 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       org_name = "Test Organization"
       opts = [root_quorum_threshold: 2, root_users: ["user1", "user2"]]
 
-      Mock
-      |> expect(:build_payload, fn _method, _url, _headers, body ->
+      stub(Mock, :build_payload, fn _method, _url, _headers, body ->
         decoded_body = Jason.decode!(body)
         assert decoded_body["parameters"]["rootQuorumThreshold"] == 2
         assert decoded_body["parameters"]["rootUsers"] == ["user1", "user2"]
 
         %{method: :post, url: "test", headers: [], body: body}
       end)
-      |> expect(:request, fn _payload ->
+      
+      stub(Mock, :request, fn _payload ->
         {:ok, %{"activity" => %{"id" => "test"}}}
       end)
 
@@ -120,8 +120,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         }
       }
 
-      Mock
-      |> expect(:build_payload, fn method, url, headers, body ->
+      stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
         assert String.contains?(url, "/public/v1/submit/activity")
 
@@ -133,7 +132,8 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
         %{method: method, url: url, headers: headers, body: body}
       end)
-      |> expect(:request, fn _payload ->
+      
+      stub(Mock, :request, fn _payload ->
         {:ok, expected_response}
       end)
 
@@ -170,8 +170,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         }
       }
 
-      Mock
-      |> expect(:build_payload, fn _method, _url, _headers, body ->
+      stub(Mock, :build_payload, fn _method, _url, _headers, body ->
         decoded_body = Jason.decode!(body)
         assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_WALLET"
         assert decoded_body["parameters"]["userId"] == user_id
@@ -180,7 +179,8 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
         %{method: :post, url: "test", headers: [], body: body}
       end)
-      |> expect(:request, fn _payload ->
+      
+      stub(Mock, :request, fn _payload ->
         {:ok, expected_response}
       end)
 
@@ -207,8 +207,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         }
       }
 
-      Mock
-      |> expect(:build_payload, fn _method, _url, _headers, body ->
+      stub(Mock, :build_payload, fn _method, _url, _headers, body ->
         decoded_body = Jason.decode!(body)
         assert decoded_body["type"] == "ACTIVITY_TYPE_SIGN_TRANSACTION_V2"
         assert decoded_body["parameters"]["signWith"] == sign_with
@@ -217,7 +216,8 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
         %{method: :post, url: "test", headers: [], body: body}
       end)
-      |> expect(:request, fn _payload ->
+      
+      stub(Mock, :request, fn _payload ->
         {:ok, expected_response}
       end)
 

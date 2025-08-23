@@ -42,26 +42,26 @@ config :phoenix, :json_library, Jason
 # HTTP Client configuration
 config :be_votis_wallet, :http_client, BeVotisWallet.HTTPClient.FinchClient
 
-# Turnkey service configuration
-config :be_votis_wallet, :turnkey,
-  base_url: "https://api.turnkey.com",
-  api_key: {:system, "TURNKEY_API_KEY"},
-  api_secret: {:system, "TURNKEY_API_SECRET"},
-  organization_id: {:system, "TURNKEY_ORG_ID"}
+# Turnkey service configuration is now in config/runtime.exs
+# This allows for proper environment variable handling at runtime
 
 # Custom blockchain configurations
-# Add support for additional chains beyond the built-in ones (Bitcoin, Ethereum, Solana, Tron)
-# Each chain should follow the BeVotisWallet.BlockchainRegistry.Chain struct format
+# Add support for additional chains beyond the 78+ built-in ones
+# Each chain should follow the BeVotisWallet.ChainConfig.Chain struct format
+# Custom chains take precedence over built-in chains with the same key
 # Example:
 # config :be_votis_wallet, :custom_chains, %{
-#   polygon: %BeVotisWallet.BlockchainRegistry.Chain{
-#     name: "Polygon",
-#     symbol: "MATIC",
+#   my_custom_chain: %BeVotisWallet.ChainConfig.Chain{
+#     chain_id: nil,
+#     name: "My Custom Chain",
+#     symbol: "MCC",
+#     symbol_aliases: [],
 #     curve: "CURVE_SECP256K1",
 #     address_format: "ADDRESS_FORMAT_ETHEREUM",
-#     path: "m/44'/966'/0'/0/0",
+#     path: "m/44'/9999'/0'/0/0",
 #     path_format: "PATH_FORMAT_BIP32",
-#     slip44_coin_type: 966
+#     slip44_coin_type: 9999,
+#     is_evm_compatible: true
 #   }
 # }
 config :be_votis_wallet, :custom_chains, %{}

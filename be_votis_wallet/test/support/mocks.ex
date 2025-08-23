@@ -12,8 +12,7 @@ defmodule BeVotisWallet.Test.Mocks do
   defmock(BeVotisWallet.HTTPClient.Mock, for: BeVotisWallet.HTTPClient.Behaviour)
 
   def setup_mocks do
-    # Allow mock to be used across multiple processes
-    Mox.set_mox_from_context(BeVotisWallet.HTTPClient.Mock)
+    # Setup mocks without global mode - each test process owns its own mock
     :ok
   end
 end

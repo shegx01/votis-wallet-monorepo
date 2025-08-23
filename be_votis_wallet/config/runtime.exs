@@ -117,3 +117,69 @@ if config_env() == :prod do
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 end
+
+# Turnkey service runtime configuration
+# These environment variables are required for production
+if config_env() == :prod do
+  turnkey_api_key =
+    System.get_env("TURNKEY_API_KEY") ||
+      raise """
+      environment variable TURNKEY_API_KEY is missing.
+      This is required for Turnkey API authentication.
+      """
+
+  turnkey_api_secret =
+    System.get_env("TURNKEY_API_SECRET") ||
+      raise """
+      environment variable TURNKEY_API_SECRET is missing.
+      This is required for Turnkey API authentication.
+      """
+
+  turnkey_org_id =
+    System.get_env("TURNKEY_ORG_ID") ||
+      raise """
+      environment variable TURNKEY_ORG_ID is missing.
+      This is your Turnkey organization identifier.
+      """
+
+  config :be_votis_wallet, :turnkey,
+    base_url: System.get_env("TURNKEY_BASE_URL") || "https://api.turnkey.com",
+    api_key: turnkey_api_key,
+    api_secret: turnkey_api_secret,
+    organization_id: turnkey_org_id
+end
+
+# For development environment, allow environment variable override
+if config_env() == :dev do
+  # Only override if environment variables are actually set
+  # This allows development with environment variables without breaking defaults
+  dev_config = %{}
+  
+  dev_config = if base_url = System.get_env("TURNKEY_BASE_URL") do
+    Map.put(dev_config, :base_url, base_url)
+  else
+    Map.put(dev_config, :base_url, "https://api.turnkey.com")
+  end
+  
+  dev_config = if api_key = System.get_env("TURNKEY_API_KEY") do
+    Map.put(dev_config, :api_key, api_key)
+  else
+    dev_config
+  end
+  
+  dev_config = if api_secret = System.get_env("TURNKEY_API_SECRET") do
+    Map.put(dev_config, :api_secret, api_secret)
+  else
+    dev_config
+  end
+  
+  dev_config = if org_id = System.get_env("TURNKEY_ORG_ID") do
+    Map.put(dev_config, :organization_id, org_id)
+  else
+    dev_config
+  end
+  
+  if not Enum.empty?(dev_config) do
+    config :be_votis_wallet, :turnkey, dev_config
+  end
+end
