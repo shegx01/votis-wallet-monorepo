@@ -1,10 +1,10 @@
 defmodule BeVotisWallet.Services.Turnkey.Activities do
   @moduledoc """
   Turnkey Activities API service for state-changing operations.
-  
+
   This module handles all Turnkey activity operations that modify state,
   such as creating organizations, users, wallets, and signing transactions.
-  
+
   Activities require more customization for authentication, signing,
   and request formatting compared to simple query operations.
   """
@@ -28,38 +28,38 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
 
   @doc """
   Create a sub-organization under the main Turnkey organization.
-  
+
   ## Parameters
   - `name` - Human-readable name for the sub-organization
   - `opts` - Additional options (e.g., `:root_users`, `:root_quorum_threshold`)
-  
+
   ## Returns
   - `{:ok, response}` - Success with organization data including `organizationId`
   - `{:error, status_code, error_message}` - Failure response
-  
+
   ## Example
       {:ok, %{"activity" => %{"result" => %{"createSubOrganizationResult" => %{"organizationId" => org_id}}}}}
   """
   def create_sub_organization(name, opts \\ []) do
-    activity_params = 
+    activity_params =
       %{
         "subOrganizationName" => name,
         "rootUsers" => Keyword.get(opts, :root_users, []),
         "rootQuorumThreshold" => Keyword.get(opts, :root_quorum_threshold, 1)
       }
-    
+
     execute_activity("ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION", activity_params)
   end
 
   @doc """
   Create a user within a Turnkey organization.
-  
+
   ## Parameters
   - `organization_id` - Target organization UUID
   - `user_name` - Unique username within the organization
   - `user_email` - User email address
   - `opts` - Additional options (e.g., `:api_keys`, `:authenticators`)
-  
+
   ## Returns
   - `{:ok, response}` - Success with user data including `userId`
   - `{:error, status_code, error_message}` - Failure response
@@ -71,23 +71,23 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       "apiKeys" => Keyword.get(opts, :api_keys, []),
       "authenticators" => Keyword.get(opts, :authenticators, [])
     }
-    
+
     execute_activity("ACTIVITY_TYPE_CREATE_USERS", activity_params, organization_id)
   end
 
   @doc """
   Create a wallet for a user with specified accounts.
-  
+
   ## Parameters
   - `organization_id` - Organization UUID
   - `user_id` - User UUID who will own the wallet
   - `wallet_name` - Name for the wallet
   - `accounts` - List of account specifications with curve and path info
-  
+
   ## Returns
   - `{:ok, response}` - Success with wallet data including `walletId`
   - `{:error, status_code, error_message}` - Failure response
-  
+
   ## Example accounts parameter
       [%{
         "curve" => "CURVE_SECP256K1",
@@ -102,18 +102,18 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       "walletName" => wallet_name,
       "accounts" => accounts
     }
-    
+
     execute_activity("ACTIVITY_TYPE_CREATE_WALLET", activity_params, organization_id)
   end
 
   @doc """
   Create an account within an existing wallet.
-  
+
   ## Parameters
   - `organization_id` - Organization UUID
   - `wallet_id` - Target wallet UUID
   - `account_spec` - Account specification with curve, path, and address format
-  
+
   ## Returns
   - `{:ok, response}` - Success with account data
   - `{:error, status_code, error_message}` - Failure response
@@ -123,19 +123,19 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       "walletId" => wallet_id,
       "accounts" => [account_spec]
     }
-    
+
     execute_activity("ACTIVITY_TYPE_CREATE_WALLET_ACCOUNTS", activity_params, organization_id)
   end
 
   @doc """
   Sign a transaction using a Turnkey wallet account.
-  
+
   ## Parameters
   - `organization_id` - Organization UUID
   - `sign_with` - Signing specification (private key ID or path)
   - `unsigned_transaction` - Transaction data to sign
   - `opts` - Additional signing options
-  
+
   ## Returns
   - `{:ok, response}` - Success with signed transaction
   - `{:error, status_code, error_message}` - Failure response
@@ -146,7 +146,7 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       "unsignedTransaction" => unsigned_transaction,
       "type" => Keyword.get(opts, :transaction_type, "TRANSACTION_TYPE_ETHEREUM")
     }
-    
+
     execute_activity("ACTIVITY_TYPE_SIGN_TRANSACTION_V2", activity_params, organization_id)
   end
 
@@ -154,34 +154,36 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
 
   defp execute_activity(activity_type, params, organization_id \\ nil) do
     org_id = organization_id || get_default_organization_id()
-    
+
     activity_body = build_activity_request(activity_type, params, org_id)
-    
+
     # Sign the request if API secret is configured
     signed_body = maybe_sign_request(activity_body)
-    
+
     url = build_activities_url("/public/v1/submit/activity")
     headers = build_activities_headers()
     json_body = Jason.encode!(signed_body)
-    
+
     payload = http_client().build_payload(:post, url, headers, json_body)
-    
+
     case http_client().request(payload) do
       {:ok, data} ->
-        Logger.info("Successfully executed Turnkey activity", 
-          type: activity_type, 
+        Logger.info("Successfully executed Turnkey activity",
+          type: activity_type,
           organization_id: org_id,
           activity_id: get_in(data, ["activity", "id"])
         )
+
         {:ok, data}
-      
+
       {:error, status_code, error_message} ->
-        Logger.error("Failed to execute Turnkey activity", 
-          type: activity_type, 
+        Logger.error("Failed to execute Turnkey activity",
+          type: activity_type,
           organization_id: org_id,
-          status_code: status_code, 
+          status_code: status_code,
           error: inspect(error_message)
         )
+
         {:error, status_code, error_message}
     end
   end
@@ -209,7 +211,7 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
 
   defp build_activities_headers do
     api_key = get_config(:api_key)
-    
+
     [
       {"Content-Type", "application/json"},
       {"X-Turnkey-API-Key", api_key}

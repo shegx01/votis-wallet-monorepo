@@ -1,11 +1,11 @@
 defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
   use ExUnit.Case, async: true
-  
+
   import Mox
-  
+
   alias BeVotisWallet.Services.Turnkey.Queries
   alias BeVotisWallet.HTTPClient.Mock
-  
+
   # Make sure mocks are verified when the test exits
   setup :verify_on_exit!
 
@@ -29,10 +29,10 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
         assert method == :post
         assert String.contains?(url, "/public/v1/query/get_organization")
         assert [{"Content-Type", "application/json"}, {"X-Turnkey-API-Key", _}] = headers
-        
+
         decoded_body = Jason.decode!(body)
         assert decoded_body["organizationId"]
-        
+
         %{method: method, url: url, headers: headers, body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -47,12 +47,12 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
 
     test "successfully gets organization with specific org ID" do
       org_id = "custom_org_456"
-      
+
       Mock
       |> expect(:build_payload, fn _method, _url, _headers, body ->
         decoded_body = Jason.decode!(body)
         assert decoded_body["organizationId"] == org_id
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -69,7 +69,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
     test "successfully gets user information" do
       org_id = "org_123"
       user_id = "user_456"
-      
+
       expected_response = %{
         "user" => %{
           "userId" => user_id,
@@ -82,11 +82,11 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
       |> expect(:build_payload, fn method, url, headers, body ->
         assert method == :post
         assert String.contains?(url, "/public/v1/query/get_user")
-        
+
         decoded_body = Jason.decode!(body)
         assert decoded_body["organizationId"] == org_id
         assert decoded_body["userId"] == user_id
-        
+
         %{method: method, url: url, headers: headers, body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -103,7 +103,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
   describe "list_users/2" do
     test "successfully lists users without pagination" do
       org_id = "org_123"
-      
+
       expected_response = %{
         "users" => [
           %{"userId" => "user_1", "userName" => "user1"},
@@ -118,7 +118,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
         # Should not have pagination params when none provided
         assert Map.get(decoded_body, "limit") == nil
         assert Map.get(decoded_body, "paginationToken") == nil
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -141,7 +141,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
         assert decoded_body["organizationId"] == org_id
         assert decoded_body["limit"] == 10
         assert decoded_body["paginationToken"] == "token_abc"
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -158,7 +158,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
     test "successfully gets wallet information" do
       org_id = "org_123"
       wallet_id = "wallet_456"
-      
+
       expected_response = %{
         "wallet" => %{
           "walletId" => wallet_id,
@@ -177,11 +177,11 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
       |> expect(:build_payload, fn method, url, headers, body ->
         assert method == :post
         assert String.contains?(url, "/public/v1/query/get_wallet")
-        
+
         decoded_body = Jason.decode!(body)
         assert decoded_body["organizationId"] == org_id
         assert decoded_body["walletId"] == wallet_id
-        
+
         %{method: method, url: url, headers: headers, body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -204,7 +204,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
         decoded_body = Jason.decode!(body)
         assert decoded_body["organizationId"] == org_id
         assert Map.get(decoded_body, "userId") == nil
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -227,7 +227,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
         assert decoded_body["organizationId"] == org_id
         assert decoded_body["userId"] == user_id
         assert decoded_body["limit"] == 5
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -244,7 +244,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
     test "successfully gets activity information" do
       org_id = "org_123"
       activity_id = "activity_456"
-      
+
       expected_response = %{
         "activity" => %{
           "id" => activity_id,
@@ -262,11 +262,11 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
       |> expect(:build_payload, fn method, url, headers, body ->
         assert method == :post
         assert String.contains?(url, "/public/v1/query/get_activity")
-        
+
         decoded_body = Jason.decode!(body)
         assert decoded_body["organizationId"] == org_id
         assert decoded_body["activityId"] == activity_id
-        
+
         %{method: method, url: url, headers: headers, body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -289,7 +289,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
         decoded_body = Jason.decode!(body)
         assert decoded_body["organizationId"] == org_id
         assert Map.get(decoded_body, "activityType") == nil
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -311,7 +311,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
         assert decoded_body["organizationId"] == org_id
         assert decoded_body["activityType"] == "ACTIVITY_TYPE_CREATE_WALLET"
         assert decoded_body["limit"] == 20
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -328,7 +328,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
     test "successfully gets wallet accounts" do
       org_id = "org_123"
       wallet_id = "wallet_456"
-      
+
       expected_response = %{
         "accounts" => [
           %{
@@ -348,11 +348,11 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
       |> expect(:build_payload, fn method, url, headers, body ->
         assert method == :post
         assert String.contains?(url, "/public/v1/query/get_wallet_accounts")
-        
+
         decoded_body = Jason.decode!(body)
         assert decoded_body["organizationId"] == org_id
         assert decoded_body["walletId"] == wallet_id
-        
+
         %{method: method, url: url, headers: headers, body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -386,7 +386,7 @@ defmodule BeVotisWallet.Services.Turnkey.QueriesTest do
 
     test "handles network errors" do
       org_id = "org_123"
-      
+
       Mock
       |> expect(:build_payload, fn _, _, _, _ ->
         %{method: :post, url: "test", headers: [], body: ""}

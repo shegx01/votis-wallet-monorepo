@@ -1,11 +1,11 @@
 defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
   use ExUnit.Case, async: true
-  
+
   import Mox
-  
+
   alias BeVotisWallet.Services.Turnkey.Activities
   alias BeVotisWallet.HTTPClient.Mock
-  
+
   # Make sure mocks are verified when the test exits
   setup :verify_on_exit!
 
@@ -17,6 +17,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
   describe "create_sub_organization/2" do
     test "successfully creates a sub-organization" do
       org_name = "Test Organization"
+
       expected_response = %{
         "activity" => %{
           "id" => "activity_123",
@@ -35,13 +36,13 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         assert method == :post
         assert String.contains?(url, "/public/v1/submit/activity")
         assert [{"Content-Type", "application/json"}, {"X-Turnkey-API-Key", _}] = headers
-        
+
         decoded_body = Jason.decode!(body)
         assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION"
         assert decoded_body["parameters"]["subOrganizationName"] == org_name
         assert decoded_body["organizationId"]
         assert decoded_body["timestampMs"]
-        
+
         # Return a mock request payload
         %{method: method, url: url, headers: headers, body: body}
       end)
@@ -55,7 +56,13 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       # Verify result
       assert {:ok, response} = result
       assert response == expected_response
-      assert get_in(response, ["activity", "result", "createSubOrganizationResult", "organizationId"]) == "org_456"
+
+      assert get_in(response, [
+               "activity",
+               "result",
+               "createSubOrganizationResult",
+               "organizationId"
+             ]) == "org_456"
     end
 
     test "handles API error response" do
@@ -84,7 +91,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         decoded_body = Jason.decode!(body)
         assert decoded_body["parameters"]["rootQuorumThreshold"] == 2
         assert decoded_body["parameters"]["rootUsers"] == ["user1", "user2"]
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -100,7 +107,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       org_id = "org_123"
       user_name = "testuser"
       user_email = "test@example.com"
-      
+
       expected_response = %{
         "activity" => %{
           "id" => "activity_456",
@@ -117,13 +124,13 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       |> expect(:build_payload, fn method, url, headers, body ->
         assert method == :post
         assert String.contains?(url, "/public/v1/submit/activity")
-        
+
         decoded_body = Jason.decode!(body)
         assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_USERS"
         assert decoded_body["organizationId"] == org_id
         assert decoded_body["parameters"]["userName"] == user_name
         assert decoded_body["parameters"]["userEmail"] == user_email
-        
+
         %{method: method, url: url, headers: headers, body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -142,13 +149,16 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       org_id = "org_123"
       user_id = "user_456"
       wallet_name = "Test Wallet"
-      accounts = [%{
-        "curve" => "CURVE_SECP256K1",
-        "pathFormat" => "PATH_FORMAT_BIP32",
-        "path" => "m/44'/60'/0'/0/0",
-        "addressFormat" => "ADDRESS_FORMAT_ETHEREUM"
-      }]
-      
+
+      accounts = [
+        %{
+          "curve" => "CURVE_SECP256K1",
+          "pathFormat" => "PATH_FORMAT_BIP32",
+          "path" => "m/44'/60'/0'/0/0",
+          "addressFormat" => "ADDRESS_FORMAT_ETHEREUM"
+        }
+      ]
+
       expected_response = %{
         "activity" => %{
           "id" => "activity_789",
@@ -167,7 +177,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         assert decoded_body["parameters"]["userId"] == user_id
         assert decoded_body["parameters"]["walletName"] == wallet_name
         assert decoded_body["parameters"]["accounts"] == accounts
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -186,7 +196,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       org_id = "org_123"
       sign_with = "private_key_456"
       unsigned_tx = "0x123456789abcdef"
-      
+
       expected_response = %{
         "activity" => %{
           "result" => %{
@@ -204,7 +214,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         assert decoded_body["parameters"]["signWith"] == sign_with
         assert decoded_body["parameters"]["unsignedTransaction"] == unsigned_tx
         assert decoded_body["parameters"]["type"] == "TRANSACTION_TYPE_ETHEREUM"
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -227,7 +237,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       |> expect(:build_payload, fn _method, _url, _headers, body ->
         decoded_body = Jason.decode!(body)
         assert decoded_body["parameters"]["type"] == "TRANSACTION_TYPE_BITCOIN"
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->
@@ -242,13 +252,13 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
     test "uses configured organization ID when none provided" do
       # This would test the private get_default_organization_id function
       # by calling a function that uses it
-      
+
       Mock
       |> expect(:build_payload, fn _method, _url, _headers, body ->
         decoded_body = Jason.decode!(body)
         # Should use the configured org ID from test config
         assert is_binary(decoded_body["organizationId"])
-        
+
         %{method: :post, url: "test", headers: [], body: body}
       end)
       |> expect(:request, fn _payload ->

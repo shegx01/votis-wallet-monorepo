@@ -212,6 +212,7 @@ defmodule BeVotisWallet.Services.Turnkey.Queries do
           url: url,
           params: Map.keys(query_params)
         )
+
         {:ok, data}
 
       {:error, status_code, error_message} ->
@@ -220,6 +221,7 @@ defmodule BeVotisWallet.Services.Turnkey.Queries do
           status_code: status_code,
           error: inspect(error_message)
         )
+
         {:error, status_code, error_message}
     end
   end
