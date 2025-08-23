@@ -38,13 +38,37 @@ defmodule BeVotisWallet.ChainConfig do
   * **Same address across all EVM chains:** ✅
 
   ### Configured EVM Chains:
+  **Major Layer 1s:**
   * **Ethereum (ETH)** - Chain ID: 1
-  * **Polygon (POL/MATIC)** - Chain ID: 137
-  * **Arbitrum One (ARB)** - Chain ID: 42161
-  * **Optimism (OP)** - Chain ID: 10
   * **BNB Smart Chain (BNB)** - Chain ID: 56
   * **Avalanche C-Chain (AVAX)** - Chain ID: 43114
+  * **Fantom (FTM)** - Chain ID: 250
+  * **Harmony (ONE)** - Chain ID: 1666600000
+  * **Cronos (CRO)** - Chain ID: 25
+  * **Klaytn (KLAY)** - Chain ID: 8217
+  * **Celo (CELO)** - Chain ID: 42220
+
+  **Layer 2s & Rollups:**
+  * **Polygon (POL/MATIC)** - Chain ID: 137
+  * **Arbitrum One (ARB)** - Chain ID: 42161
+  * **Arbitrum Nova (ETH)** - Chain ID: 42170
+  * **Optimism (OP)** - Chain ID: 10
   * **Base (BASE)** - Chain ID: 8453
+  * **Polygon zkEVM (ETH)** - Chain ID: 1101
+  * **zkSync Era (ZK)** - Chain ID: 324
+  * **Linea (ETH)** - Chain ID: 59144
+  * **Scroll (ETH)** - Chain ID: 534352
+  * **Blast (ETH)** - Chain ID: 81457
+  * **Taiko (ETH)** - Chain ID: 167000
+  * **Manta (MANTA)** - Chain ID: 169
+  * **Zircuit (ZRC)** - Chain ID: 48900
+  * **Mantle (MNT)** - Chain ID: 5000
+  * **Sonic (S)** - Chain ID: 146
+
+  **Alternative & Specialized:**
+  * **Gnosis (GNO/xDAI)** - Chain ID: 100
+  * **Moonbeam (GLMR)** - Chain ID: 1284
+  * **Fraxtal (FXTL)** - Chain ID: 252
 
   ### Fallback EVM Chains:
   Any EVM-compatible chain not explicitly configured above will automatically use the same
@@ -436,6 +460,176 @@ defmodule BeVotisWallet.ChainConfig do
         is_evm_compatible: false
       },
 
+      # Non-EVM chains with unique derivation paths
+      kava: %Chain{
+        chain_id: nil,
+        name: "Kava",
+        symbol: "KAVA",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/459'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 459,
+        is_evm_compatible: false
+      },
+      litecoin: %Chain{
+        chain_id: nil,
+        name: "Litecoin",
+        symbol: "LTC",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_BITCOIN_MAINNET_P2WPKH",
+        path: "m/44'/2'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 2,
+        is_evm_compatible: false
+      },
+      dogecoin: %Chain{
+        chain_id: nil,
+        name: "Dogecoin",
+        symbol: "DOGE",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_BITCOIN_MAINNET_P2WPKH",
+        path: "m/44'/3'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 3,
+        is_evm_compatible: false
+      },
+      iotex: %Chain{
+        chain_id: 4689,
+        name: "IoTeX",
+        symbol: "IOTX",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/304'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 304,
+        is_evm_compatible: false
+      },
+      terra: %Chain{
+        chain_id: nil,
+        name: "Terra",
+        symbol: "LUNC",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/330'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 330,
+        is_evm_compatible: false
+      },
+      aptos: %Chain{
+        chain_id: nil,
+        name: "Aptos",
+        symbol: "APT",
+        symbol_aliases: [],
+        curve: "CURVE_ED25519",
+        address_format: "ADDRESS_FORMAT_SOLANA", # Aptos uses similar structure to Solana
+        path: "m/44'/637'/0'/0'",
+        path_format: @path_format,
+        slip44_coin_type: 637,
+        is_evm_compatible: false
+      },
+      hedera: %Chain{
+        chain_id: 295,
+        name: "Hedera",
+        symbol: "HBAR",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/3030'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 3030,
+        is_evm_compatible: false
+      },
+      cosmos: %Chain{
+        chain_id: nil,
+        name: "Cosmos",
+        symbol: "ATOM",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/118'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 118,
+        is_evm_compatible: false
+      },
+      kusama: %Chain{
+        chain_id: nil,
+        name: "Kusama",
+        symbol: "KSM",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/434'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 434,
+        is_evm_compatible: false
+      },
+      polkadot: %Chain{
+        chain_id: nil,
+        name: "Polkadot",
+        symbol: "DOT",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/354'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 354,
+        is_evm_compatible: false
+      },
+      flow: %Chain{
+        chain_id: 747,
+        name: "Flow",
+        symbol: "FLOW",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_FLOW",
+        path: "m/44'/539'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 539,
+        is_evm_compatible: false
+      },
+      zilliqa: %Chain{
+        chain_id: nil,
+        name: "Zilliqa",
+        symbol: "ZIL",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/313'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 313,
+        is_evm_compatible: false
+      },
+      neo: %Chain{
+        chain_id: nil,
+        name: "NEO",
+        symbol: "NEO",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/888'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 888,
+        is_evm_compatible: false
+      },
+      secret: %Chain{
+        chain_id: nil,
+        name: "Secret",
+        symbol: "SCRT",
+        symbol_aliases: [],
+        curve: "CURVE_SECP256K1",
+        address_format: "ADDRESS_FORMAT_ETHEREUM",
+        path: "m/44'/529'/0'/0/0",
+        path_format: @path_format,
+        slip44_coin_type: 529,
+        is_evm_compatible: false
+      },
+
       # EVM-compatible chains - ALL USE ETHEREUM DERIVATION PATH FOR FUND ACCESSIBILITY
       ethereum: %Chain{
         chain_id: 1,
@@ -520,6 +714,235 @@ defmodule BeVotisWallet.ChainConfig do
         path_format: @path_format,
         slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
         is_evm_compatible: true
+      },
+      # Additional major EVM chains from DeFiLlama top 100
+      harmony: %Chain{
+        chain_id: 1666600000,
+        name: "Harmony",
+        symbol: "ONE",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      mantle: %Chain{
+        chain_id: 5000,
+        name: "Mantle",
+        symbol: "MNT",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      celo: %Chain{
+        chain_id: 42220,
+        name: "Celo",
+        symbol: "CELO",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      sonic: %Chain{
+        chain_id: 146,
+        name: "Sonic",
+        symbol: "S",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      moonbeam: %Chain{
+        chain_id: 1284,
+        name: "Moonbeam",
+        symbol: "GLMR",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      fraxtal: %Chain{
+        chain_id: 252,
+        name: "Fraxtal",
+        symbol: "FXTL",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      taiko: %Chain{
+        chain_id: 167000,
+        name: "Taiko",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      gnosis: %Chain{
+        chain_id: 100,
+        name: "Gnosis",
+        symbol: "GNO",
+        symbol_aliases: ["xDAI"],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      fantom: %Chain{
+        chain_id: 250,
+        name: "Fantom",
+        symbol: "FTM",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      zksync_era: %Chain{
+        chain_id: 324,
+        name: "zkSync Era",
+        symbol: "ZK",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      linea: %Chain{
+        chain_id: 59144,
+        name: "Linea",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      scroll: %Chain{
+        chain_id: 534352,
+        name: "Scroll",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      blast: %Chain{
+        chain_id: 81457,
+        name: "Blast",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      polygon_zkevm: %Chain{
+        chain_id: 1101,
+        name: "Polygon zkEVM",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      arbitrum_nova: %Chain{
+        chain_id: 42170,
+        name: "Arbitrum Nova",
+        symbol: "ETH",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      cronos: %Chain{
+        chain_id: 25,
+        name: "Cronos",
+        symbol: "CRO",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      manta: %Chain{
+        chain_id: 169,
+        name: "Manta",
+        symbol: "MANTA",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      zircuit: %Chain{
+        chain_id: 48900,
+        name: "Zircuit",
+        symbol: "ZRC",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
+      },
+      klaytn: %Chain{
+        chain_id: 8217,
+        name: "Klaytn",
+        symbol: "KLAY",
+        symbol_aliases: [],
+        curve: @evm_curve,
+        address_format: @evm_address_format,
+        path: "m/44'/60'/0'/0/0",  # Same as Ethereum for fund accessibility
+        path_format: @path_format,
+        slip44_coin_type: 60,        # Same as Ethereum for fund accessibility
+        is_evm_compatible: true
       }
     }
   end
@@ -527,13 +950,40 @@ defmodule BeVotisWallet.ChainConfig do
   # Mapping of chain IDs to chain keys
   defp chain_id_mapping do
     %{
+      # Original chains
       1 => :ethereum,
       137 => :polygon,
       42161 => :arbitrum,
       10 => :optimism,
       56 => :bnb_smart_chain,
       43114 => :avalanche,
-      8453 => :base
+      8453 => :base,
+      
+      # Non-EVM chains with chain IDs
+      4689 => :iotex,
+      295 => :hedera,
+      747 => :flow,
+      
+      # Additional major EVM chains from DeFiLlama top 100
+      1666600000 => :harmony,
+      5000 => :mantle,
+      42220 => :celo,
+      146 => :sonic,
+      1284 => :moonbeam,
+      252 => :fraxtal,
+      167000 => :taiko,
+      100 => :gnosis,
+      250 => :fantom,
+      324 => :zksync_era,
+      59144 => :linea,
+      534352 => :scroll,
+      81457 => :blast,
+      1101 => :polygon_zkevm,
+      42170 => :arbitrum_nova,
+      25 => :cronos,
+      169 => :manta,
+      48900 => :zircuit,
+      8217 => :klaytn
     }
   end
 
