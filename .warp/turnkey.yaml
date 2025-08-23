@@ -1,0 +1,113 @@
+# Warp rules for Turnkey integration
+version: 1
+name: Turnkey Wallet Infrastructure
+
+description: |
+  This workspace uses Turnkey (https://docs.turnkey.com/) as the underlying wallet infrastructure.
+  Turnkey exposes two public API surfaces:
+    • Activities API – state-changing actions (create wallets, sign transactions, etc.)
+    • Query API      – read-only data access (get balances, list activities, etc.)
+
+  The backend service (be_votis_wallet) orchestrates these endpoints to register sub-organizations,
+  create users/wallets/accounts, and persist relevant identifiers in Postgres for analytics
+  and future access by mobile or browser extensions.
+
+  All Turnkey calls must be wrapped in the `TurnkeyAdapter` behaviour so we can inject a mock
+  implementation with the Mox library during tests.
+
+  ──────────────────────────────────────────────────────────────────────────────
+  Typical workflow
+  ──────────────────────────────────────────────────────────────────────────────
+  1. CreateSubOrganization  → activities.create_sub_organization
+  2. CreateUser             → activities.create_user
+  3. CreateWallet           → activities.create_wallet
+  4. CreateAccount          → activities.create_account
+  5. Persist identifiers    → Ecto schemas `Organization`, `User`, `Wallet`, `Account`
+  6. Serve read endpoints   → Phoenix controllers under /api/turnkey/*
+
+  You can run the examples below directly in Warp once you have exported the required
+  environment variables. All secrets are placeholders – never commit real keys.
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Environment variables
+# ──────────────────────────────────────────────────────────────────────────────
+# Add these to your local shell profile or `.env` (not committed).
+# Example (bash/zsh):   export TURNKEY_API_KEY="..."
+env:
+  TURNKEY_BASE_URL: "https://api.turnkey.com"
+  TURNKEY_API_KEY: "${TURNKEY_API_KEY}"
+  TURNKEY_API_SECRET: "${TURNKEY_API_SECRET}"
+  TURNKEY_ORG_ID: "${TURNKEY_ORG_ID}"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Commands
+# ──────────────────────────────────────────────────────────────────────────────
+commands:
+  create_sub_org:
+    description: "Register a new sub-organization under the root Turnkey organization."
+    tags: [turnkey, activities]
+    arguments:
+      - name: name
+        description: "Human-readable name for the sub-organization."
+    run: |
+      curl -s -X POST "${TURNKEY_BASE_URL}/v1/activities" \
+        -H "X-Turnkey-API-KEY: ${TURNKEY_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "type": "ACTIVITY_CREATE_SUB_ORGANIZATION",
+          "timestampMs": "'"$(date +%s%3N)"'",
+          "organizationId": "'"${TURNKEY_ORG_ID}"'",
+          "parameters": {
+            "name": "{{name}}"
+          }
+        }'
+
+  create_user:
+    description: "Create a user inside an existing Turnkey organization."
+    tags: [turnkey, activities]
+    arguments:
+      - name: org_id
+        description: "Target organization id (UUID)."
+      - name: email
+        description: "User email address."
+    run: |
+      curl -s -X POST "${TURNKEY_BASE_URL}/v1/activities" \
+        -H "X-Turnkey-API-KEY: ${TURNKEY_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "type": "ACTIVITY_CREATE_USER",
+          "timestampMs": "'"$(date +%s%3N)"'",
+          "organizationId": "{{org_id}}",
+          "parameters": {
+            "email": "{{email}}"
+          }
+        }'
+
+  get_wallet:
+    description: "Fetch wallet data via the Query API."
+    tags: [turnkey, query]
+    arguments:
+      - name: wallet_id
+        description: "Turnkey wallet UUID."
+    run: |
+      curl -s -X GET "${TURNKEY_BASE_URL}/v1/wallets/{{wallet_id}}" \
+        -H "X-Turnkey-API-KEY: ${TURNKEY_API_KEY}"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Testing & mocking
+# ──────────────────────────────────────────────────────────────────────────────
+context:
+  - name: "Elixir behaviour for Turnkey"
+    value: |
+      The `TurnkeyAdapter` behaviour defines callbacks for each high-level action. In `test` env
+      we set `config :be_votis_wallet, :turnkey, TurnkeyMock` and define `Mox.defmock/2` for unit
+      tests. Production points to `Turnkey.HTTPAdapter` which executes real HTTP calls via `Req`.
+
+  - name: "Schemas"
+    value: |
+      Ecto schemas map Turnkey ids to internal ids:
+        • Organization(id, turnkey_org_id, name, ...)  ← sub-orgs
+        • User(id, turnkey_user_id, organization_id, email, ...)
+        • Wallet(id, turnkey_wallet_id, user_id, ...)
+        • Account(id, turnkey_account_id, wallet_id, ...)
+

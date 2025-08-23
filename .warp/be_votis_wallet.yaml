@@ -1,0 +1,86 @@
+# Warp rules for be_votis_wallet public API
+version: 1
+name: Votis Wallet Service API
+
+description: |
+  This rule file documents the business-level REST endpoints exposed by the
+  `be_votis_wallet` Phoenix application. These endpoints orchestrate Turnkey
+  calls (see `.warp/turnkey.yaml`) and apply extra domain logic such as
+  permissioning, analytics persistence, and auditing.
+
+  All routes are served under `/api` (JSON only).
+
+  Base URL examples:
+    • Local dev  – http://localhost:4000
+    • Production – https://wallet-api.votis.finance
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Environment variables
+# ──────────────────────────────────────────────────────────────────────────────
+# Only placeholders here. Real secrets must stay outside version control.
+env:
+  API_BASE_URL: "${API_BASE_URL:-http://localhost:4000}"
+  DATABASE_URL: "${DATABASE_URL}"
+  TURNKEY_API_KEY: "${TURNKEY_API_KEY}"
+  TURNKEY_API_SECRET: "${TURNKEY_API_SECRET}"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Commands (examples)
+# ──────────────────────────────────────────────────────────────────────────────
+commands:
+  create_org:
+    description: "Create a new organization (and a Turnkey sub-organization)."
+    tags: [orgs]
+    arguments:
+      - name: name
+        description: "Organization display name."
+    run: |
+      curl -s -X POST "${API_BASE_URL}/api/orgs" \
+        -H "Content-Type: application/json" \
+        -d '{"name":"{{name}}"}' | jq .
+
+  create_user:
+    description: "Invite a user to an organization and create the corresponding Turnkey user."
+    tags: [users]
+    arguments:
+      - name: org_id
+        description: "Organization UUID returned by create_org."
+      - name: email
+        description: "User email."
+    run: |
+      curl -s -X POST "${API_BASE_URL}/api/users" \
+        -H "Content-Type: application/json" \
+        -d '{"organization_id":"{{org_id}}","email":"{{email}}"}' | jq .
+
+  get_wallet:
+    description: "Return wallet data enriched with on-chain balances."
+    tags: [wallets]
+    arguments:
+      - name: wallet_id
+        description: "Wallet UUID."
+    run: |
+      curl -s "${API_BASE_URL}/api/wallets/{{wallet_id}}" | jq .
+
+  list_activities:
+    description: "Paginated list of recent activities for current organization (aggregated Turnkey + internal)."
+    tags: [activities]
+    run: |
+      curl -s "${API_BASE_URL}/api/activities?limit=20" | jq .
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Context
+# ──────────────────────────────────────────────────────────────────────────────
+context:
+  - name: "Service layer modules"
+    value: |
+      Core orchestration lives in:
+        • `BeVotisWallet.OrgService` – creates org & sub-org, syncs DB.
+        • `BeVotisWallet.UserService` – creates user in Turnkey and DB.
+        • `BeVotisWallet.WalletService` – wallet/account creation, balance fetch.
+      Each depends on the `TurnkeyAdapter` behaviour for external calls.
+
+  - name: "Testing"
+    value: |
+      In tests we configure `TurnkeyMock` via Mox and exercise the HTTP layer
+      with Phoenix.ConnTest helpers. See `test/*_controller_test.exs`.
+
