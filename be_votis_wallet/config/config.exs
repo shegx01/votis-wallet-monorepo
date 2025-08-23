@@ -39,6 +39,16 @@ config :logger, :default_formatter,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# HTTP Client configuration
+config :be_votis_wallet, :http_client, BeVotisWallet.HTTPClient.FinchClient
+
+# Turnkey service configuration
+config :be_votis_wallet, :turnkey,
+  base_url: "https://api.turnkey.com",
+  api_key: {:system, "TURNKEY_API_KEY"},
+  api_secret: {:system, "TURNKEY_API_SECRET"},
+  organization_id: {:system, "TURNKEY_ORG_ID"}
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

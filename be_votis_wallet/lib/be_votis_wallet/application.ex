@@ -12,6 +12,8 @@ defmodule BeVotisWallet.Application do
       BeVotisWallet.Repo,
       {DNSCluster, query: Application.get_env(:be_votis_wallet, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: BeVotisWallet.PubSub},
+      # HTTP client for external API calls
+      {Finch, name: BeVotisWallet.Finch},
       # Start a worker by calling: BeVotisWallet.Worker.start_link(arg)
       # {BeVotisWallet.Worker, arg},
       # Start to serve requests, typically the last entry

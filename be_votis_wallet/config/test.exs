@@ -31,3 +31,13 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Use mock HTTP client in tests
+config :be_votis_wallet, :http_client, BeVotisWallet.HTTPClient.Mock
+
+# Turnkey test configuration
+config :be_votis_wallet, :turnkey,
+  base_url: "https://api.turnkey.com",
+  api_key: "test_api_key",
+  api_secret: "test_api_secret",
+  organization_id: "test_org_id"
