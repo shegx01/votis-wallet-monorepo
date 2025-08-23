@@ -1,0 +1,612 @@
+# Warp rules for Votis Wallet Services Architecture
+version: 1
+name: Votis Wallet Services - Master Index
+
+description: |
+  Master documentation for all BeVotisWallet services architecture and integration.
+  
+  This document provides a comprehensive overview of the service-oriented architecture
+  powering the Votis Wallet backend, including service relationships, data flow,
+  and integration patterns. Each service has detailed documentation in separate files.
+
+  ## Service Architecture Overview
+  ```
+  Votis Wallet Backend Services
+  ├── MultiChainWallet Service (High-level wallet operations)
+  │   ├── ChainConfig (blockchain configurations)
+  │   └── Turnkey.Activities (wallet creation)
+  │
+  ├── Turnkey Integration Layer
+  │   ├── Activities Service (state-changing operations)
+  │   ├── Queries Service (read-only operations)
+  │   └── Crypto Service (cryptographic utilities)
+  │
+  └── Infrastructure Services
+      ├── HTTP Client (Finch/Mock implementations)
+      ├── Configuration (runtime config management)
+      └── Logging (structured telemetry)
+  ```
+
+  ## Service Interaction Flow
+  1. **Client Request** → MultiChainWallet Service
+  2. **Chain Resolution** → ChainConfig lookup
+  3. **Activity Creation** → Turnkey.Activities 
+  4. **Request Signing** → Turnkey.Crypto
+  5. **HTTP Communication** → HTTP Client → Turnkey API
+  6. **Status Monitoring** → Turnkey.Queries
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Environment variables
+# ──────────────────────────────────────────────────────────────────────────────
+env:
+  # Turnkey API configuration (shared across services)
+  TURNKEY_BASE_URL: "${TURNKEY_BASE_URL:-https://api.turnkey.com}"
+  TURNKEY_API_KEY: "${TURNKEY_API_KEY}"
+  TURNKEY_API_SECRET: "${TURNKEY_API_SECRET}"
+  TURNKEY_ORGANIZATION_ID: "${TURNKEY_ORGANIZATION_ID}"
+  
+  # Service configuration
+  HTTP_CLIENT_TIMEOUT: "${HTTP_CLIENT_TIMEOUT:-30000}"
+  LOG_LEVEL: "${LOG_LEVEL:-info}"
+  
+  # Security configuration
+  TURNKEY_PRIVATE_KEY_PATH: "${TURNKEY_PRIVATE_KEY_PATH}"
+  TURNKEY_JWKS_URL: "${TURNKEY_JWKS_URL:-https://api.turnkey.com/.well-known/jwks.json}"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Commands - Cross-Service Operations
+# ──────────────────────────────────────────────────────────────────────────────
+commands:
+  service_health_check:
+    description: "Check health status of all services"
+    tags: [monitoring, health, services]
+    run: |
+      # Comprehensive service health check
+      iex -S mix
+      > # Check MultiChainWallet service
+      > alias BeVotisWallet.Services.MultiChainWallet
+      > alias BeVotisWallet.Services.Turnkey.{Activities, Queries, Crypto}
+      > alias BeVotisWallet.ChainConfig
+      > 
+      > IO.puts("=== Service Health Check ===")
+      > 
+      > # Test ChainConfig
+      > IO.puts("ChainConfig: #{length(ChainConfig.list_all())} chains loaded")
+      > 
+      > # Test Crypto service
+      > {pub, _priv} = Crypto.generate_api_keypair()
+      > IO.puts("Crypto Service: ✓ ECDSA key generation working")
+      > 
+      > # Test HTTP client configuration
+      > client = Application.get_env(:be_votis_wallet, :http_client)
+      > IO.puts("HTTP Client: #{inspect(client)}")
+
+  create_complete_wallet_flow:
+    description: "Demonstrate complete wallet creation flow across all services"
+    tags: [demo, integration, wallet-creation]
+    arguments:
+      - name: organization_id
+        description: "Turnkey organization UUID"
+      - name: user_id
+        description: "User UUID"
+      - name: wallet_name
+        description: "Name for the new wallet"
+    run: |
+      # Complete wallet creation demonstration
+      iex -S mix
+      > alias BeVotisWallet.Services.MultiChainWallet
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > 
+      > org_id = "{{organization_id}}"
+      > user_id = "{{user_id}}"
+      > wallet_name = "{{wallet_name}}"
+      > 
+      > IO.puts("=== Complete Wallet Creation Flow ===")
+      > 
+      > # Step 1: Create multi-chain wallet
+      > {:ok, wallet_response} = MultiChainWallet.create_multi_chain_wallet(
+          org_id, user_id, wallet_name, [:ethereum, :bitcoin, :polygon]
+        )
+      > 
+      > wallet_id = get_in(wallet_response, ["activity", "result", "createWalletResult", "walletId"])
+      > IO.puts("Created wallet: #{wallet_id}")
+      > 
+      > # Step 2: Verify wallet creation via Queries service
+      > {:ok, wallet_detail} = Queries.get_wallet(org_id, wallet_id)
+      > accounts = wallet_detail["wallet"]["accounts"]
+      > IO.puts("Wallet has #{length(accounts)} accounts:")
+      > 
+      > Enum.each(accounts, fn account ->
+      >   IO.puts("  #{account["addressFormat"]}: #{account["address"]}")
+      > end)
+
+  list_service_documentation:
+    description: "List all available service documentation files"
+    tags: [documentation, reference]
+    run: |
+      # List service documentation files
+      echo "=== Votis Wallet Service Documentation ==="
+      echo ""
+      echo "Master Index:"
+      echo "  .warp/services.yaml - This file (service architecture overview)"
+      echo ""
+      echo "Individual Service Documentation:"
+      echo "  .warp/services/multi_chain_wallet.yaml - MultiChainWallet service"
+      echo "  .warp/services/turnkey_activities.yaml - Turnkey Activities service"
+      echo "  .warp/services/turnkey_queries.yaml - Turnkey Queries service"
+      echo "  .warp/services/turnkey_crypto.yaml - Turnkey Crypto service"
+      echo ""
+      echo "Legacy Documentation (for reference):"
+      echo "  .warp/be_votis_wallet.yaml - REST API endpoints"
+      echo "  .warp/turnkey.yaml - Turnkey integration patterns"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Context - Service Architecture Details
+# ──────────────────────────────────────────────────────────────────────────────
+context:
+  - name: "Service Layer Overview"
+    value: |
+      ## Service Architecture Principles
+
+      ### 1. MultiChainWallet Service (Application Layer)
+      **File**: `.warp/services/multi_chain_wallet.yaml`
+      **Purpose**: High-level wallet operations with blockchain abstraction
+      **Key Functions**:
+      - create_wallet_for_chain/4 - Single blockchain wallet creation
+      - create_multi_chain_wallet/4 - Multi-blockchain wallet creation  
+      - add_account/3 - Extend existing wallets with new chains
+      
+      **Dependencies**: ChainConfig, Turnkey.Activities, Logger
+      **Error Handling**: Chain validation, Turnkey error propagation
+
+      ### 2. Turnkey Activities Service (Integration Layer)
+      **File**: `.warp/services/turnkey_activities.yaml`
+      **Purpose**: State-changing operations with Turnkey API
+      **Key Functions**:
+      - create_sub_organization/2 - Organization management
+      - create_user/4 - User management with authenticators
+      - create_wallet/5 - Low-level wallet creation
+      - create_account/4 - Account addition to existing wallets
+      - sign_transaction/3 - Transaction signing operations
+      
+      **Dependencies**: Turnkey.Crypto, HTTP Client, Configuration
+      **Authentication**: API Key, WebAuthn, Passkey support
+
+      ### 3. Turnkey Queries Service (Data Access Layer)
+      **File**: `.warp/services/turnkey_queries.yaml`
+      **Purpose**: Read-only data retrieval from Turnkey
+      **Key Functions**:
+      - get_organization/1, get_user/2, get_wallet/2 - Entity retrieval
+      - list_users/2, list_wallets/2, list_activities/2 - Paginated lists
+      - get_activity/2 - Activity status monitoring
+      
+      **Features**: Pagination, filtering, error handling
+      **Performance**: Caching strategies, rate limit awareness
+
+      ### 4. Turnkey Crypto Service (Security Layer)
+      **File**: `.warp/services/turnkey_crypto.yaml`
+      **Purpose**: Cryptographic operations and security
+      **Key Functions**:
+      - generate_api_keypair/0 - ECDSA P-256 key generation
+      - create_request_stamp/2 - API request signing
+      - verify_session_jwt/1 - JWT token verification
+      - decrypt_credential_bundle/2 - HPKE session decryption
+      
+      **Security Features**: Secure error handling, key management, JWKS integration
+
+  - name: "Data Flow and Integration Patterns"
+    value: |
+      ## Service Communication Patterns
+
+      ### 1. Wallet Creation Flow
+      ```
+      Client Request
+      ↓
+      MultiChainWallet.create_multi_chain_wallet/4
+      ├── ChainConfig.get/1 (validate each chain)
+      ├── build_account_spec/1 (convert to Turnkey format)
+      └── Activities.create_wallet/5
+          ├── Crypto.create_request_stamp/2 (sign request)
+          └── HTTP Client → Turnkey API
+      ```
+
+      ### 2. Query and Monitoring Flow
+      ```
+      Status Check Request
+      ↓
+      Queries.get_activity/2
+      ├── HTTP Client → Turnkey API (GET request)
+      └── Response parsing and validation
+      ```
+
+      ### 3. Authentication Flow
+      ```
+      API Request
+      ↓
+      Activities.execute_activity/1
+      ├── Build request body with timestamp
+      ├── Crypto.create_request_stamp/2
+      │   ├── SHA256 hash
+      │   ├── ECDSA P-256 signature
+      │   └── Base64 encoding
+      └── HTTP headers: X-Stamp, X-Stamp-WebAuthn-Public-Key
+      ```
+
+      ### 4. Error Propagation Chain
+      ```
+      Turnkey API Error (HTTP 4xx/5xx)
+      ↓
+      HTTP Client → {:error, status, message}
+      ↓
+      Activities/Queries Service → structured error
+      ↓
+      MultiChainWallet Service → domain-specific error
+      ↓
+      Client Application → user-friendly error
+      ```
+
+  - name: "Configuration and Dependency Management"
+    value: |
+      ## Service Configuration
+
+      ### Runtime Configuration (config/runtime.exs)
+      ```elixir
+      config :be_votis_wallet,
+        # HTTP client selection (production vs testing)
+        http_client: BeVotisWallet.HTTPClient.FinchClient,
+        
+        # Turnkey API configuration
+        turnkey: [
+          base_url: System.get_env("TURNKEY_BASE_URL", "https://api.turnkey.com"),
+          api_key: System.fetch_env!("TURNKEY_API_KEY"),
+          api_secret: System.fetch_env!("TURNKEY_API_SECRET"),
+          organization_id: System.fetch_env!("TURNKEY_ORGANIZATION_ID")
+        ]
+      ```
+
+      ### Dependency Injection Pattern
+      All services use dependency injection for HTTP clients:
+      ```elixir
+      defp http_client do
+        Application.get_env(:be_votis_wallet, :http_client)
+      end
+      ```
+
+      This allows:
+      - Production: BeVotisWallet.HTTPClient.FinchClient
+      - Testing: BeVotisWallet.HTTPClient.Mock (via Mox)
+      - Development: Configurable implementation
+
+      ### Service Dependencies
+      ```
+      MultiChainWallet Service
+      ├── BeVotisWallet.ChainConfig (compile-time)
+      ├── BeVotisWallet.Services.Turnkey.Activities (runtime)
+      └── Logger (OTP)
+
+      Turnkey.Activities Service  
+      ├── BeVotisWallet.Services.Turnkey.Crypto (runtime)
+      ├── BeVotisWallet.HTTPClient.Behaviour (runtime, injected)
+      ├── Jason (JSON encoding)
+      └── Logger (OTP)
+
+      Turnkey.Queries Service
+      ├── BeVotisWallet.HTTPClient.Behaviour (runtime, injected)
+      ├── Jason (JSON decoding)
+      └── Logger (OTP)
+
+      Turnkey.Crypto Service
+      ├── BeVotisWallet.HTTPClient.Behaviour (runtime, injected)
+      ├── :public_key (OTP)
+      ├── :crypto (OTP)
+      ├── Jason (JWT claims parsing)
+      ├── JOSE (JWT verification - optional)
+      └── Curvy (elliptic curve operations)
+      ```
+
+  - name: "Testing Strategy Across Services"
+    value: |
+      ## Testing Architecture
+
+      ### Test Configuration (config/test.exs)
+      ```elixir
+      config :be_votis_wallet,
+        http_client: BeVotisWallet.HTTPClient.Mock
+
+      # Enable Mox for test isolation
+      config :be_votis_wallet, :mox_enabled, true
+      ```
+
+      ### Service Testing Patterns
+
+      #### 1. MultiChainWallet Service Tests
+      - **Unit Tests**: Chain configuration validation
+      - **Integration Tests**: End-to-end wallet creation with mocked Turnkey
+      - **Error Tests**: Unsupported chains, Turnkey failures
+      - **Mock Strategy**: Stub Activities service responses
+
+      #### 2. Turnkey Services Tests
+      - **Unit Tests**: Individual function behavior
+      - **HTTP Tests**: Mocked Turnkey API responses
+      - **Error Tests**: Network failures, authentication errors
+      - **Mock Strategy**: Stub HTTP client with various response scenarios
+
+      #### 3. Crypto Service Tests
+      - **Unit Tests**: Key generation, signature validation
+      - **Property Tests**: Cryptographic properties (key formats, lengths)
+      - **Integration Tests**: JWT verification with mocked JWKS
+      - **Security Tests**: Error handling, timing attack prevention
+
+      ### Test Data Management
+      ```elixir
+      # Shared test fixtures
+      defmodule BeVotisWallet.TestFixtures do
+        def mock_organization_id, do: "test-org-12345"
+        def mock_user_id, do: "test-user-12345"
+        def mock_wallet_response, do: %{...}
+        def mock_activity_response, do: %{...}
+      end
+
+      # Service-specific mocks
+      setup do
+        Mox.stub(HTTPClientMock, :request, fn payload ->
+          case payload.url do
+            url when url =~ "activities" -> {:ok, mock_activity_response()}
+            url when url =~ "query" -> {:ok, mock_query_response()}
+            url when url =~ "jwks" -> {:ok, mock_jwks_response()}
+          end
+        end)
+        :ok
+      end
+      ```
+
+  - name: "Production Deployment and Monitoring"
+    value: |
+      ## Production Considerations
+
+      ### Service Monitoring
+      Each service includes structured logging for monitoring:
+      ```elixir
+      # Success logging with metrics
+      Logger.info("Wallet created successfully",
+        organization_id: org_id,
+        wallet_id: wallet_id,
+        chain_count: length(chains),
+        duration_ms: duration
+      )
+
+      # Error logging with context
+      Logger.error("Wallet creation failed",
+        organization_id: org_id,
+        error: inspect(error),
+        retry_count: retry_count
+      )
+      ```
+
+      ### Performance Targets
+      - **MultiChainWallet Operations**: <2s for wallet creation
+      - **Turnkey Activities**: <800ms for simple operations  
+      - **Turnkey Queries**: <500ms for single entity queries
+      - **Crypto Operations**: <100ms for key generation/signing
+
+      ### Error Monitoring
+      - **Rate Limiting**: Exponential backoff for 429 responses
+      - **Network Failures**: Retry logic with circuit breakers
+      - **Authentication Failures**: Alert on repeated 401/403 errors
+      - **Cryptographic Failures**: Security incident logging
+
+      ### Scalability Patterns
+      - **Stateless Services**: All services are stateless and horizontally scalable
+      - **Connection Pooling**: Finch HTTP client with optimized pool configuration
+      - **Background Jobs**: Oban for retry logic and background processing
+      - **Caching Strategy**: Strategic caching of immutable data (chain configs, JWKs)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Examples - Cross-Service Integration Patterns
+# ──────────────────────────────────────────────────────────────────────────────
+examples:
+  - name: "Complete Organization Setup"
+    description: "Full organization, user, and wallet setup using all services"
+    code: |
+      # Complete organization setup workflow
+      alias BeVotisWallet.Services.Turnkey.{Activities, Queries}
+      alias BeVotisWallet.Services.MultiChainWallet
+
+      # Step 1: Create sub-organization
+      {:ok, org_response} = Activities.create_sub_organization("Acme Corp")
+      org_id = get_in(org_response, ["activity", "result", "createSubOrganizationResult", "organizationId"])
+
+      # Step 2: Create user
+      {:ok, user_response} = Activities.create_user(org_id, "john.doe", "john@acme.com")
+      user_id = get_in(user_response, ["activity", "result", "createUsersResult", "userIds", 0])
+
+      # Step 3: Create multi-chain wallet
+      {:ok, wallet_response} = MultiChainWallet.create_multi_chain_wallet(
+        org_id, user_id, "Universal Wallet", [:ethereum, :bitcoin, :polygon]
+      )
+      wallet_id = get_in(wallet_response, ["activity", "result", "createWalletResult", "walletId"])
+
+      # Step 4: Verify setup via Queries
+      {:ok, org_data} = Queries.get_organization(org_id)
+      {:ok, user_data} = Queries.get_user(org_id, user_id)  
+      {:ok, wallet_data} = Queries.get_wallet(org_id, wallet_id)
+
+      IO.puts("Setup complete!")
+      IO.puts("Organization: #{org_data["organization"]["organizationName"]}")
+      IO.puts("User: #{user_data["user"]["userName"]}")
+      IO.puts("Wallet: #{wallet_data["wallet"]["walletName"]} with #{length(wallet_data["wallet"]["accounts"])} accounts")
+
+  - name: "Error Recovery Across Services"
+    description: "Comprehensive error handling across the service stack"
+    code: |
+      defmodule WalletCreationWithRecovery do
+        def create_robust_wallet(org_id, user_id, wallet_name, chains) do
+          # Attempt wallet creation with comprehensive error recovery
+          case MultiChainWallet.create_multi_chain_wallet(org_id, user_id, wallet_name, chains) do
+            {:ok, response} ->
+              wallet_id = get_in(response, ["activity", "result", "createWalletResult", "walletId"])
+              verify_wallet_creation(org_id, wallet_id)
+              
+            {:error, {:unsupported_chain, chain}} ->
+              IO.puts("Chain #{chain} not supported. Available chains:")
+              ChainConfig.list_identifiers() |> IO.inspect()
+              {:error, :invalid_chain_configuration}
+              
+            {:error, 429, _} ->
+              IO.puts("Rate limited. Implementing backoff...")
+              Process.sleep(5000)
+              create_robust_wallet(org_id, user_id, wallet_name, chains)
+              
+            {:error, status, error} when status >= 500 ->
+              IO.puts("Server error #{status}. Checking Turnkey status...")
+              check_turnkey_health()
+              {:error, {:server_error, status}}
+              
+            {:error, 401, _} ->
+              IO.puts("Authentication failed. Checking credentials...")
+              verify_api_credentials()
+              {:error, :authentication_failure}
+              
+            {:error, status, error} ->
+              IO.puts("Unexpected error #{status}: #{inspect(error)}")
+              {:error, {:unexpected_error, status, error}}
+          end
+        end
+        
+        defp verify_wallet_creation(org_id, wallet_id) do
+          case Queries.get_wallet(org_id, wallet_id) do
+            {:ok, wallet_data} ->
+              IO.puts("Wallet verification successful")
+              {:ok, wallet_data}
+            {:error, 404, _} ->
+              IO.puts("Wallet not found - creation may still be in progress")
+              {:pending, wallet_id}
+            error ->
+              IO.puts("Wallet verification failed: #{inspect(error)}")
+              error
+          end
+        end
+        
+        defp check_turnkey_health do
+          case Queries.get_organization() do
+            {:ok, _} -> IO.puts("Turnkey API healthy")
+            error -> IO.puts("Turnkey API issues: #{inspect(error)}")
+          end
+        end
+        
+        defp verify_api_credentials do
+          # Generate test signature to verify crypto setup
+          case Crypto.generate_api_keypair() do
+            {_pub, priv} ->
+              case Crypto.create_request_stamp("test", priv) do
+                {:ok, _stamp} -> IO.puts("Crypto service working")
+                error -> IO.puts("Crypto service error: #{inspect(error)}")
+              end
+            error ->
+              IO.puts("Key generation error: #{inspect(error)}")
+          end
+        end
+      end
+
+  - name: "Service Performance Monitoring"
+    description: "Monitor performance across all services"
+    code: |
+      defmodule ServiceMonitor do
+        def comprehensive_performance_test do
+          IO.puts("=== Service Performance Test ===\\n")
+          
+          # Test MultiChainWallet performance
+          {time_us, result} = :timer.tc(fn ->
+            MultiChainWallet.create_wallet_for_chain(test_org_id(), test_user_id(), "Perf Test", :ethereum)
+          end)
+          
+          time_ms = div(time_us, 1000)
+          IO.puts("MultiChainWallet.create_wallet_for_chain: #{time_ms}ms")
+          
+          case result do
+            {:ok, response} ->
+              wallet_id = get_in(response, ["activity", "result", "createWalletResult", "walletId"])
+              
+              # Test Queries performance
+              {query_time_us, _query_result} = :timer.tc(fn ->
+                Queries.get_wallet(test_org_id(), wallet_id)
+              end)
+              
+              query_time_ms = div(query_time_us, 1000)
+              IO.puts("Queries.get_wallet: #{query_time_ms}ms")
+              
+            error ->
+              IO.puts("Wallet creation failed: #{inspect(error)}")
+          end
+          
+          # Test Crypto performance
+          {crypto_time_us, _keypair} = :timer.tc(fn ->
+            Crypto.generate_api_keypair()
+          end)
+          
+          crypto_time_ms = div(crypto_time_us, 1000)
+          IO.puts("Crypto.generate_api_keypair: #{crypto_time_ms}ms")
+          
+          # Test request signing performance
+          {_pub, priv} = Crypto.generate_api_keypair()
+          test_body = Jason.encode!(%{"test" => "data"})
+          
+          {sign_time_us, _stamp} = :timer.tc(fn ->
+            Crypto.create_request_stamp(test_body, priv)
+          end)
+          
+          sign_time_ms = div(sign_time_us, 1000)
+          IO.puts("Crypto.create_request_stamp: #{sign_time_ms}ms")
+          
+          IO.puts("\\n=== Performance Test Complete ===")
+        end
+        
+        defp test_org_id, do: Application.get_env(:be_votis_wallet, :turnkey)[:organization_id]
+        defp test_user_id, do: "test-user-performance-monitoring"
+      end
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Reference Links
+# ──────────────────────────────────────────────────────────────────────────────
+references:
+  - name: "Individual Service Documentation"
+    links:
+      - title: "MultiChainWallet Service API"
+        url: "file://.warp/services/multi_chain_wallet.yaml"
+        description: "High-level wallet operations with blockchain abstraction"
+        
+      - title: "Turnkey Activities Service API" 
+        url: "file://.warp/services/turnkey_activities.yaml"
+        description: "State-changing operations (create, update, sign)"
+        
+      - title: "Turnkey Queries Service API"
+        url: "file://.warp/services/turnkey_queries.yaml"
+        description: "Read-only operations (get, list, search)"
+        
+      - title: "Turnkey Crypto Service API"
+        url: "file://.warp/services/turnkey_crypto.yaml"
+        description: "Cryptographic utilities (keys, signing, verification)"
+
+  - name: "External Documentation"
+    links:
+      - title: "Turnkey API Documentation"
+        url: "https://docs.turnkey.com"
+        description: "Official Turnkey API reference and guides"
+        
+      - title: "ChainConfig Documentation"
+        url: "file://CHAIN_CONFIGURATION.md"
+        description: "Supported blockchain networks and configurations"
+        
+      - title: "Turnkey Architecture Overview"
+        url: "file://TURNKEY_ARCHITECTURE.md"
+        description: "System architecture and security considerations"
+
+  - name: "Project Documentation"
+    links:
+      - title: "Agent Development Guidelines"
+        url: "file://AGENTS.md"
+        description: "Phoenix/Elixir development patterns and best practices"
+        
+      - title: "Backend TODO Roadmap"
+        url: "file://TODO.md"
+        description: "Development roadmap and pending tasks"

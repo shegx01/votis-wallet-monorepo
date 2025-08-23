@@ -1,0 +1,566 @@
+# Warp rules for Turnkey Activities Service
+version: 1
+name: Turnkey Activities Service API
+
+description: |
+  Documentation for BeVotisWallet.Services.Turnkey.Activities module.
+  
+  This module handles all Turnkey activity operations that modify state, such as 
+  creating organizations, users, wallets, and signing transactions. Activities require 
+  authentication, request signing, and careful parameter formatting.
+
+  ## Key Features
+  • Create and manage Turnkey sub-organizations
+  • Create users within organizations with API keys and authenticators
+  • Create wallets with multi-chain account support
+  • Add new accounts to existing wallets
+  • Sign transactions using wallet private keys
+  • Support for multiple authentication methods (API Key, WebAuthn, Passkey)
+
+  ## Architecture
+  ```
+  Activities Service
+  ├── HTTP Client (Finch/Mock)
+  ├── Crypto Service (request stamping)
+  ├── Configuration (Turnkey credentials)
+  └── Logger (activity tracking)
+  ```
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Environment variables
+# ──────────────────────────────────────────────────────────────────────────────
+env:
+  # Turnkey API configuration
+  TURNKEY_BASE_URL: "${TURNKEY_BASE_URL:-https://api.turnkey.com}"
+  TURNKEY_API_KEY: "${TURNKEY_API_KEY}"
+  TURNKEY_API_SECRET: "${TURNKEY_API_SECRET}"
+  TURNKEY_ORGANIZATION_ID: "${TURNKEY_ORGANIZATION_ID}"
+  
+  # Authentication options
+  TURNKEY_PRIVATE_KEY_PATH: "${TURNKEY_PRIVATE_KEY_PATH}"
+  TURNKEY_PUBLIC_KEY_PATH: "${TURNKEY_PUBLIC_KEY_PATH}"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Commands - Turnkey Activities Operations
+# ──────────────────────────────────────────────────────────────────────────────
+commands:
+  create_sub_organization:
+    description: "Create a new sub-organization under the main Turnkey organization"
+    tags: [organization, creation, management]
+    arguments:
+      - name: name
+        description: "Human-readable name for the sub-organization"
+      - name: root_quorum_threshold
+        description: "Number of root users required for consensus (default: 1)"
+        default: "1"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Activities
+      > Activities.create_sub_organization(
+          "{{name}}",
+          root_quorum_threshold: {{root_quorum_threshold}}
+        )
+
+  create_user:
+    description: "Create a user within a Turnkey organization"
+    tags: [user, creation, management]
+    arguments:
+      - name: organization_id
+        description: "Target organization UUID"
+      - name: user_name
+        description: "Unique username within the organization"
+      - name: user_email
+        description: "User email address"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Activities
+      > Activities.create_user(
+          "{{organization_id}}",
+          "{{user_name}}",
+          "{{user_email}}"
+        )
+
+  create_wallet_with_accounts:
+    description: "Create a wallet with specified account configurations"
+    tags: [wallet, creation, accounts]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: user_id
+        description: "User UUID who will own the wallet"
+      - name: wallet_name
+        description: "Name for the wallet"
+      - name: accounts_json
+        description: "JSON array of account specifications"
+    run: |
+      # Example Elixir call - accounts must be pre-formatted
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Activities
+      > accounts = Jason.decode!("{{accounts_json}}")
+      > Activities.create_wallet(
+          "{{organization_id}}",
+          "{{user_id}}",
+          "{{wallet_name}}",
+          accounts
+        )
+
+  create_ethereum_wallet:
+    description: "Create a simple Ethereum wallet (convenience command)"
+    tags: [wallet, ethereum, convenience]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: user_id
+        description: "User UUID who will own the wallet"
+      - name: wallet_name
+        description: "Name for the wallet"
+    run: |
+      # Example Elixir call with pre-built Ethereum account spec
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Activities
+      > eth_account = %{
+          "curve" => "CURVE_SECP256K1",
+          "pathFormat" => "PATH_FORMAT_BIP32", 
+          "path" => "m/44'/60'/0'/0/0",
+          "addressFormat" => "ADDRESS_FORMAT_ETHEREUM"
+        }
+      > Activities.create_wallet(
+          "{{organization_id}}",
+          "{{user_id}}",
+          "{{wallet_name}}",
+          [eth_account]
+        )
+
+  add_account_to_wallet:
+    description: "Add a new account to an existing wallet"
+    tags: [wallet, account, extension]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: wallet_id
+        description: "Target wallet UUID"
+      - name: account_spec_json
+        description: "JSON object with account specification"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Activities
+      > account_spec = Jason.decode!("{{account_spec_json}}")
+      > Activities.create_account(
+          "{{organization_id}}",
+          "{{wallet_id}}",
+          account_spec
+        )
+
+  sign_transaction:
+    description: "Sign a transaction using a wallet account"
+    tags: [transaction, signing, cryptography]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: sign_with
+        description: "Private key ID or derivation path"
+      - name: transaction_hex
+        description: "Unsigned transaction data (hex encoded)"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Activities
+      > Activities.sign_transaction(
+          "{{organization_id}}",
+          "{{sign_with}}",
+          "{{transaction_hex}}"
+        )
+
+  get_activity_status:
+    description: "Check the status of a Turnkey activity"
+    tags: [activity, status, monitoring]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: activity_id
+        description: "Activity UUID to check"
+    run: |
+      # Check activity via Queries service
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > Queries.get_activity("{{organization_id}}", "{{activity_id}}")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Context - Implementation Details
+# ──────────────────────────────────────────────────────────────────────────────
+context:
+  - name: "Core Activity Functions"
+    value: |
+      ## Primary Activity Operations
+
+      ### create_sub_organization/2
+      Creates a new sub-organization under the main Turnkey organization.
+      - Parameters: name (string), opts (keyword list)
+      - Options: :root_users, :root_quorum_threshold, :auth_type, :client_signature
+      - Returns: {:ok, response} with organizationId | {:error, status, message}
+      - Activity Type: "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION"
+
+      ### create_user/4
+      Creates a user within a specific organization.
+      - Parameters: organization_id, user_name, user_email, opts
+      - Options: :api_keys, :authenticators, :auth_type, :client_signature
+      - Returns: {:ok, response} with userId | {:error, status, message}
+      - Activity Type: "ACTIVITY_TYPE_CREATE_USERS"
+
+      ### create_wallet/5
+      Creates a wallet with specified account configurations.
+      - Parameters: organization_id, user_id, wallet_name, accounts, opts
+      - Accounts: List of account specs (curve, path, address format)
+      - Returns: {:ok, response} with walletId and addresses | {:error, status, message}
+      - Activity Type: "ACTIVITY_TYPE_CREATE_WALLET"
+
+      ### create_account/4
+      Adds a new account to an existing wallet.
+      - Parameters: organization_id, wallet_id, account_spec, opts
+      - Returns: {:ok, response} with new account data | {:error, status, message}
+      - Activity Type: "ACTIVITY_TYPE_CREATE_WALLET_ACCOUNTS"
+
+  - name: "Authentication Methods"
+    value: |
+      ## Supported Authentication Types
+
+      ### API Key Authentication (:api_key - default)
+      - Uses TURNKEY_API_KEY and TURNKEY_API_SECRET from config
+      - Suitable for server-side operations
+      - Automatically handles request signing via Crypto service
+      - No additional client_signature required
+
+      ### WebAuthn Authentication (:webauthn)
+      - Browser-based authentication using WebAuthn standard
+      - Requires client_signature parameter with pre-computed signature
+      - Used for browser extension integration
+      - Signature computed client-side using user's authenticator
+
+      ### Passkey Authentication (:passkey)
+      - Mobile device authentication using platform passkeys
+      - Requires client_signature parameter with biometric signature
+      - Used for mobile app integration
+      - Leverages device secure enclave for key storage
+
+      ## Authentication Flow
+      1. Activity parameters assembled into request body
+      2. Request body signed using appropriate method (API key or client signature)
+      3. Signed request sent to Turnkey API
+      4. Response validated and returned to caller
+
+  - name: "Activity Execution Architecture"
+    value: |
+      ## execute_activity/1 - Core Function
+
+      The execute_activity/1 function is the central orchestration point:
+
+      ### Input Options
+      - :activity_type - Turnkey activity type constant
+      - :params - Activity-specific parameters map
+      - :organization_id - Target organization (optional for some activities)
+      - :auth_type - Authentication method (:api_key, :webauthn, :passkey)
+      - :client_signature - Pre-computed signature for WebAuthn/Passkey
+
+      ### Processing Flow
+      1. Build activity request with type, timestamp, and parameters
+      2. Get organization ID (from params or config)
+      3. Sign request using appropriate authentication method
+      4. Send HTTP POST to Turnkey activities endpoint
+      5. Parse and validate response
+      6. Return structured result
+
+      ### Error Handling
+      - HTTP errors mapped to {:error, status_code, message}
+      - JSON parsing errors handled gracefully
+      - Request signing failures propagated with context
+      - Comprehensive logging for debugging
+
+  - name: "Request Signing and Security"
+    value: |
+      ## Request Signing Process
+
+      ### API Key Signing (Default)
+      1. Activity parameters serialized to JSON
+      2. Request timestamp added for replay protection
+      3. Full request body signed using ECDSA P-256 private key
+      4. Signature base64-encoded and added to X-Stamp header
+      5. API public key ID included in X-Stamp-WebAuthn-Public-Key header
+
+      ### Client Signature (WebAuthn/Passkey)
+      1. Client pre-computes signature using user's authenticator
+      2. Signature passed as :client_signature option
+      3. Server includes signature in activity request without modification
+      4. Turnkey validates signature against user's registered authenticator
+
+      ## Security Considerations
+      - Request timestamps prevent replay attacks
+      - Private keys never transmitted over network
+      - Client signatures maintain user control over cryptographic operations
+      - All requests use TLS 1.3 for transport security
+
+  - name: "Account Specification Format"
+    value: |
+      ## Account Spec Structure
+
+      Account specifications define blockchain-specific wallet accounts:
+
+      ```elixir
+      # Ethereum account specification
+      %{
+        "curve" => "CURVE_SECP256K1",           # Cryptographic curve
+        "pathFormat" => "PATH_FORMAT_BIP32",    # Derivation path format
+        "path" => "m/44'/60'/0'/0/0",           # BIP44 derivation path
+        "addressFormat" => "ADDRESS_FORMAT_ETHEREUM"  # Address encoding
+      }
+
+      # Bitcoin account specification  
+      %{
+        "curve" => "CURVE_SECP256K1",
+        "pathFormat" => "PATH_FORMAT_BIP32",
+        "path" => "m/84'/0'/0'/0/0",            # P2WPKH path
+        "addressFormat" => "ADDRESS_FORMAT_BITCOIN_MAINNET_P2WPKH"
+      }
+
+      # Solana account specification
+      %{
+        "curve" => "CURVE_ED25519",             # EdDSA curve
+        "pathFormat" => "PATH_FORMAT_BIP32", 
+        "path" => "m/44'/501'/0'/0'",           # Solana derivation
+        "addressFormat" => "ADDRESS_FORMAT_SOLANA"
+      }
+      ```
+
+      ## Supported Curves
+      - CURVE_SECP256K1: Bitcoin, Ethereum, most EVM chains
+      - CURVE_ED25519: Solana, other EdDSA-based chains
+
+      ## Address Formats
+      - ADDRESS_FORMAT_ETHEREUM: 0x... format
+      - ADDRESS_FORMAT_BITCOIN_MAINNET_P2WPKH: bc1... format  
+      - ADDRESS_FORMAT_SOLANA: Base58 format
+      - And 20+ other blockchain-specific formats
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Examples - Common Activity Patterns
+# ──────────────────────────────────────────────────────────────────────────────
+examples:
+  - name: "Complete Organization Setup"
+    description: "Create sub-organization and first user"
+    code: |
+      # Step 1: Create sub-organization
+      {:ok, org_response} = Activities.create_sub_organization(
+        "Acme Corp Wallet",
+        root_quorum_threshold: 1
+      )
+      
+      org_id = get_in(org_response, ["activity", "result", "createSubOrganizationResult", "organizationId"])
+      IO.puts("Created organization: #{org_id}")
+      
+      # Step 2: Create first user in the organization
+      {:ok, user_response} = Activities.create_user(
+        org_id,
+        "john.doe", 
+        "john.doe@acme.com",
+        api_keys: [],        # Will be added separately if needed
+        authenticators: []   # WebAuthn/Passkey authenticators
+      )
+      
+      user_id = get_in(user_response, ["activity", "result", "createUsersResult", "userIds", 0])
+      IO.puts("Created user: #{user_id}")
+
+  - name: "Multi-Chain Wallet Creation"
+    description: "Create wallet supporting Ethereum and Bitcoin"
+    code: |
+      # Define account specifications
+      eth_account = %{
+        "curve" => "CURVE_SECP256K1",
+        "pathFormat" => "PATH_FORMAT_BIP32",
+        "path" => "m/44'/60'/0'/0/0",
+        "addressFormat" => "ADDRESS_FORMAT_ETHEREUM"
+      }
+      
+      btc_account = %{
+        "curve" => "CURVE_SECP256K1", 
+        "pathFormat" => "PATH_FORMAT_BIP32",
+        "path" => "m/84'/0'/0'/0/0",
+        "addressFormat" => "ADDRESS_FORMAT_BITCOIN_MAINNET_P2WPKH"
+      }
+      
+      # Create wallet with both accounts
+      {:ok, wallet_response} = Activities.create_wallet(
+        org_id,
+        user_id,
+        "Multi-Chain Wallet",
+        [eth_account, btc_account]
+      )
+      
+      wallet_id = get_in(wallet_response, ["activity", "result", "createWalletResult", "walletId"])
+      addresses = get_in(wallet_response, ["activity", "result", "createWalletResult", "addresses"])
+      
+      IO.puts("Created wallet: #{wallet_id}")
+      Enum.each(addresses, fn addr ->
+        IO.puts("  #{addr["format"]}: #{addr["address"]}")
+      end)
+
+  - name: "Adding Account to Existing Wallet"
+    description: "Extend wallet with Solana support"
+    code: |
+      # Solana account specification
+      sol_account = %{
+        "curve" => "CURVE_ED25519",
+        "pathFormat" => "PATH_FORMAT_BIP32",
+        "path" => "m/44'/501'/0'/0'", 
+        "addressFormat" => "ADDRESS_FORMAT_SOLANA"
+      }
+      
+      # Add to existing wallet
+      {:ok, account_response} = Activities.create_account(
+        org_id,
+        wallet_id,
+        sol_account
+      )
+      
+      new_addresses = get_in(account_response, ["activity", "result", "createWalletAccountsResult", "addresses"])
+      IO.puts("Added Solana account: #{hd(new_addresses)["address"]}")
+
+  - name: "Transaction Signing Flow"
+    description: "Sign an Ethereum transaction"
+    code: |
+      # Unsigned Ethereum transaction (hex encoded)
+      unsigned_tx = "0x02f86b01048459682f008459682f0e82520894..."
+      
+      # Sign using wallet's Ethereum account
+      # sign_with can be private key ID or derivation path
+      sign_with = "m/44'/60'/0'/0/0"  # Use derivation path
+      
+      {:ok, sign_response} = Activities.sign_transaction(
+        org_id,
+        sign_with,
+        unsigned_tx
+      )
+      
+      signed_tx = get_in(sign_response, ["activity", "result", "signTransactionResult", "signedTransaction"])
+      IO.puts("Signed transaction: #{signed_tx}")
+      
+      # Now ready to broadcast to blockchain network
+
+  - name: "WebAuthn Authentication"
+    description: "Create user with WebAuthn authentication"
+    code: |
+      # Client-side: User completes WebAuthn ceremony and generates signature
+      # This would be done in browser/mobile app, not server-side
+      
+      # Server receives pre-computed client signature
+      client_signature = %{
+        "scheme" => "SIGNATURE_SCHEME_TK_API_P256",
+        "signature" => "base64-encoded-webauthn-signature",
+        "publicKey" => "user-webauthn-public-key"
+      }
+      
+      # Create user with WebAuthn authentication
+      {:ok, user_response} = Activities.create_user(
+        org_id,
+        "webauthn.user",
+        "user@example.com",
+        auth_type: :webauthn,
+        client_signature: client_signature,
+        authenticators: [%{
+          "authenticatorName" => "User Passkey",
+          "challenge" => "base64-challenge",
+          "attestation" => "webauthn-attestation-object"
+        }]
+      )
+
+  - name: "Error Handling and Retry Logic" 
+    description: "Handle common activity errors gracefully"
+    code: |
+      case Activities.create_wallet(org_id, user_id, "Test Wallet", [eth_account]) do
+        {:ok, response} ->
+          wallet_id = get_in(response, ["activity", "result", "createWalletResult", "walletId"])
+          IO.puts("Wallet created: #{wallet_id}")
+          
+        {:error, 400, error_message} ->
+          IO.puts("Bad request - check parameters: #{inspect(error_message)}")
+          
+        {:error, 401, _} ->
+          IO.puts("Authentication failed - check API credentials")
+          
+        {:error, 429, _} ->
+          IO.puts("Rate limited - will retry with exponential backoff")
+          # Use Oban for retry logic as per architecture guidelines
+          
+        {:error, status_code, error_message} ->
+          IO.puts("Activity failed #{status_code}: #{inspect(error_message)}")
+      end
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Integration Notes
+# ──────────────────────────────────────────────────────────────────────────────
+integration:
+  - name: "Configuration Requirements"
+    value: |
+      ## Application Config
+      
+      ```elixir
+      # config/runtime.exs
+      config :be_votis_wallet, :turnkey,
+        base_url: System.get_env("TURNKEY_BASE_URL", "https://api.turnkey.com"),
+        api_key: System.fetch_env!("TURNKEY_API_KEY"),
+        api_secret: System.fetch_env!("TURNKEY_API_SECRET"), 
+        organization_id: System.fetch_env!("TURNKEY_ORGANIZATION_ID"),
+        private_key_path: System.get_env("TURNKEY_PRIVATE_KEY_PATH"),
+        public_key_path: System.get_env("TURNKEY_PUBLIC_KEY_PATH")
+      
+      # HTTP client configuration
+      config :be_votis_wallet, :http_client, BeVotisWallet.HTTPClient.FinchClient
+      ```
+
+  - name: "Dependencies and Services"
+    value: |
+      ## Required Dependencies
+      - BeVotisWallet.Services.Turnkey.Crypto - Request signing and validation
+      - BeVotisWallet.HTTPClient.Behaviour - HTTP communication layer
+      - Jason - JSON encoding/decoding
+      - Logger - Activity logging and telemetry
+
+      ## Optional Dependencies  
+      - Oban - Background job processing for retries
+      - Telemetry - Metrics collection and monitoring
+
+  - name: "Testing and Mocking"
+    value: |
+      ## Test Configuration
+      
+      ```elixir  
+      # config/test.exs
+      config :be_votis_wallet, :http_client, BeVotisWallet.HTTPClient.Mock
+      
+      # In tests, use stub instead of expect (per project guidelines)
+      setup do
+        Mox.stub(HTTPClientMock, :request, fn _payload ->
+          {:ok, mock_activity_response()}
+        end)
+        :ok
+      end
+      ```
+      
+      ## Mock Response Format
+      Activities return consistent response structure:
+      ```elixir
+      %{
+        "activity" => %{
+          "id" => "activity-uuid",
+          "status" => "ACTIVITY_STATUS_COMPLETED",
+          "type" => "ACTIVITY_TYPE_CREATE_WALLET", 
+          "result" => %{
+            "createWalletResult" => %{
+              "walletId" => "wallet-uuid",
+              "addresses" => [...]
+            }
+          }
+        }
+      }
+      ```

@@ -1,0 +1,357 @@
+# Warp rules for MultiChainWallet Service
+version: 1
+name: MultiChainWallet Service API
+
+description: |
+  Documentation for BeVotisWallet.Services.MultiChainWallet module.
+  
+  This service provides high-level wallet operations that abstract blockchain-specific 
+  details like cryptographic curves and address formats. It builds on top of the 
+  Turnkey Activities service and uses ChainConfig to manage supported chains.
+
+  ## Key Features
+  • Create single-chain wallets for specific blockchain networks
+  • Create multi-chain wallets supporting multiple networks simultaneously  
+  • Add accounts to existing wallets for new blockchain networks
+  • Automatic curve and address format management based on blockchain type
+  • Support for Bitcoin, Ethereum, Solana, Tron, and 78+ other chains
+
+  ## Architecture
+  ```
+  MultiChainWallet Service
+  ├── ChainConfig (chain specifications)
+  ├── Turnkey.Activities (wallet operations)
+  └── Logger (telemetry)
+  ```
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Environment variables
+# ──────────────────────────────────────────────────────────────────────────────
+env:
+  # Turnkey API configuration
+  TURNKEY_BASE_URL: "${TURNKEY_BASE_URL:-https://api.turnkey.com}"
+  TURNKEY_API_KEY: "${TURNKEY_API_KEY}"
+  TURNKEY_API_SECRET: "${TURNKEY_API_SECRET}"
+  TURNKEY_ORGANIZATION_ID: "${TURNKEY_ORGANIZATION_ID}"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Commands - MultiChainWallet Service Operations
+# ──────────────────────────────────────────────────────────────────────────────
+commands:
+  create_single_chain_wallet:
+    description: "Create a wallet for a specific blockchain network"
+    tags: [wallet-creation, single-chain]
+    arguments:
+      - name: organization_id
+        description: "Turnkey organization identifier"
+      - name: user_id
+        description: "User identifier who will own the wallet"
+      - name: wallet_name
+        description: "Human-readable name for the wallet"
+      - name: chain
+        description: "Blockchain identifier (ethereum, bitcoin, solana, etc.)"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.MultiChainWallet
+      > MultiChainWallet.create_wallet_for_chain(
+          "{{organization_id}}", 
+          "{{user_id}}", 
+          "{{wallet_name}}", 
+          :{{chain}}
+        )
+
+  create_multi_chain_wallet:
+    description: "Create a wallet supporting multiple blockchain networks"
+    tags: [wallet-creation, multi-chain]
+    arguments:
+      - name: organization_id
+        description: "Turnkey organization identifier"
+      - name: user_id
+        description: "User identifier who will own the wallet"
+      - name: wallet_name
+        description: "Human-readable name for the wallet"
+      - name: chains
+        description: "Comma-separated list of blockchain identifiers"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.MultiChainWallet
+      > chains = String.split("{{chains}}", ",") |> Enum.map(&String.to_atom/1)
+      > MultiChainWallet.create_multi_chain_wallet(
+          "{{organization_id}}", 
+          "{{user_id}}", 
+          "{{wallet_name}}", 
+          chains
+        )
+
+  add_chain_to_wallet:
+    description: "Add a new blockchain account to an existing wallet"
+    tags: [wallet-extension, account-creation]
+    arguments:
+      - name: organization_id
+        description: "Turnkey organization identifier"
+      - name: wallet_id
+        description: "Existing wallet UUID"
+      - name: chain
+        description: "New blockchain identifier to add"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.MultiChainWallet
+      > MultiChainWallet.add_account(
+          "{{organization_id}}", 
+          "{{wallet_id}}", 
+          :{{chain}}
+        )
+
+  list_supported_chains:
+    description: "List all supported blockchain networks"
+    tags: [chain-config, reference]
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.ChainConfig
+      > ChainConfig.list_all() |> Enum.each(fn {id, chain} ->
+          IO.puts("#{id}: #{chain.name} (#{chain.curve})")
+        end)
+
+  inspect_chain_config:
+    description: "Get detailed configuration for a specific chain"
+    tags: [chain-config, debugging]
+    arguments:
+      - name: chain
+        description: "Chain identifier to inspect"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.ChainConfig
+      > case ChainConfig.get(:{{chain}}) do
+          {:ok, config} -> IO.inspect(config, pretty: true)
+          {:error, :not_found} -> IO.puts("Chain '{{chain}}' not found")
+        end
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Context - Implementation Details
+# ──────────────────────────────────────────────────────────────────────────────
+context:
+  - name: "Service Functions"
+    value: |
+      ## Primary API Functions
+
+      ### create_wallet_for_chain/4
+      Creates a single-chain wallet for a specific blockchain.
+      - Parameters: organization_id, user_id, wallet_name, chain
+      - Returns: {:ok, response} | {:error, :unsupported_chain} | {:error, status, message}
+      - Chain resolution via ChainConfig.get/1
+      - Account spec built automatically based on chain type
+
+      ### create_multi_chain_wallet/4  
+      Creates a wallet supporting multiple blockchain networks.
+      - Parameters: organization_id, user_id, wallet_name, chain_list
+      - Returns: {:ok, response} | {:error, {:unsupported_chain, chain}} | {:error, status, message}
+      - Validates all chains before wallet creation
+      - Creates accounts for all specified chains in single operation
+
+      ### add_account/3
+      Adds a new blockchain account to an existing wallet.
+      - Parameters: organization_id, wallet_id, chain
+      - Returns: {:ok, response} | {:error, :unsupported_chain} | {:error, status, message}
+      - Extends existing wallet with new chain support
+
+  - name: "Chain Configuration Integration"
+    value: |
+      ## Supported Blockchain Networks
+
+      The service supports 78+ blockchain networks including:
+
+      **Major Networks:**
+      - ethereum (ETH) - Curve: SECP256K1, Format: ADDRESS_FORMAT_ETHEREUM
+      - bitcoin (BTC) - Curve: SECP256K1, Format: ADDRESS_FORMAT_BITCOIN_MAINNET_P2WPKH  
+      - solana (SOL) - Curve: ED25519, Format: ADDRESS_FORMAT_SOLANA
+      - tron (TRX) - Curve: SECP256K1, Format: ADDRESS_FORMAT_TRON
+
+      **EVM-Compatible Chains:**
+      - polygon, binance_smart_chain, arbitrum, optimism, avalanche
+      - All use Ethereum derivation path: m/44'/60'/0'/0/0
+
+      **Chain Resolution Process:**
+      1. ChainConfig.get/1 validates chain identifier
+      2. Returns chain specification with curve, path, and address format
+      3. build_account_spec/1 converts to Turnkey account format
+      4. Activities.create_wallet/4 performs actual wallet creation
+
+  - name: "Error Handling Patterns"
+    value: |
+      ## Error Types and Handling
+
+      ### Service-Level Errors
+      - {:error, :unsupported_chain} - Chain not found in ChainConfig
+      - {:error, {:unsupported_chain, chain}} - Specific chain in multi-chain list not found
+
+      ### Turnkey API Errors (propagated from Activities service)
+      - {:error, 400, message} - Bad request (invalid parameters)
+      - {:error, 401, message} - Authentication failure
+      - {:error, 403, message} - Authorization failure  
+      - {:error, 404, message} - Resource not found
+      - {:error, 429, message} - Rate limit exceeded
+      - {:error, 500, message} - Internal server error
+
+      ### Error Logging
+      All operations include structured logging:
+      - Info logs for successful operations with activity IDs
+      - Error logs for failures with context and error details
+      - Organization ID and operation parameters included for debugging
+
+  - name: "Account Specification Format"
+    value: |
+      ## Account Spec Generation
+
+      The build_account_spec/1 function converts ChainConfig data to Turnkey format:
+
+      ```elixir
+      # Input: ChainConfig.Chain struct
+      %ChainConfig.Chain{
+        curve: "CURVE_SECP256K1",
+        derivation_path: "m/44'/60'/0'/0/0", 
+        address_format: "ADDRESS_FORMAT_ETHEREUM"
+      }
+
+      # Output: Turnkey account specification
+      %{
+        "curve" => "CURVE_SECP256K1",
+        "pathFormat" => "PATH_FORMAT_BIP32",
+        "path" => "m/44'/60'/0'/0/0",
+        "addressFormat" => "ADDRESS_FORMAT_ETHEREUM"
+      }
+      ```
+
+      ## Supported Curves
+      - CURVE_SECP256K1 - Bitcoin, Ethereum, and most EVM chains
+      - CURVE_ED25519 - Solana and other EdDSA-based chains
+
+  - name: "Testing and Mocking"
+    value: |
+      ## Test Configuration
+
+      The service uses dependency injection for testing:
+      - Activities service mocked via Application config
+      - ChainConfig provides deterministic chain data
+      - Comprehensive test coverage in test/services/multi_chain_wallet_test.exs
+
+      ## Test Categories
+      - Unit tests for each public function
+      - Error case testing for unsupported chains
+      - Integration tests with mocked Turnkey responses
+      - Property-based tests for chain configuration validation
+
+      ## Mock Usage (follows project guidelines)
+      ```elixir
+      # Use stub instead of expect (per project rules)
+      Mox.stub(TurnkeyMock, :create_wallet, fn _, _, _, _ ->
+        {:ok, mock_wallet_response()}
+      end)
+      ```
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Examples - Common Usage Patterns  
+# ──────────────────────────────────────────────────────────────────────────────
+examples:
+  - name: "Bitcoin Wallet Creation"
+    description: "Create a Bitcoin-only wallet"
+    code: |
+      # Organization and user must exist in Turnkey first
+      org_id = "01234567-89ab-cdef-0123-456789abcdef" 
+      user_id = "11111111-2222-3333-4444-555555555555"
+      
+      {:ok, response} = MultiChainWallet.create_wallet_for_chain(
+        org_id,
+        user_id, 
+        "My Bitcoin Wallet",
+        :bitcoin
+      )
+      
+      # Extract wallet ID from response
+      wallet_id = get_in(response, ["activity", "result", "createWalletResult", "walletId"])
+      IO.puts("Created Bitcoin wallet: #{wallet_id}")
+
+  - name: "Universal Multi-Chain Wallet"
+    description: "Create wallet supporting major cryptocurrencies"
+    code: |
+      org_id = "01234567-89ab-cdef-0123-456789abcdef"
+      user_id = "11111111-2222-3333-4444-555555555555"
+      
+      major_chains = [:ethereum, :bitcoin, :solana, :polygon, :binance_smart_chain]
+      
+      {:ok, response} = MultiChainWallet.create_multi_chain_wallet(
+        org_id,
+        user_id,
+        "Universal Crypto Wallet", 
+        major_chains
+      )
+      
+      # Response includes addresses for all chains
+      addresses = get_in(response, ["activity", "result", "createWalletResult", "addresses"])
+      Enum.each(addresses, fn addr ->
+        IO.puts("#{addr["format"]}: #{addr["address"]}")
+      end)
+
+  - name: "Extending Existing Wallet"
+    description: "Add Tron support to existing Ethereum wallet"
+    code: |
+      org_id = "01234567-89ab-cdef-0123-456789abcdef"
+      wallet_id = "wallet-uuid-from-previous-creation"
+      
+      {:ok, response} = MultiChainWallet.add_account(
+        org_id,
+        wallet_id,
+        :tron
+      )
+      
+      # New Tron account added to existing wallet
+      new_accounts = get_in(response, ["activity", "result", "createWalletAccountsResult", "addresses"])
+      IO.puts("Added Tron account: #{hd(new_accounts)["address"]}")
+
+  - name: "Error Handling"
+    description: "Handle unsupported chains and API errors gracefully"
+    code: |
+      case MultiChainWallet.create_wallet_for_chain(org_id, user_id, "Test", :unknown_chain) do
+        {:ok, response} ->
+          IO.puts("Wallet created successfully")
+          
+        {:error, :unsupported_chain} ->
+          IO.puts("Error: Chain 'unknown_chain' is not supported")
+          IO.puts("Supported chains: #{inspect(ChainConfig.list_identifiers())}")
+          
+        {:error, status_code, error_message} ->
+          IO.puts("Turnkey API error #{status_code}: #{inspect(error_message)}")
+      end
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Integration Notes
+# ──────────────────────────────────────────────────────────────────────────────
+integration:
+  - name: "Dependencies"
+    value: |
+      ## Required Services
+      - BeVotisWallet.Services.Turnkey.Activities - Wallet creation operations
+      - BeVotisWallet.ChainConfig - Blockchain configuration data
+      - Logger - Structured logging and telemetry
+
+      ## Configuration Requirements  
+      - Turnkey API credentials in application config
+      - HTTP client configuration (Finch for production, Mock for testing)
+      - ChainConfig data must be loaded at application startup
+
+  - name: "Performance Considerations"
+    value: |
+      ## Optimization Strategies
+      - ChainConfig data cached at compile time
+      - Account spec generation is O(1) per chain
+      - Multi-chain wallets created in single Turnkey API call
+      - Structured logging provides performance insights
+
+      ## Scaling Considerations
+      - Service is stateless and horizontally scalable
+      - Rate limiting handled at Activities service level
+      - Chain support easily extensible via ChainConfig updates

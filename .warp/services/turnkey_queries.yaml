@@ -1,0 +1,615 @@
+# Warp rules for Turnkey Queries Service
+version: 1
+name: Turnkey Queries Service API
+
+description: |
+  Documentation for BeVotisWallet.Services.Turnkey.Queries module.
+  
+  This module handles all Turnkey query operations that retrieve data without 
+  modifying state, such as getting wallets, users, activities, and organization 
+  information. Query operations are simpler than activities and don't require 
+  request signing or complex authentication flows.
+
+  ## Key Features
+  • Retrieve organization information and hierarchy
+  • List and query users within organizations
+  • Get wallet details with account information
+  • List wallets with filtering and pagination
+  • Query activity status and history
+  • Get wallet accounts and addresses
+  • Support for pagination and filtering across all list operations
+
+  ## Architecture
+  ```
+  Queries Service
+  ├── HTTP Client (Finch/Mock)
+  ├── Configuration (Turnkey credentials)
+  ├── Query Parameter Builder
+  └── Response Parser
+  ```
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Environment variables
+# ──────────────────────────────────────────────────────────────────────────────
+env:
+  # Turnkey API configuration
+  TURNKEY_BASE_URL: "${TURNKEY_BASE_URL:-https://api.turnkey.com}"
+  TURNKEY_API_KEY: "${TURNKEY_API_KEY}"
+  TURNKEY_API_SECRET: "${TURNKEY_API_SECRET}"
+  TURNKEY_ORGANIZATION_ID: "${TURNKEY_ORGANIZATION_ID}"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Commands - Turnkey Query Operations
+# ──────────────────────────────────────────────────────────────────────────────
+commands:
+  get_organization_info:
+    description: "Get organization information by organization ID"
+    tags: [organization, info, metadata]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID (optional, defaults to configured org)"
+        required: false
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > Queries.get_organization("{{organization_id}}")
+
+  get_user_details:
+    description: "Get detailed information about a specific user"
+    tags: [user, info, details]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: user_id
+        description: "User UUID"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > Queries.get_user("{{organization_id}}", "{{user_id}}")
+
+  list_organization_users:
+    description: "List all users in an organization with pagination"
+    tags: [user, list, pagination]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: limit
+        description: "Maximum number of users to return (default: 20)"
+        default: "20"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > Queries.list_users("{{organization_id}}", limit: {{limit}})
+
+  get_wallet_details:
+    description: "Get detailed wallet information including all accounts"
+    tags: [wallet, info, accounts]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: wallet_id
+        description: "Wallet UUID"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > Queries.get_wallet("{{organization_id}}", "{{wallet_id}}")
+
+  list_organization_wallets:
+    description: "List all wallets in organization with optional user filtering"
+    tags: [wallet, list, filtering]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: user_id
+        description: "Filter by specific user (optional)"
+        required: false
+      - name: limit
+        description: "Maximum number of wallets to return (default: 20)"
+        default: "20"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > opts = [limit: {{limit}}]
+      > opts = if "{{user_id}}" != "", do: [user_id: "{{user_id}}" | opts], else: opts
+      > Queries.list_wallets("{{organization_id}}", opts)
+
+  get_wallet_accounts:
+    description: "Get all accounts for a specific wallet"
+    tags: [wallet, accounts, addresses]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: wallet_id
+        description: "Wallet UUID"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > Queries.get_wallet_accounts("{{organization_id}}", "{{wallet_id}}")
+
+  get_activity_status:
+    description: "Get activity information and status"
+    tags: [activity, status, monitoring]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: activity_id
+        description: "Activity UUID"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > Queries.get_activity("{{organization_id}}", "{{activity_id}}")
+
+  list_organization_activities:
+    description: "List recent activities with optional type filtering"
+    tags: [activity, list, history]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: activity_type
+        description: "Filter by activity type (optional)"
+        required: false
+      - name: limit
+        description: "Maximum number of activities to return (default: 50)"
+        default: "50"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > opts = [limit: {{limit}}]
+      > opts = if "{{activity_type}}" != "", do: [activity_type: "{{activity_type}}" | opts], else: opts
+      > Queries.list_activities("{{organization_id}}", opts)
+
+  paginated_wallet_search:
+    description: "Search wallets with pagination token"
+    tags: [wallet, search, pagination]
+    arguments:
+      - name: organization_id
+        description: "Organization UUID"
+      - name: pagination_token
+        description: "Token from previous query for next page"
+      - name: limit
+        description: "Maximum number of wallets to return"
+        default: "10"
+    run: |
+      # Example Elixir call for pagination
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Queries
+      > Queries.list_wallets("{{organization_id}}", 
+          limit: {{limit}}, 
+          pagination_token: "{{pagination_token}}"
+        )
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Context - Implementation Details
+# ──────────────────────────────────────────────────────────────────────────────
+context:
+  - name: "Core Query Functions"
+    value: |
+      ## Primary Query Operations
+
+      ### get_organization/1
+      Retrieves organization information and metadata.
+      - Parameters: organization_id (optional, defaults to config)
+      - Returns: {:ok, organization_data} | {:error, status, message}
+      - Response includes: organization name, settings, user count, wallet count
+
+      ### get_user/2
+      Gets detailed information about a specific user.
+      - Parameters: organization_id, user_id
+      - Returns: {:ok, user_data} | {:error, status, message}
+      - Response includes: user name, email, API keys, authenticators
+
+      ### list_users/2
+      Lists users in organization with pagination support.
+      - Parameters: organization_id, opts (limit, pagination_token)
+      - Returns: {:ok, %{"users" => users, "paginationToken" => token}}
+      - Options: :limit (default 20), :pagination_token for next page
+
+      ### get_wallet/2
+      Retrieves comprehensive wallet information.
+      - Parameters: organization_id, wallet_id
+      - Returns: {:ok, wallet_data} | {:error, status, message}
+      - Response includes: wallet name, accounts, addresses, creation date
+
+      ### list_wallets/2
+      Lists wallets with optional user filtering and pagination.
+      - Parameters: organization_id, opts
+      - Options: :user_id (filter), :limit, :pagination_token
+      - Returns: {:ok, %{"wallets" => wallets, "paginationToken" => token}}
+
+  - name: "Query Parameter Building"
+    value: |
+      ## Parameter Processing Functions
+
+      ### maybe_add_pagination_params/2
+      Adds pagination parameters to query if provided.
+      - Adds "limit" and "paginationToken" fields to query map
+      - Handles nil/empty values gracefully
+      - Used by list_users, list_wallets, list_activities
+
+      ### maybe_add_user_filter/2  
+      Adds user filtering to wallet queries.
+      - Adds "userId" field to query map if provided
+      - Used by list_wallets for user-specific wallet filtering
+
+      ### maybe_add_activity_type_filter/2
+      Adds activity type filtering to activity queries.
+      - Adds "activityType" field to query map if provided
+      - Used by list_activities for filtering by activity type
+
+      ### build_query_url/1
+      Constructs full Turnkey API URLs for query endpoints.
+      - Takes relative path and adds base URL
+      - Handles URL encoding and validation
+
+  - name: "Response Processing"
+    value: |
+      ## Query Response Handling
+
+      ### execute_query/2 - Core Function
+      Central query execution function that:
+      1. Builds HTTP request with query parameters
+      2. Adds authentication headers (API key)
+      3. Sends GET request to Turnkey API
+      4. Parses JSON response
+      5. Returns structured Elixir data
+
+      ### Response Formats
+      Queries return consistent response structures:
+
+      ```elixir
+      # Single item queries (get_*)
+      {:ok, %{
+        "organization" => %{...},
+        "user" => %{...},
+        "wallet" => %{...},
+        "activity" => %{...}
+      }}
+
+      # List queries (list_*)
+      {:ok, %{
+        "users" => [...],
+        "wallets" => [...], 
+        "activities" => [...],
+        "paginationToken" => "token-for-next-page"
+      }}
+      ```
+
+      ### Error Response Format
+      All errors follow consistent pattern:
+      ```elixir
+      {:error, status_code, error_message}
+      ```
+
+  - name: "Pagination Support"
+    value: |
+      ## Pagination Implementation
+
+      ### Token-Based Pagination
+      Turnkey uses cursor-based pagination with tokens:
+      - Initial request: no pagination token
+      - Subsequent requests: include "paginationToken" from previous response
+      - Last page: response contains no "paginationToken" field
+
+      ### Pagination Flow Example
+      ```elixir
+      # Page 1 - no token needed
+      {:ok, page1} = Queries.list_wallets(org_id, limit: 10)
+      wallets1 = page1["wallets"]
+      token1 = page1["paginationToken"]
+
+      # Page 2 - use token from page 1
+      {:ok, page2} = Queries.list_wallets(org_id, 
+        limit: 10, 
+        pagination_token: token1
+      )
+      wallets2 = page2["wallets"]
+      token2 = page2["paginationToken"]  # nil if last page
+
+      # Continue until token is nil
+      ```
+
+      ### Limits and Performance
+      - Default limit: 20 items per page (configurable)
+      - Maximum limit: 100 items per page (Turnkey API limit)
+      - Pagination tokens expire after 24 hours
+      - Use reasonable limits to avoid timeouts
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Examples - Common Query Patterns
+# ──────────────────────────────────────────────────────────────────────────────
+examples:
+  - name: "Organization Overview"
+    description: "Get complete organization information"
+    code: |
+      # Get organization details
+      {:ok, org_response} = Queries.get_organization(org_id)
+      org_data = org_response["organization"]
+      
+      IO.puts("Organization: #{org_data["organizationName"]}")
+      IO.puts("Created: #{org_data["createDate"]}")
+      
+      # List all users
+      {:ok, users_response} = Queries.list_users(org_id)
+      user_count = length(users_response["users"])
+      IO.puts("Total users: #{user_count}")
+      
+      # List all wallets
+      {:ok, wallets_response} = Queries.list_wallets(org_id)
+      wallet_count = length(wallets_response["wallets"])
+      IO.puts("Total wallets: #{wallet_count}")
+
+  - name: "User Wallet Inventory"
+    description: "Get all wallets for a specific user"
+    code: |
+      # Get user details
+      {:ok, user_response} = Queries.get_user(org_id, user_id)
+      user_data = user_response["user"]
+      IO.puts("User: #{user_data["userName"]} <#{user_data["userEmail"]}>")
+      
+      # Get user's wallets
+      {:ok, wallets_response} = Queries.list_wallets(org_id, user_id: user_id)
+      user_wallets = wallets_response["wallets"]
+      
+      IO.puts("User has #{length(user_wallets)} wallet(s):")
+      
+      Enum.each(user_wallets, fn wallet ->
+        wallet_id = wallet["walletId"]
+        wallet_name = wallet["walletName"]
+        
+        # Get detailed wallet info including accounts
+        {:ok, wallet_detail} = Queries.get_wallet(org_id, wallet_id)
+        accounts = wallet_detail["wallet"]["accounts"]
+        
+        IO.puts("  #{wallet_name} (#{wallet_id}):")
+        Enum.each(accounts, fn account ->
+          IO.puts("    #{account["addressFormat"]}: #{account["address"]}")
+        end)
+      end)
+
+  - name: "Activity Monitoring"
+    description: "Monitor recent organization activities"
+    code: |
+      # Get recent activities
+      {:ok, activities_response} = Queries.list_activities(org_id, limit: 20)
+      activities = activities_response["activities"]
+      
+      IO.puts("Recent activities (#{length(activities)}):")
+      
+      Enum.each(activities, fn activity ->
+        activity_id = activity["id"]
+        activity_type = activity["type"]
+        status = activity["status"]
+        created_at = activity["createdAt"]
+        
+        IO.puts("  #{activity_type} | #{status} | #{created_at}")
+        
+        # Check for any failed activities
+        if status == "ACTIVITY_STATUS_FAILED" do
+          {:ok, detail} = Queries.get_activity(org_id, activity_id)
+          error = get_in(detail, ["activity", "result", "error"])
+          IO.puts("    Error: #{inspect(error)}")
+        end
+      end)
+
+  - name: "Wallet Account Analysis"
+    description: "Analyze accounts across all wallets"
+    code: |
+      # Get all wallets
+      {:ok, wallets_response} = Queries.list_wallets(org_id)
+      wallets = wallets_response["wallets"]
+      
+      # Count accounts by blockchain
+      blockchain_counts = %{}
+      total_accounts = 0
+      
+      Enum.each(wallets, fn wallet ->
+        wallet_id = wallet["walletId"]
+        {:ok, accounts_response} = Queries.get_wallet_accounts(org_id, wallet_id)
+        accounts = accounts_response["accounts"]
+        
+        Enum.each(accounts, fn account ->
+          format = account["addressFormat"]
+          blockchain = extract_blockchain_from_format(format)
+          
+          blockchain_counts = Map.update(blockchain_counts, blockchain, 1, &(&1 + 1))
+          total_accounts = total_accounts + 1
+        end)
+      end)
+      
+      IO.puts("Account Distribution (#{total_accounts} total):")
+      Enum.each(blockchain_counts, fn {blockchain, count} ->
+        percentage = Float.round(count / total_accounts * 100, 1)
+        IO.puts("  #{blockchain}: #{count} accounts (#{percentage}%)")
+      end)
+
+  - name: "Paginated Data Processing"
+    description: "Process all wallets using pagination"
+    code: |
+      defmodule WalletProcessor do
+        def process_all_wallets(org_id) do
+          process_page(org_id, nil, [])
+        end
+        
+        defp process_page(org_id, pagination_token, acc) do
+          opts = [limit: 50]
+          opts = if pagination_token, do: [pagination_token: pagination_token | opts], else: opts
+          
+          case Queries.list_wallets(org_id, opts) do
+            {:ok, response} ->
+              wallets = response["wallets"]
+              new_acc = acc ++ wallets
+              
+              case response["paginationToken"] do
+                nil ->
+                  # Last page reached
+                  IO.puts("Processed #{length(new_acc)} wallets total")
+                  new_acc
+                  
+                next_token ->
+                  # More pages available
+                  IO.puts("Processed #{length(new_acc)} wallets so far...")
+                  process_page(org_id, next_token, new_acc)
+              end
+              
+            {:error, status, error} ->
+              IO.puts("Error processing wallets: #{status} - #{inspect(error)}")
+              acc
+          end
+        end
+      end
+      
+      # Usage
+      all_wallets = WalletProcessor.process_all_wallets(org_id)
+
+  - name: "Error Handling Patterns"
+    description: "Handle common query errors gracefully"
+    code: |
+      defmodule SafeQueries do
+        def safe_get_wallet(org_id, wallet_id) do
+          case Queries.get_wallet(org_id, wallet_id) do
+            {:ok, response} ->
+              {:ok, response["wallet"]}
+              
+            {:error, 404, _} ->
+              {:error, :wallet_not_found}
+              
+            {:error, 401, _} ->
+              {:error, :authentication_failed}
+              
+            {:error, 403, _} ->
+              {:error, :access_denied}
+              
+            {:error, status, error} when status >= 500 ->
+              # Server error - could retry
+              {:error, {:server_error, status, error}}
+              
+            {:error, status, error} ->
+              # Client error - don't retry
+              {:error, {:client_error, status, error}}
+          end
+        end
+        
+        def retry_on_server_error(fun, max_attempts \\ 3) do
+          Enum.reduce_while(1..max_attempts, nil, fn attempt, _acc ->
+            case fun.() do
+              {:error, {:server_error, _, _}} when attempt < max_attempts ->
+                IO.puts("Server error on attempt #{attempt}, retrying...")
+                Process.sleep(1000 * attempt)  # Exponential backoff
+                {:cont, nil}
+                
+              result ->
+                {:halt, result}
+            end
+          end)
+        end
+      end
+      
+      # Usage with retry
+      result = SafeQueries.retry_on_server_error(fn ->
+        SafeQueries.safe_get_wallet(org_id, wallet_id)
+      end)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Integration Notes
+# ──────────────────────────────────────────────────────────────────────────────
+integration:
+  - name: "Configuration Requirements"
+    value: |
+      ## Application Config
+      
+      ```elixir
+      # config/runtime.exs
+      config :be_votis_wallet, :turnkey,
+        base_url: System.get_env("TURNKEY_BASE_URL", "https://api.turnkey.com"),
+        api_key: System.fetch_env!("TURNKEY_API_KEY"),
+        api_secret: System.fetch_env!("TURNKEY_API_SECRET"),
+        organization_id: System.get_env("TURNKEY_ORGANIZATION_ID")
+        
+      # HTTP client configuration
+      config :be_votis_wallet, :http_client, BeVotisWallet.HTTPClient.FinchClient
+      ```
+
+      ## Default Organization ID
+      If no organization_id is passed to get_organization/1, the service uses:
+      1. Configured organization_id from application config
+      2. Falls back to error if not configured
+
+  - name: "Performance Optimization"
+    value: |
+      ## Query Optimization Strategies
+
+      ### Caching Patterns
+      - Cache organization info (changes rarely)
+      - Cache user data with TTL (moderate change frequency)
+      - Don't cache wallet data (changes frequently)
+      - Cache activity results only for completed/failed activities
+
+      ### Pagination Best Practices  
+      - Use reasonable page sizes (10-50 items)
+      - Store pagination tokens temporarily for multi-page processing
+      - Implement timeout handling for long-running pagination
+      - Consider parallel processing for independent queries
+
+      ### Rate Limiting Awareness
+      - Queries share rate limits with Activities
+      - Implement exponential backoff for 429 responses
+      - Batch related queries when possible
+      - Use Oban for background query jobs
+
+  - name: "Testing and Mocking"
+    value: |
+      ## Test Configuration
+      
+      ```elixir
+      # config/test.exs  
+      config :be_votis_wallet, :http_client, BeVotisWallet.HTTPClient.Mock
+      
+      # In tests, use stub instead of expect (per project guidelines)
+      setup do
+        Mox.stub(HTTPClientMock, :request, fn payload ->
+          case payload.url do
+            url when url =~ "get_organization" ->
+              {:ok, mock_organization_response()}
+            url when url =~ "list_wallets" ->
+              {:ok, mock_wallets_response()}
+            _ ->
+              {:ok, mock_generic_response()}
+          end
+        end)
+        :ok
+      end
+      ```
+      
+      ## Mock Response Helpers
+      ```elixir
+      def mock_organization_response do
+        %{
+          "organization" => %{
+            "organizationId" => "test-org-id",
+            "organizationName" => "Test Organization",
+            "createDate" => "2024-01-01T00:00:00Z"
+          }
+        }
+      end
+      
+      def mock_wallets_response do
+        %{
+          "wallets" => [
+            %{
+              "walletId" => "test-wallet-id",
+              "walletName" => "Test Wallet",
+              "accounts" => [...]
+            }
+          ],
+          "paginationToken" => nil
+        }
+      end
+      ```

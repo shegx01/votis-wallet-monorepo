@@ -1,0 +1,594 @@
+# Warp rules for Turnkey Crypto Service
+version: 1
+name: Turnkey Crypto Service API
+
+description: |
+  Documentation for BeVotisWallet.Services.Turnkey.Crypto module.
+  
+  This module provides production-ready cryptographic utilities for Turnkey integration,
+  including ECDSA key generation, HPKE operations, JWT verification, and request stamping.
+  All cryptographic operations are designed for security, performance, and compliance
+  with Turnkey's API requirements.
+
+  ## Key Features
+  • ECDSA P-256 keypair generation for API authentication
+  • HPKE P-256 keypair generation for session encryption
+  • Turnkey API request stamping (signing)
+  • JWT session token verification with public key fetching
+  • HPKE credential bundle decryption
+  • Point compression/decompression for elliptic curve operations
+  • Secure error handling without information leakage
+
+  ## Architecture
+  ```
+  Crypto Service
+  ├── ECDSA Operations (P-256 curve)
+  ├── HPKE Operations (session encryption)
+  ├── JWT Verification (Turnkey JWKS)
+  ├── HTTP Client (JWKS fetching)
+  └── Security (error handling, logging)
+  ```
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Environment variables
+# ──────────────────────────────────────────────────────────────────────────────
+env:
+  # Turnkey API configuration
+  TURNKEY_BASE_URL: "${TURNKEY_BASE_URL:-https://api.turnkey.com}"
+  TURNKEY_API_KEY: "${TURNKEY_API_KEY}"
+  TURNKEY_API_SECRET: "${TURNKEY_API_SECRET}"
+  
+  # Key storage (optional, for file-based keys)
+  TURNKEY_PRIVATE_KEY_PATH: "${TURNKEY_PRIVATE_KEY_PATH}"
+  TURNKEY_PUBLIC_KEY_PATH: "${TURNKEY_PUBLIC_KEY_PATH}"
+  
+  # JWKS endpoint (defaults to Turnkey's well-known endpoint)
+  TURNKEY_JWKS_URL: "${TURNKEY_JWKS_URL:-https://api.turnkey.com/.well-known/jwks.json}"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Commands - Turnkey Crypto Operations
+# ──────────────────────────────────────────────────────────────────────────────
+commands:
+  generate_api_keypair:
+    description: "Generate ECDSA P-256 keypair for Turnkey API authentication"
+    tags: [crypto, keygen, ecdsa, authentication]
+    run: |
+      # Example Elixir call - generates PEM-encoded keypair
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Crypto
+      > {public_pem, private_pem} = Crypto.generate_api_keypair()
+      > IO.puts("Public key (share with Turnkey):")
+      > IO.puts(public_pem)
+      > IO.puts("\\nPrivate key (keep secure):")
+      > IO.puts(private_pem)
+
+  generate_hpke_keypair:
+    description: "Generate HPKE P-256 keypair for session encryption"
+    tags: [crypto, keygen, hpke, sessions]
+    run: |
+      # Example Elixir call - generates hex-encoded keypair
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Crypto
+      > {public_hex, private_hex} = Crypto.generate_hpke_keypair()
+      > IO.puts("HPKE Public key (hex): #{public_hex}")
+      > IO.puts("HPKE Private key (hex): #{private_hex}")
+
+  create_request_stamp:
+    description: "Create signature stamp for Turnkey API request"
+    tags: [crypto, signing, authentication]
+    arguments:
+      - name: request_body
+        description: "JSON request body as string"
+      - name: private_key_file
+        description: "Path to PEM private key file"
+    run: |
+      # Read private key and create stamp
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Crypto
+      > private_key_pem = File.read!("{{private_key_file}}")
+      > request_body = "{{request_body}}"
+      > case Crypto.create_request_stamp(request_body, private_key_pem) do
+          {:ok, stamp} -> IO.puts("X-Stamp header: #{stamp}")
+          {:error, reason} -> IO.puts("Signing failed: #{inspect(reason)}")
+        end
+
+  verify_session_jwt:
+    description: "Verify Turnkey session JWT token and extract claims"
+    tags: [crypto, jwt, verification, sessions]
+    arguments:
+      - name: jwt_token
+        description: "JWT token from Turnkey session response"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Crypto
+      > case Crypto.verify_session_jwt("{{jwt_token}}") do
+          {:ok, claims} -> 
+            IO.puts("JWT verified successfully!")
+            IO.inspect(claims, pretty: true)
+          {:error, reason} -> 
+            IO.puts("JWT verification failed: #{inspect(reason)}")
+        end
+
+  decrypt_credential_bundle:
+    description: "Decrypt HPKE credential bundle from read-write session"
+    tags: [crypto, hpke, decryption, sessions]
+    arguments:
+      - name: encrypted_bundle_hex
+        description: "Encrypted bundle in hex format"
+      - name: private_key_hex
+        description: "HPKE private key in hex format"
+    run: |
+      # Example Elixir call
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Crypto
+      > case Crypto.decrypt_credential_bundle("{{encrypted_bundle_hex}}", "{{private_key_hex}}") do
+          {:ok, credentials} ->
+            IO.puts("Decryption successful!")
+            IO.inspect(credentials, pretty: true)
+          {:error, reason} ->
+            IO.puts("Decryption failed: #{inspect(reason)}")
+        end
+
+  test_point_compression:
+    description: "Test elliptic curve point compression/decompression"
+    tags: [crypto, elliptic-curve, debugging]
+    arguments:
+      - name: compressed_point_hex
+        description: "33-byte compressed point in hex format"
+    run: |
+      # Internal testing function for point operations
+      iex -S mix
+      > compressed_point = Base.decode16!("{{compressed_point_hex}}", case: :lower)
+      > # This tests the internal ensure_uncompressed_point function
+      > # Not directly exposed, but useful for debugging curve operations
+
+  fetch_turnkey_jwks:
+    description: "Fetch Turnkey's current JWKS (JSON Web Key Set)"
+    tags: [crypto, jwt, jwks, debugging]
+    run: |
+      # Manually fetch JWKS for inspection
+      iex -S mix
+      > alias BeVotisWallet.Services.Turnkey.Crypto
+      > # This uses internal HTTP client to fetch JWKS
+      > # Useful for debugging JWT verification issues
+      > IO.puts("JWKS endpoint: https://api.turnkey.com/.well-known/jwks.json")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Context - Implementation Details
+# ──────────────────────────────────────────────────────────────────────────────
+context:
+  - name: "ECDSA Key Generation and Signing"
+    value: |
+      ## ECDSA P-256 Operations
+
+      ### generate_api_keypair/0
+      Generates ECDSA P-256 keypair for Turnkey API authentication.
+      - Uses :public_key.generate_key/1 with secp256r1 curve
+      - Returns PEM-encoded public and private keys
+      - Public key formatted as SubjectPublicKeyInfo for Turnkey
+      - Private key includes all curve parameters
+
+      ### create_request_stamp/2
+      Creates authentication signature for Turnkey API requests.
+      - Parameters: request_body (JSON string), private_key_pem
+      - Process: SHA256 hash -> ECDSA signature -> Base64 encode
+      - Returns: {:ok, stamp} | {:error, reason}
+      - Stamp used in X-Stamp HTTP header
+
+      ## Security Considerations
+      - Private keys never leave application memory
+      - PEM encoding ensures cross-platform compatibility
+      - Error handling prevents private key leakage
+      - SHA256 used for message hashing (Turnkey requirement)
+
+  - name: "HPKE Operations"
+    value: |
+      ## Hybrid Public Key Encryption
+
+      ### generate_hpke_keypair/0
+      Generates HPKE P-256 keypair for session credential encryption.
+      - Uses :crypto.generate_key/2 with secp256r1 curve
+      - Returns hex-encoded public and private keys
+      - Public key in uncompressed format (0x04 + x + y coordinates)
+      - Compatible with Turnkey's HPKE implementation
+
+      ### decrypt_credential_bundle/2
+      Decrypts read-write session credentials from Turnkey.
+      - Parameters: encrypted_bundle_hex, private_key_hex
+      - Process: Parse ciphertext -> HPKE decrypt -> JSON decode
+      - Returns: {:ok, credentials_map} | {:error, reason}
+      - Credentials include API keys and signing materials
+
+      ## HPKE Implementation Details
+      - Uses standard HPKE construction (RFC 9180)
+      - P-256 curve for key exchange
+      - AES-GCM for symmetric encryption
+      - Point compression handled automatically
+
+  - name: "JWT Verification"
+    value: |
+      ## JSON Web Token Processing
+
+      ### verify_session_jwt/1
+      Verifies Turnkey session JWTs using public key cryptography.
+      - Parameters: jwt_token (string)
+      - Process: Parse header -> Fetch public key -> Verify signature -> Validate claims
+      - Returns: {:ok, claims_map} | {:error, reason}
+
+      ### JWT Verification Flow
+      1. Parse JWT header to extract key ID (kid)
+      2. Fetch corresponding public key from Turnkey JWKS endpoint
+      3. Verify JWT signature using public key
+      4. Validate standard claims (exp, iat, iss, aud)
+      5. Return verified claims for application use
+
+      ### JWKS (JSON Web Key Set) Handling
+      - Fetches keys from https://api.turnkey.com/.well-known/jwks.json
+      - Caches keys temporarily (implementation detail)
+      - Handles key rotation automatically
+      - Validates key algorithms and usage
+
+      ## JWT Claims Structure
+      ```elixir
+      %{
+        "iss" => "https://api.turnkey.com",     # Issuer
+        "aud" => "your-organization-id",        # Audience  
+        "sub" => "session-subject",             # Subject
+        "exp" => 1640995200,                   # Expiration
+        "iat" => 1640991600,                   # Issued at
+        "scope" => "read-write"                # Session scope
+      }
+      ```
+
+  - name: "Error Handling and Security"
+    value: |
+      ## Secure Error Handling
+
+      ### Error Types
+      - :invalid_private_key - PEM parsing failed
+      - :signing_failed - ECDSA signature generation failed
+      - :invalid_jwt_header - JWT format invalid
+      - :missing_key_id - JWT header missing kid claim
+      - :http_error - JWKS fetch failed
+      - :invalid_signature - JWT signature verification failed
+      - :point_decompression_failed - Elliptic curve operation failed
+
+      ### Security Principles
+      - Error messages don't reveal sensitive information
+      - Private keys never logged or included in errors
+      - Timing attacks mitigated through consistent error paths
+      - All cryptographic failures logged for security monitoring
+
+      ### Logging Strategy
+      - Info logs for successful operations (key generation, verification)
+      - Error logs for failures with sanitized context
+      - No sensitive data (keys, tokens) in logs
+      - Structured logging for security monitoring
+
+  - name: "Point Compression and Curve Operations"
+    value: |
+      ## Elliptic Curve Point Handling
+
+      ### ensure_uncompressed_point/1
+      Converts compressed P-256 points to uncompressed format.
+      - Input: 33-byte compressed point or 65-byte uncompressed point
+      - Output: 65-byte uncompressed point (0x04 + x + y)
+      - Uses Curvy library for point decompression
+      - Required for HPKE operations
+
+      ### Point Format Validation
+      - Compressed: 33 bytes (0x02/0x03 + x coordinate)
+      - Uncompressed: 65 bytes (0x04 + x + y coordinates)
+      - Handles invalid point formats gracefully
+      - Validates point is on curve (via Curvy)
+
+      ### Curve Parameters (P-256/secp256r1)
+      - Field size: 256 bits
+      - Curve equation: y² = x³ - 3x + b
+      - Cofactor: 1 (prime order group)
+      - Used by both ECDSA and HPKE operations
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Examples - Cryptographic Operation Patterns
+# ──────────────────────────────────────────────────────────────────────────────
+examples:
+  - name: "Complete API Key Setup"
+    description: "Generate and use ECDSA keypair for API authentication"
+    code: |
+      # Step 1: Generate keypair
+      {public_pem, private_pem} = Crypto.generate_api_keypair()
+      
+      # Step 2: Save keys securely
+      File.write!("/secure/path/turnkey_private.pem", private_pem, [:write])
+      File.chmod!("/secure/path/turnkey_private.pem", 0o600)  # Read-only for owner
+      
+      # Step 3: Register public key with Turnkey (manual step)
+      IO.puts("Register this public key with Turnkey:")
+      IO.puts(public_pem)
+      
+      # Step 4: Use private key for request signing
+      request_body = Jason.encode!(%{
+        "type" => "ACTIVITY_TYPE_CREATE_WALLET",
+        "timestampMs" => to_string(System.system_time(:millisecond)),
+        "organizationId" => org_id,
+        "parameters" => %{"walletName" => "Test Wallet"}
+      })
+      
+      {:ok, stamp} = Crypto.create_request_stamp(request_body, private_pem)
+      IO.puts("Use in X-Stamp header: #{stamp}")
+
+  - name: "Session Credential Decryption"
+    description: "Full HPKE session setup and credential decryption"
+    code: |
+      # Step 1: Generate HPKE keypair for session
+      {hpke_public_hex, hpke_private_hex} = Crypto.generate_hpke_keypair()
+      
+      # Step 2: Create Turnkey session with HPKE public key
+      session_request = %{
+        "type" => "ACTIVITY_TYPE_CREATE_SESSION",
+        "parameters" => %{
+          "sessionName" => "Read-Write Session",
+          "credentials" => %{
+            "hpkeEncryption" => %{
+              "publicKey" => hpke_public_hex
+            }
+          }
+        }
+      }
+      
+      # Step 3: Send session creation request (via Activities service)
+      # Response contains encrypted credential bundle
+      
+      # Step 4: Decrypt received credential bundle
+      encrypted_bundle_hex = "deadbeef..."  # From Turnkey response
+      
+      case Crypto.decrypt_credential_bundle(encrypted_bundle_hex, hpke_private_hex) do
+        {:ok, credentials} ->
+          # credentials contains decrypted API keys and tokens
+          session_api_key = credentials["apiKey"]
+          session_private_key = credentials["privateKey"]
+          IO.puts("Session credentials decrypted successfully")
+          
+        {:error, reason} ->
+          IO.puts("Credential decryption failed: #{inspect(reason)}")
+      end
+
+  - name: "JWT Session Verification"
+    description: "Verify and use Turnkey session JWTs"
+    code: |
+      # Receive JWT from Turnkey session response
+      session_jwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6..."
+      
+      case Crypto.verify_session_jwt(session_jwt) do
+        {:ok, claims} ->
+          # Extract session information
+          organization_id = claims["aud"]
+          session_scope = claims["scope"]
+          expires_at = claims["exp"]
+          
+          IO.puts("Session verified for org: #{organization_id}")
+          IO.puts("Scope: #{session_scope}")
+          IO.puts("Expires: #{DateTime.from_unix!(expires_at)}")
+          
+          # Use JWT for subsequent API calls
+          # Add as Bearer token in Authorization header
+          
+        {:error, :invalid_signature} ->
+          IO.puts("JWT signature invalid - possible tampering")
+          
+        {:error, {:http_error, status}} ->
+          IO.puts("Could not fetch JWKS: HTTP #{status}")
+          
+        {:error, reason} ->
+          IO.puts("JWT verification failed: #{inspect(reason)}")
+      end
+
+  - name: "Comprehensive Request Signing"
+    description: "Sign complex API request with full error handling"
+    code: |
+      defmodule SecureRequestSigner do
+        def sign_activity_request(activity_type, params, org_id) do
+          with {:ok, private_key_pem} <- load_private_key(),
+               {:ok, request_body} <- build_request_body(activity_type, params, org_id),
+               {:ok, stamp} <- Crypto.create_request_stamp(request_body, private_key_pem) do
+            {:ok, request_body, stamp}
+          else
+            error -> error
+          end
+        end
+        
+        defp load_private_key do
+          case File.read(System.get_env("TURNKEY_PRIVATE_KEY_PATH")) do
+            {:ok, pem} -> {:ok, pem}
+            {:error, :enoent} -> {:error, :private_key_not_found}
+            {:error, reason} -> {:error, {:private_key_error, reason}}
+          end
+        end
+        
+        defp build_request_body(activity_type, params, org_id) do
+          request = %{
+            "type" => activity_type,
+            "timestampMs" => to_string(System.system_time(:millisecond)),
+            "organizationId" => org_id,
+            "parameters" => params
+          }
+          
+          case Jason.encode(request) do
+            {:ok, json} -> {:ok, json}
+            {:error, reason} -> {:error, {:json_encoding_failed, reason}}
+          end
+        end
+      end
+      
+      # Usage
+      case SecureRequestSigner.sign_activity_request(
+        "ACTIVITY_TYPE_CREATE_WALLET",
+        %{"walletName" => "My Wallet"},
+        org_id
+      ) do
+        {:ok, request_body, stamp} ->
+          # Send to Turnkey with proper headers
+          headers = [
+            {"Content-Type", "application/json"},
+            {"X-Stamp", stamp}
+          ]
+          
+        {:error, :private_key_not_found} ->
+          IO.puts("Private key file not found - check TURNKEY_PRIVATE_KEY_PATH")
+          
+        {:error, reason} ->
+          IO.puts("Request signing failed: #{inspect(reason)}")
+      end
+
+  - name: "Cryptographic Testing and Validation"
+    description: "Test crypto operations for correctness"
+    code: |
+      defmodule CryptoValidator do
+        def validate_keypair_generation do
+          IO.puts("Testing ECDSA keypair generation...")
+          {public_pem, private_pem} = Crypto.generate_api_keypair()
+          
+          # Validate PEM format
+          assert String.starts_with?(public_pem, "-----BEGIN PUBLIC KEY-----")
+          assert String.starts_with?(private_pem, "-----BEGIN EC PRIVATE KEY-----")
+          
+          IO.puts("✓ ECDSA keypair generation valid")
+        end
+        
+        def validate_hpke_keypair_generation do
+          IO.puts("Testing HPKE keypair generation...")
+          {public_hex, private_hex} = Crypto.generate_hpke_keypair()
+          
+          # Validate hex format and lengths
+          public_bytes = Base.decode16!(public_hex, case: :lower)
+          private_bytes = Base.decode16!(private_hex, case: :lower)
+          
+          assert byte_size(public_bytes) == 65   # Uncompressed point
+          assert byte_size(private_bytes) == 32  # P-256 private key
+          assert :binary.first(public_bytes) == 0x04  # Uncompressed marker
+          
+          IO.puts("✓ HPKE keypair generation valid")
+        end
+        
+        def validate_request_signing do
+          IO.puts("Testing request signing...")
+          {_public_pem, private_pem} = Crypto.generate_api_keypair()
+          test_message = "test message"
+          
+          case Crypto.create_request_stamp(test_message, private_pem) do
+            {:ok, stamp} ->
+              # Validate base64 format
+              decoded = Base.decode64!(stamp)
+              assert byte_size(decoded) > 0
+              IO.puts("✓ Request signing valid")
+              
+            {:error, reason} ->
+              IO.puts("✗ Request signing failed: #{inspect(reason)}")
+          end
+        end
+        
+        def run_all_validations do
+          validate_keypair_generation()
+          validate_hpke_keypair_generation() 
+          validate_request_signing()
+          IO.puts("\\nAll cryptographic validations completed!")
+        end
+      end
+      
+      # Run validation suite
+      CryptoValidator.run_all_validations()
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Integration Notes
+# ──────────────────────────────────────────────────────────────────────────────
+integration:
+  - name: "Dependencies and Configuration"
+    value: |
+      ## Required Dependencies
+      - :public_key - Erlang/OTP cryptographic operations
+      - :crypto - Symmetric and asymmetric cryptography
+      - Jason - JSON encoding/decoding for JWT claims
+      - JOSE - JWT parsing and verification (optional, if using JOSE)
+      - Curvy - Elliptic curve operations (point compression)
+      - BeVotisWallet.HTTPClient.Behaviour - JWKS fetching
+
+      ## Configuration Requirements
+      ```elixir
+      # config/runtime.exs
+      config :be_votis_wallet, :turnkey,
+        jwks_url: System.get_env("TURNKEY_JWKS_URL", "https://api.turnkey.com/.well-known/jwks.json")
+        
+      # HTTP client for JWKS requests
+      config :be_votis_wallet, :http_client, BeVotisWallet.HTTPClient.FinchClient
+      ```
+
+  - name: "Security Best Practices"
+    value: |
+      ## Key Management
+      - Store private keys in secure locations with restricted permissions
+      - Use environment variables for key paths, not hardcoded values
+      - Rotate keys regularly according to security policy
+      - Never log or transmit private keys
+      - Use secure random number generation for all key generation
+
+      ## Error Handling Security
+      - Don't reveal cryptographic details in error messages
+      - Use constant-time comparisons where applicable
+      - Log security events for monitoring
+      - Implement rate limiting for cryptographic operations
+      - Validate all inputs before cryptographic processing
+
+      ## Production Deployment
+      - Use hardware security modules (HSMs) for key storage
+      - Implement key escrow for critical operations
+      - Monitor for cryptographic failures and attacks
+      - Keep cryptographic libraries updated
+      - Regular security audits of cryptographic operations
+
+  - name: "Testing and Mocking"
+    value: |
+      ## Test Configuration
+      ```elixir
+      # config/test.exs
+      config :be_votis_wallet, :http_client, BeVotisWallet.HTTPClient.Mock
+      
+      # Mock JWKS responses
+      setup do
+        Mox.stub(HTTPClientMock, :request, fn payload ->
+          case payload.url do
+            url when url =~ "jwks.json" ->
+              {:ok, mock_jwks_response()}
+            _ ->
+              {:ok, %{}}
+          end
+        end)
+        :ok
+      end
+      ```
+      
+      ## Mock JWKS Response
+      ```elixir
+      def mock_jwks_response do
+        %{
+          "keys" => [
+            %{
+              "kty" => "EC",
+              "kid" => "test-key-id",
+              "crv" => "P-256",
+              "x" => "base64url-encoded-x-coordinate",
+              "y" => "base64url-encoded-y-coordinate",
+              "use" => "sig",
+              "alg" => "ES256"
+            }
+          ]
+        }
+      end
+      ```
+      
+      ## Cryptographic Test Guidelines
+      - Use deterministic test vectors where possible
+      - Test both success and failure paths
+      - Validate key formats and lengths
+      - Test error conditions (invalid keys, malformed JWTs)
+      - Use property-based testing for cryptographic properties
