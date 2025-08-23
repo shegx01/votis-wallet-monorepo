@@ -53,7 +53,18 @@ defmodule BeVotisWallet.MixProject do
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:jose, "~> 1.11"},
+      {:x509, "~> 0.8"},
+      {:oban, "~> 2.17"},
+      {:ex_rated, "~> 2.0"},
+      # Production-grade cryptography libraries
+      {:ex_crypto, "~> 0.10.0"},
+      {:curvy, "~> 0.3.0"},
+      {:hkdf, "~> 0.1.0"},
+      {:tls_certificate_check, "~> 1.21"},
+      # Static analysis
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false}
     ]
   end
 

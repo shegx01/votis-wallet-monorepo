@@ -11,6 +11,8 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
 
   require Logger
 
+  alias BeVotisWallet.Services.Turnkey.Crypto
+
   @type activity_type :: String.t()
   @type activity_params :: map()
   @type organization_id :: String.t()
@@ -31,7 +33,7 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
 
   ## Parameters
   - `name` - Human-readable name for the sub-organization
-  - `opts` - Additional options (e.g., `:root_users`, `:root_quorum_threshold`)
+  - `opts` - Additional options (e.g., `:root_users`, `:root_quorum_threshold`, `:auth_type`)
 
   ## Returns
   - `{:ok, response}` - Success with organization data including `organizationId`
@@ -48,7 +50,19 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
         "rootQuorumThreshold" => Keyword.get(opts, :root_quorum_threshold, 1)
       }
 
-    execute_activity("ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION", activity_params)
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION",
+      params: activity_params,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+    
+    # Add optional client_signature if provided (required for WebAuthn)
+    execute_activity_opts = case Keyword.get(opts, :client_signature) do
+      nil -> execute_activity_opts
+      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+    end
+    
+    execute_activity(execute_activity_opts)
   end
 
   @doc """
@@ -58,7 +72,11 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   - `organization_id` - Target organization UUID
   - `user_name` - Unique username within the organization
   - `user_email` - User email address
-  - `opts` - Additional options (e.g., `:api_keys`, `:authenticators`)
+  - `opts` - Additional options:
+    - `:api_keys` - List of API keys for the user
+    - `:authenticators` - List of authenticators for the user
+    - `:auth_type` - Authentication type (`:api_key`, `:webauthn`, `:passkey`)
+    - `:client_signature` - Pre-computed signature from client (required for WebAuthn/Passkey)
 
   ## Returns
   - `{:ok, response}` - Success with user data including `userId`
@@ -72,7 +90,20 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       "authenticators" => Keyword.get(opts, :authenticators, [])
     }
 
-    execute_activity("ACTIVITY_TYPE_CREATE_USERS", activity_params, organization_id)
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_CREATE_USERS",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+    
+    # Add optional client_signature if provided
+    execute_activity_opts = case Keyword.get(opts, :client_signature) do
+      nil -> execute_activity_opts
+      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+    end
+    
+    execute_activity(execute_activity_opts)
   end
 
   @doc """
@@ -96,14 +127,27 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
         "addressFormat" => "ADDRESS_FORMAT_ETHEREUM"
       }]
   """
-  def create_wallet(organization_id, user_id, wallet_name, accounts) do
+  def create_wallet(organization_id, user_id, wallet_name, accounts, opts \\ []) do
     activity_params = %{
       "userId" => user_id,
       "walletName" => wallet_name,
       "accounts" => accounts
     }
 
-    execute_activity("ACTIVITY_TYPE_CREATE_WALLET", activity_params, organization_id)
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_CREATE_WALLET",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+    
+    # Add optional client_signature if provided
+    execute_activity_opts = case Keyword.get(opts, :client_signature) do
+      nil -> execute_activity_opts
+      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+    end
+    
+    execute_activity(execute_activity_opts)
   end
 
   @doc """
@@ -113,18 +157,34 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   - `organization_id` - Organization UUID
   - `wallet_id` - Target wallet UUID
   - `account_spec` - Account specification with curve, path, and address format
+  - `opts` - Additional options:
+    - `:auth_type` - Authentication type (`:api_key`, `:webauthn`, `:passkey`)
+    - `:client_signature` - Pre-computed signature from client (required for WebAuthn/Passkey)
 
   ## Returns
   - `{:ok, response}` - Success with account data
   - `{:error, status_code, error_message}` - Failure response
   """
-  def create_account(organization_id, wallet_id, account_spec) do
+  def create_account(organization_id, wallet_id, account_spec, opts \\ []) do
     activity_params = %{
       "walletId" => wallet_id,
       "accounts" => [account_spec]
     }
 
-    execute_activity("ACTIVITY_TYPE_CREATE_WALLET_ACCOUNTS", activity_params, organization_id)
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_CREATE_WALLET_ACCOUNTS",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+    
+    # Add optional client_signature if provided
+    execute_activity_opts = case Keyword.get(opts, :client_signature) do
+      nil -> execute_activity_opts
+      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+    end
+    
+    execute_activity(execute_activity_opts)
   end
 
   @doc """
@@ -134,7 +194,10 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   - `organization_id` - Organization UUID
   - `sign_with` - Signing specification (private key ID or path)
   - `unsigned_transaction` - Transaction data to sign
-  - `opts` - Additional signing options
+  - `opts` - Additional signing options:
+    - `:transaction_type` - Type of transaction (default: "TRANSACTION_TYPE_ETHEREUM")
+    - `:auth_type` - Authentication type (`:api_key`, `:webauthn`, `:passkey`)
+    - `:client_signature` - Pre-computed signature from client (required for WebAuthn/Passkey)
 
   ## Returns
   - `{:ok, response}` - Success with signed transaction
@@ -147,23 +210,41 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       "type" => Keyword.get(opts, :transaction_type, "TRANSACTION_TYPE_ETHEREUM")
     }
 
-    execute_activity("ACTIVITY_TYPE_SIGN_TRANSACTION_V2", activity_params, organization_id)
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_SIGN_TRANSACTION_V2",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+    
+    # Add optional client_signature if provided
+    execute_activity_opts = case Keyword.get(opts, :client_signature) do
+      nil -> execute_activity_opts
+      signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+    end
+    
+    execute_activity(execute_activity_opts)
   end
 
   # Private helper functions
 
-  defp execute_activity(activity_type, params, organization_id \\ nil) do
-    org_id = organization_id || get_default_organization_id()
+  defp execute_activity(opts) when is_list(opts) do
+    # Required arguments - use fetch! for clear error messages
+    activity_type = Keyword.fetch!(opts, :activity_type)
+    params = Keyword.fetch!(opts, :params)
+    
+    # Optional arguments with defaults
+    org_id = Keyword.get(opts, :organization_id) || get_default_organization_id()
+    auth_type = Keyword.get(opts, :auth_type, :api_key)
+    client_signature = Keyword.get(opts, :client_signature)
 
     activity_body = build_activity_request(activity_type, params, org_id)
+    json_body = Jason.encode!(activity_body)
 
-    # Sign the request if API secret is configured
-    signed_body = maybe_sign_request(activity_body)
+    # Build headers with signature using specified auth type and optional client signature
+    headers = build_activities_headers_with_signature(json_body, auth_type, client_signature)
 
     url = build_activities_url("/public/v1/submit/activity")
-    headers = build_activities_headers()
-    json_body = Jason.encode!(signed_body)
-
     payload = http_client().build_payload(:post, url, headers, json_body)
 
     case http_client().request(payload) do
@@ -197,12 +278,60 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     }
   end
 
-  defp maybe_sign_request(activity_body) do
-    # In a real implementation, this would use the API secret to sign the request
-    # For now, we'll just return the unsigned body
-    # TODO: Implement proper request signing with API key pairs
-    activity_body
+  defp build_activities_headers_with_signature(request_body, auth_type, client_signature) do
+    base_headers = build_activities_headers()
+    
+    case {auth_type, client_signature} do
+      # Client-provided signature (WebAuthn/Passkey) - mobile clients
+      {:webauthn, signature} when is_binary(signature) ->
+        stamp_header = get_stamp_header_name(:webauthn)
+        [{stamp_header, signature} | base_headers]
+      
+      {:passkey, signature} when is_binary(signature) ->
+        stamp_header = get_stamp_header_name(:passkey)
+        [{stamp_header, signature} | base_headers]
+      
+      # Server-side API key signing
+      {:api_key, nil} ->
+        case get_config(:api_private_key) do
+          nil -> 
+            Logger.warning("No API private key configured - request will be unsigned")
+            base_headers
+          
+          private_key_pem when is_binary(private_key_pem) ->
+            case Crypto.create_request_stamp(request_body, private_key_pem) do
+              {:ok, stamp} -> 
+                stamp_header = get_stamp_header_name(:api_key)
+                [{stamp_header, stamp} | base_headers]
+              
+              {:error, reason} -> 
+                Logger.error("Failed to sign request", reason: reason)
+                base_headers
+            end
+          
+          invalid_key -> 
+            Logger.error("Invalid API private key format", key_type: inspect(invalid_key))
+            base_headers
+        end
+      
+      # Error cases
+      {auth_type, nil} when auth_type in [:webauthn, :passkey] ->
+        Logger.error("Client signature required for #{auth_type} authentication")
+        base_headers
+      
+      {auth_type, signature} when auth_type == :api_key and is_binary(signature) ->
+        Logger.warning("Ignoring client signature for API key authentication")
+        build_activities_headers_with_signature(request_body, :api_key, nil)
+      
+      _ ->
+        Logger.warning("Unknown auth configuration", auth_type: auth_type, has_signature: is_binary(client_signature))
+        base_headers
+    end
   end
+
+  defp get_stamp_header_name(:api_key), do: "X-Stamp"
+  defp get_stamp_header_name(:webauthn), do: "X-Stamp-WebAuthn"
+  defp get_stamp_header_name(:passkey), do: "X-Stamp-WebAuthn"  # Alias for passkey
 
   defp build_activities_url(path) do
     base_url = get_config(:base_url)
