@@ -231,6 +231,105 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     execute_activity(execute_activity_opts)
   end
 
+  @doc """
+  Create a read-only session for a user.
+
+  ## Parameters
+  - `organization_id` - Target organization UUID
+  - `user_id` - Optional user UUID (if not provided, uses the authenticated user)
+  - `opts` - Additional options:
+    - `:auth_type` - Authentication type (`:api_key`, `:webauthn`, `:passkey`)
+    - `:client_signature` - Pre-computed signature from client (required for WebAuthn/Passkey)
+
+  ## Returns
+  - `{:ok, response}` - Success with session data including JWT token
+  - `{:error, status_code, error_message}` - Failure response
+
+  ## Example response
+      {:ok, %{"activity" => %{"result" => %{"createReadOnlySessionResult" => %{
+        "sessionToken" => "eyJ...",
+        "userId" => "user-id",
+        "organizationId" => "org-id"
+      }}}}}
+  """
+  def create_read_only_session(organization_id, user_id \\ nil, opts \\ []) do
+    activity_params = %{
+      "userId" => user_id
+    }
+
+    # Remove nil values
+    activity_params = Enum.reject(activity_params, fn {_, v} -> is_nil(v) end) |> Enum.into(%{})
+
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_CREATE_READ_ONLY_SESSION",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+
+    # Add optional client_signature if provided
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
+    execute_activity(execute_activity_opts)
+  end
+
+  @doc """
+  Create a read-write session for a user.
+
+  ## Parameters
+  - `organization_id` - Target organization UUID
+  - `target_public_key` - Client-side public key (hex) for HPKE encryption of credentials
+  - `user_id` - Optional user UUID (if not provided, uses the authenticated user)
+  - `opts` - Additional options:
+    - `:api_key_name` - Optional human-readable name for the API key
+    - `:expiration_seconds` - Expiration window in seconds (default: 900 = 15 minutes)
+    - `:invalidate_existing` - Whether to invalidate other read-write session keys
+    - `:auth_type` - Authentication type (`:api_key`, `:webauthn`, `:passkey`)
+    - `:client_signature` - Pre-computed signature from client (required for WebAuthn/Passkey)
+
+  ## Returns
+  - `{:ok, response}` - Success with session data including encrypted credential bundle
+  - `{:error, status_code, error_message}` - Failure response
+
+  ## Example response
+      {:ok, %{"activity" => %{"result" => %{"createReadWriteSessionResultV2" => %{
+        "apiKeyId" => "api-key-id",
+        "credentialBundle" => "encrypted-bundle-hex"
+      }}}}}
+  """
+  def create_read_write_session(organization_id, target_public_key, user_id \\ nil, opts \\ []) do
+    activity_params = %{
+      "targetPublicKey" => target_public_key,
+      "userId" => user_id,
+      "apiKeyName" => Keyword.get(opts, :api_key_name),
+      "expirationSeconds" => to_string(Keyword.get(opts, :expiration_seconds, 900)),
+      "invalidateExisting" => Keyword.get(opts, :invalidate_existing, false)
+    }
+
+    # Remove nil values
+    activity_params = Enum.reject(activity_params, fn {_, v} -> is_nil(v) end) |> Enum.into(%{})
+
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+
+    # Add optional client_signature if provided
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
+    execute_activity(execute_activity_opts)
+  end
+
   # Private helper functions
 
   defp execute_activity(opts) when is_list(opts) do

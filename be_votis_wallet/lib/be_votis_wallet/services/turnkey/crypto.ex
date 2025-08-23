@@ -8,9 +8,6 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   @type keypair :: {public_key :: binary(), private_key :: binary()}
   @type stamp_result :: {:ok, binary()} | {:error, term()}
 
-  defp http_client do
-    Application.get_env(:be_votis_wallet, :http_client)
-  end
 
   ## ECDSA Key Generation and Signing
 
@@ -87,22 +84,6 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   end
 
   @doc """
-  Verify Turnkey session JWT and extract claims.
-  Uses Turnkey's public keys for verification.
-  """
-  @spec verify_session_jwt(binary()) :: {:ok, map()} | {:error, term()}
-  def verify_session_jwt(jwt_token) do
-    with {:ok, header} <- parse_jwt_header(jwt_token),
-         {:ok, jwk} <- fetch_turnkey_public_key(header["kid"]),
-         {:ok, claims} <- verify_and_decode_jwt(jwt_token, jwk),
-         :ok <- validate_claims(claims) do
-      {:ok, claims}
-    else
-      error -> error
-    end
-  end
-
-  @doc """
   Decrypt HPKE credential bundle from Turnkey read-write session.
   """
   @spec decrypt_credential_bundle(binary(), binary()) :: {:ok, map()} | {:error, term()}
@@ -165,95 +146,6 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
         Logger.error("Failed to sign message", error: inspect(error))
         {:error, :signing_failed}
     end
-  end
-
-  defp parse_jwt_header(jwt_token) do
-    try do
-      %JOSE.JWS{fields: header} = JOSE.JWT.peek_protected(jwt_token)
-      {:ok, header}
-    rescue
-      error ->
-        Logger.error("Failed to parse JWT header", error: inspect(error))
-        {:error, :invalid_jwt_header}
-    end
-  end
-
-  defp fetch_turnkey_public_key(key_id) when is_binary(key_id) do
-    jwks_url = "https://api.turnkey.com/.well-known/jwks.json"
-    headers = [{"Accept", "application/json"}]
-
-    payload = http_client().build_payload(:get, jwks_url, headers, nil)
-
-    case http_client().request(payload) do
-      {:ok, data} ->
-        parse_jwks_response(data, key_id)
-
-      {:error, status, error_message} ->
-        Logger.error("JWKS fetch failed", status: status, url: jwks_url, error: error_message)
-        {:error, {:http_error, status}}
-    end
-  end
-
-  defp fetch_turnkey_public_key(_), do: {:error, :missing_key_id}
-
-  defp parse_jwks_response(response, key_id) do
-    try do
-      # Handle both string (from actual HTTP response) and map (from test mocks)
-      %{"keys" => keys} =
-        case response do
-          response when is_map(response) -> response
-          response when is_binary(response) -> Jason.decode!(response)
-        end
-
-      case Enum.find(keys, &(&1["kid"] == key_id)) do
-        nil ->
-          Logger.warning("Key ID not found in JWKS", key_id: key_id)
-          {:error, :key_not_found}
-
-        key ->
-          jwk = JOSE.JWK.from(key)
-          {:ok, jwk}
-      end
-    rescue
-      error ->
-        Logger.error("Failed to parse JWKS response", error: inspect(error))
-        {:error, :invalid_jwks_format}
-    end
-  end
-
-  defp verify_and_decode_jwt(jwt_token, jwk) do
-    try do
-      case JOSE.JWT.verify(jwk, jwt_token) do
-        {true, %JOSE.JWT{fields: claims}, _jws} ->
-          {:ok, claims}
-
-        {false, _, _} ->
-          {:error, :invalid_signature}
-      end
-    rescue
-      error ->
-        Logger.error("JWT verification failed", error: inspect(error))
-        {:error, :verification_failed}
-    end
-  end
-
-  defp validate_claims(%{"exp" => exp, "sub" => _sub}) when is_integer(exp) do
-    exp_time = DateTime.from_unix!(exp)
-
-    if DateTime.compare(DateTime.utc_now(), exp_time) == :lt do
-      :ok
-    else
-      {:error, :token_expired}
-    end
-  rescue
-    error ->
-      Logger.error("Failed to validate token expiry", error: inspect(error), exp: exp)
-      {:error, :invalid_expiry}
-  end
-
-  defp validate_claims(claims) do
-    Logger.warning("Invalid JWT claims structure", claims: inspect(claims))
-    {:error, :invalid_claims}
   end
 
   defp decode_hex_safe(hex_string) do

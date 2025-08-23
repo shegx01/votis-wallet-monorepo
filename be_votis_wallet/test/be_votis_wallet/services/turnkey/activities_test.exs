@@ -269,6 +269,168 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
     end
   end
 
+  describe "create_read_only_session/3" do
+    test "successfully creates a read-only session" do
+      org_id = "org_123"
+      user_id = "user_456"
+
+      expected_response = %{
+        "activity" => %{
+          "id" => "activity_789",
+          "status" => "ACTIVITY_STATUS_COMPLETED",
+          "result" => %{
+            "createReadOnlySessionResult" => %{
+              "sessionToken" => "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "userId" => user_id,
+              "organizationId" => org_id
+            }
+          }
+        }
+      }
+
+      stub(Mock, :build_payload, fn method, url, headers, body ->
+        assert method == :post
+        assert String.contains?(url, "/public/v1/submit/activity")
+
+        decoded_body = Jason.decode!(body)
+        assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_READ_ONLY_SESSION"
+        assert decoded_body["organizationId"] == org_id
+        assert decoded_body["parameters"]["userId"] == user_id
+
+        %{method: method, url: url, headers: headers, body: body}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, expected_response}
+      end)
+
+      result = Activities.create_read_only_session(org_id, user_id)
+
+      assert {:ok, response} = result
+      assert response == expected_response
+    end
+
+    test "creates session without user_id when not provided" do
+      org_id = "org_123"
+
+      stub(Mock, :build_payload, fn _method, _url, _headers, body ->
+        decoded_body = Jason.decode!(body)
+        assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_READ_ONLY_SESSION"
+        assert decoded_body["organizationId"] == org_id
+        # Should not include userId in parameters when nil
+        refute Map.has_key?(decoded_body["parameters"], "userId")
+
+        %{method: :post, url: "test", headers: [], body: body}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, %{"activity" => %{"id" => "test"}}}
+      end)
+
+      Activities.create_read_only_session(org_id)
+    end
+  end
+
+  describe "create_read_write_session/4" do
+    test "successfully creates a read-write session" do
+      org_id = "org_123"
+      user_id = "user_456"
+      # Mock 65-byte uncompressed key
+      target_public_key = "04" <> String.duplicate("ab", 64)
+
+      expected_response = %{
+        "activity" => %{
+          "id" => "activity_abc",
+          "status" => "ACTIVITY_STATUS_COMPLETED",
+          "result" => %{
+            "createReadWriteSessionResultV2" => %{
+              "apiKeyId" => "api_key_789",
+              "credentialBundle" => "encrypted_bundle_hex_data"
+            }
+          }
+        }
+      }
+
+      stub(Mock, :build_payload, fn method, url, headers, body ->
+        assert method == :post
+        assert String.contains?(url, "/public/v1/submit/activity")
+
+        decoded_body = Jason.decode!(body)
+        assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2"
+        assert decoded_body["organizationId"] == org_id
+        assert decoded_body["parameters"]["targetPublicKey"] == target_public_key
+        assert decoded_body["parameters"]["userId"] == user_id
+        # Default value
+        assert decoded_body["parameters"]["expirationSeconds"] == "900"
+
+        %{method: method, url: url, headers: headers, body: body}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, expected_response}
+      end)
+
+      result = Activities.create_read_write_session(org_id, target_public_key, user_id)
+
+      assert {:ok, response} = result
+      assert response == expected_response
+    end
+
+    test "accepts custom options" do
+      org_id = "org_123"
+      target_public_key = "04" <> String.duplicate("cd", 64)
+      user_id = "user_456"
+
+      opts = [
+        api_key_name: "Custom Session Name",
+        expiration_seconds: 1800,
+        invalidate_existing: true
+      ]
+
+      stub(Mock, :build_payload, fn _method, _url, _headers, body ->
+        decoded_body = Jason.decode!(body)
+        assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2"
+        assert decoded_body["parameters"]["targetPublicKey"] == target_public_key
+        assert decoded_body["parameters"]["userId"] == user_id
+        assert decoded_body["parameters"]["apiKeyName"] == "Custom Session Name"
+        assert decoded_body["parameters"]["expirationSeconds"] == "1800"
+        assert decoded_body["parameters"]["invalidateExisting"] == true
+
+        %{method: :post, url: "test", headers: [], body: body}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, %{"activity" => %{"id" => "test"}}}
+      end)
+
+      Activities.create_read_write_session(org_id, target_public_key, user_id, opts)
+    end
+
+    test "removes nil values from parameters" do
+      org_id = "org_123"
+      target_public_key = "04" <> String.duplicate("ef", 64)
+      # user_id is nil (not provided)
+
+      stub(Mock, :build_payload, fn _method, _url, _headers, body ->
+        decoded_body = Jason.decode!(body)
+        assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2"
+        assert decoded_body["parameters"]["targetPublicKey"] == target_public_key
+        # Should not include userId in parameters when nil
+        refute Map.has_key?(decoded_body["parameters"], "userId")
+        # Should not include apiKeyName when not provided
+        refute Map.has_key?(decoded_body["parameters"], "apiKeyName")
+
+        %{method: :post, url: "test", headers: [], body: body}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, %{"activity" => %{"id" => "test"}}}
+      end)
+
+      Activities.create_read_write_session(org_id, target_public_key)
+    end
+  end
+
   describe "request signing" do
     test "signs request when API private key is configured" do
       # Generate a test keypair

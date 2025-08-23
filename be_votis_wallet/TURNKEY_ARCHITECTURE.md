@@ -30,12 +30,13 @@ Parent Organization (Server)
 
 ### 3. Authentication Flow
 ```
-Mobile App → Passkey/FIDO2 → Turnkey Sub-Org → JWT Session Token
+Mobile App → Passkey/FIDO2 → Turnkey Session Creation → Encrypted Credential Bundle
 ```
 
 - **Primary Auth**: Passkey/WebAuthn for biometric authentication
 - **Alternative Auth**: Google Auth as separate IdP (optional)
-- **Session Management**: Short-lived JWT tokens (15 minutes read-write, 1 hour read-only)
+- **Session Management**: HPKE-encrypted credential bundles (15 minutes read-write, 1 hour read-only)
+- **No JWT Verification**: Sessions use encrypted credential bundles, not JWTs
 - **No Recovery Flows**: Users must maintain access to their passkey
 
 ## Technical Components
@@ -46,8 +47,7 @@ Mobile App → Passkey/FIDO2 → Turnkey Sub-Org → JWT Session Token
 Production-ready cryptographic utilities:
 
 - **ECDSA P-256 Key Generation**: For API authentication
-- **HPKE Encryption**: For read-write session credential bundles
-- **JWT Verification**: Validates Turnkey session tokens
+- **HPKE Decryption**: Decrypts read-write session credential bundles
 - **Request Stamping**: Signs API requests (used client-side)
 
 #### 2. Session Manager (`lib/be_votis_wallet/services/turnkey/session_manager.ex`)
@@ -94,7 +94,7 @@ Configurable HTTP interface:
 - HTTP 429 rate limits
 - 5xx server errors
 - Network timeouts
-- JWKS fetching
+- Session credential bundle decryption
 
 *Rationale: These are transient issues that benefit from exponential backoff*
 
@@ -104,11 +104,11 @@ Configurable HTTP interface:
 1. **Key Generation**: Generate ECDSA keypairs locally
 2. **Request Stamping**: Sign all Turnkey API requests
 3. **Passkey Management**: Handle biometric authentication
-4. **Session Handling**: Manage JWT tokens and refresh
+4. **Session Handling**: Manage encrypted credential bundles and refresh
 
 ### Server-Side Responsibilities  
 1. **Sub-Organization Management**: Create/manage user sub-orgs
-2. **Session Verification**: Validate JWT tokens from Turnkey
+2. **Session Coordination**: Facilitate session creation and credential bundle decryption
 3. **Background Jobs**: Handle async operations via Oban
 4. **API Orchestration**: Coordinate multi-step operations
 
@@ -189,8 +189,8 @@ asdf install
 # Install dependencies  
 mix deps.get
 
-# Run tests (excluding JWT verification)
-mix test --exclude verify_session_jwt
+# Run tests
+mix test
 
 # Start development server
 mix phx.server
@@ -205,7 +205,7 @@ mix phx.server
 ## Future Enhancements
 
 ### Short Term
-1. **Complete JWT Integration**: Finish JWT verification tests
+1. **Session Management Enhancement**: Improve session lifecycle monitoring
 2. **Rate Limiting**: Implement client-side rate limiting
 3. **Metrics Dashboard**: Real-time session monitoring
 4. **Error Recovery**: Improved error handling flows
