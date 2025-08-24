@@ -62,21 +62,32 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   end
 
   @doc """
-  Create Turnkey API stamp (signature) for request authentication.
+  Create Turnkey API stamp for request authentication according to official specification.
 
   ## Parameters
   - request_body: JSON request body as string
   - private_key_pem: PEM-encoded ECDSA private key
 
   ## Returns
-  - {:ok, stamp} - Base64-encoded signature
+  - {:ok, stamp} - Base64URL-encoded JSON stamp
   - {:error, reason} - Error details
+
+  ## Stamp Format (per Turnkey docs)
+  Creates a JSON stamp with:
+  - publicKey: the public key of API key (P-256 only)
+  - signature: hex-encoded DER signature
+  - scheme: "SIGNATURE_SCHEME_TK_API_P256"
+  
+  Then Base64URL encodes the JSON for the X-Stamp header.
   """
   @spec create_request_stamp(binary(), binary()) :: stamp_result()
   def create_request_stamp(request_body, private_key_pem) when is_binary(request_body) do
     with {:ok, private_key} <- parse_private_key(private_key_pem),
-         {:ok, signature} <- sign_message(request_body, private_key) do
-      stamp = Base.encode64(signature)
+         {:ok, public_key_pem} <- extract_public_key_from_private(private_key_pem),
+         {:ok, signature} <- sign_message(request_body, private_key),
+         {:ok, stamp_json} <- build_api_key_stamp(public_key_pem, signature) do
+      # Base64URL encode the JSON stamp as per Turnkey spec
+      stamp = Base.url_encode64(stamp_json, padding: false)
       {:ok, stamp}
     else
       error -> error
@@ -203,5 +214,68 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   defp decrypt_aes_gcm(invalid_format, _key) do
     Logger.error("Invalid AES-GCM ciphertext format", size: byte_size(invalid_format))
     {:error, :invalid_aes_format}
+  end
+
+  defp extract_public_key_from_private(private_key_pem) do
+    try do
+      [{:ECPrivateKey, key_der, _}] = :public_key.pem_decode(private_key_pem)
+      {:ECPrivateKey, _version, _raw_private_key, _params, public_key_point, _attrs} =
+        :public_key.der_decode(:ECPrivateKey, key_der)
+
+      # Create SubjectPublicKeyInfo structure for public key
+      public_key_info = {
+        :SubjectPublicKeyInfo,
+        {:AlgorithmIdentifier, {1, 2, 840, 10045, 2, 1},
+         {:namedCurve, {1, 2, 840, 10045, 3, 1, 7}}},
+        public_key_point
+      }
+
+      # Encode public key to DER first, then to PEM
+      public_der = :public_key.der_encode(:SubjectPublicKeyInfo, public_key_info)
+      public_pem = :public_key.pem_encode([{:SubjectPublicKeyInfo, public_der, :not_encrypted}])
+
+      {:ok, public_pem}
+    rescue
+      error ->
+        Logger.error("Failed to extract public key from private key", error: inspect(error))
+        {:error, :public_key_extraction_failed}
+    end
+  end
+
+  defp build_api_key_stamp(public_key_pem, signature) do
+    try do
+      # Extract the raw public key point from PEM for hex encoding
+      [{:SubjectPublicKeyInfo, public_der, _}] = :public_key.pem_decode(public_key_pem)
+      {:SubjectPublicKeyInfo, _alg_id, public_key_point} =
+        :public_key.der_decode(:SubjectPublicKeyInfo, public_der)
+
+      # Ensure uncompressed format and convert to hex
+      public_key_uncompressed = ensure_uncompressed_point(public_key_point)
+      public_key_hex = case public_key_uncompressed do
+        {:error, _} = error -> throw(error)
+        point -> Base.encode16(point, case: :lower)
+      end
+
+      # Convert DER signature to hex
+      signature_hex = Base.encode16(signature, case: :lower)
+
+      # Create the stamp JSON according to Turnkey spec
+      stamp_map = %{
+        "publicKey" => public_key_hex,
+        "signature" => signature_hex,
+        "scheme" => "SIGNATURE_SCHEME_TK_API_P256"
+      }
+
+      # Encode to JSON string
+      stamp_json = Jason.encode!(stamp_map)
+      {:ok, stamp_json}
+    rescue
+      error ->
+        Logger.error("Failed to build API key stamp", error: inspect(error))
+        {:error, :stamp_build_failed}
+    catch
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end

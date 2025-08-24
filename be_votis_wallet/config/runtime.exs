@@ -142,11 +142,34 @@ if config_env() == :prod do
       This is your Turnkey organization identifier.
       """
 
+  turnkey_private_key_pem =
+    System.get_env("TURNKEY_PRIVATE_KEY_PEM") ||
+      case System.get_env("TURNKEY_PRIVATE_KEY_PATH") do
+        nil -> 
+          raise """
+          environment variable TURNKEY_PRIVATE_KEY_PEM or TURNKEY_PRIVATE_KEY_PATH is missing.
+          This is required for Turnkey API request signing.
+          Either provide the PEM-encoded private key directly via TURNKEY_PRIVATE_KEY_PEM,
+          or provide a file path to the private key via TURNKEY_PRIVATE_KEY_PATH.
+          """
+        path when is_binary(path) ->
+          case File.read(path) do
+            {:ok, pem} -> pem
+            {:error, reason} -> 
+              raise """
+              Failed to read Turnkey private key from path: #{path}
+              Error: #{inspect(reason)}
+              Ensure the file exists and is readable.
+              """
+          end
+      end
+
   config :be_votis_wallet, :turnkey,
     base_url: System.get_env("TURNKEY_BASE_URL") || "https://api.turnkey.com",
     api_key: turnkey_api_key,
     api_secret: turnkey_api_secret,
-    organization_id: turnkey_org_id
+    organization_id: turnkey_org_id,
+    api_private_key: turnkey_private_key_pem
 end
 
 # For development environment, allow environment variable override
@@ -181,6 +204,20 @@ if config_env() == :dev do
       Map.put(dev_config, :organization_id, org_id)
     else
       dev_config
+    end
+
+  # Add private key configuration for development (optional)
+  dev_config =
+    case {System.get_env("TURNKEY_PRIVATE_KEY_PEM"), System.get_env("TURNKEY_PRIVATE_KEY_PATH")} do
+      {pem, _} when is_binary(pem) ->
+        Map.put(dev_config, :api_private_key, pem)
+      {nil, path} when is_binary(path) ->
+        case File.read(path) do
+          {:ok, pem} -> Map.put(dev_config, :api_private_key, pem)
+          {:error, _} -> dev_config
+        end
+      {nil, nil} ->
+        dev_config
     end
 
   if not Enum.empty?(dev_config) do

@@ -455,8 +455,9 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
           {"X-Stamp", stamp_value} = stamp_header
           assert is_binary(stamp_value)
 
-          # Verify the stamp is valid base64
-          assert {:ok, _} = Base.decode64(stamp_value)
+          # Verify the stamp is valid base64url JSON
+          assert {:ok, decoded_json} = Base.url_decode64(stamp_value, padding: false)
+          assert {:ok, _stamp_data} = Jason.decode(decoded_json)
 
           %{method: :post, url: "test", headers: headers, body: body}
         end)
@@ -527,8 +528,9 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         # Verify it's the client signature we provided
         assert stamp_value == client_signature
 
-        # Verify the stamp is valid base64
-        assert {:ok, _} = Base.decode64(stamp_value)
+        # Verify the stamp is valid base64url JSON
+        assert {:ok, decoded_json} = Base.url_decode64(stamp_value, padding: false)
+        assert {:ok, _stamp_data} = Jason.decode(decoded_json)
 
         # Verify X-Stamp header is NOT present
         x_stamp_header = Enum.find(headers, fn {name, _value} -> name == "X-Stamp" end)

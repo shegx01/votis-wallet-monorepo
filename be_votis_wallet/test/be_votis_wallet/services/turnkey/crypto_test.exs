@@ -80,9 +80,16 @@ defmodule BeVotisWallet.Services.Turnkey.CryptoTest do
 
       assert {:ok, stamp} = Crypto.create_request_stamp(request_body, private_pem)
 
-      # Verify stamp is base64 encoded
-      assert {:ok, _decoded} = Base.decode64(stamp)
-      assert byte_size(Base.decode64!(stamp)) > 0
+      # Verify stamp is base64url encoded JSON
+      assert {:ok, decoded_json} = Base.url_decode64(stamp, padding: false)
+      assert {:ok, stamp_data} = Jason.decode(decoded_json)
+      
+      # Verify stamp contains required Turnkey fields
+      assert %{"publicKey" => _, "signature" => _, "scheme" => "SIGNATURE_SCHEME_TK_API_P256"} = stamp_data
+      assert is_binary(stamp_data["publicKey"])
+      assert is_binary(stamp_data["signature"])
+      assert String.length(stamp_data["publicKey"]) > 0
+      assert String.length(stamp_data["signature"]) > 0
     end
 
     test "returns error for invalid private key" do
@@ -123,10 +130,12 @@ defmodule BeVotisWallet.Services.Turnkey.CryptoTest do
       {:ok, stamp2} = Crypto.create_request_stamp(message, private_pem)
 
       # ECDSA signatures include randomness, so they should be different
-      # but both should be valid base64-encoded DER signatures
+      # but both should be valid base64url-encoded JSON stamps
       assert stamp1 != stamp2
-      assert {:ok, _decoded1} = Base.decode64(stamp1)
-      assert {:ok, _decoded2} = Base.decode64(stamp2)
+      assert {:ok, decoded_json1} = Base.url_decode64(stamp1, padding: false)
+      assert {:ok, decoded_json2} = Base.url_decode64(stamp2, padding: false)
+      assert {:ok, _stamp_data1} = Jason.decode(decoded_json1)
+      assert {:ok, _stamp_data2} = Jason.decode(decoded_json2)
     end
   end
 
@@ -212,9 +221,16 @@ defmodule BeVotisWallet.Services.Turnkey.CryptoTest do
       # Sign the request
       assert {:ok, stamp} = Crypto.create_request_stamp(request_json, private_pem)
 
-      # Verify stamp format
-      assert String.match?(stamp, ~r/^[A-Za-z0-9+\/]+=*$/)
-      assert byte_size(Base.decode64!(stamp)) > 0
+      # Verify stamp format is Base64URL encoded JSON
+      assert {:ok, decoded_json} = Base.url_decode64(stamp, padding: false)
+      assert {:ok, stamp_data} = Jason.decode(decoded_json)
+      
+      # Verify contains all required Turnkey stamp fields
+      assert %{"publicKey" => public_key, "signature" => signature, "scheme" => scheme} = stamp_data
+      assert scheme == "SIGNATURE_SCHEME_TK_API_P256"
+      assert String.match?(public_key, ~r/^[0-9a-f]+$/)
+      assert String.match?(signature, ~r/^[0-9a-f]+$/)
+      assert byte_size(decoded_json) > 0
     end
 
     test "HPKE keypair for session creation" do
