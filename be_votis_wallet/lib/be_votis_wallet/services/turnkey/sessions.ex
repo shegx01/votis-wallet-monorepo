@@ -98,8 +98,14 @@ defmodule BeVotisWallet.Services.Turnkey.Sessions do
       # Mobile client receives encrypted credential bundle to decrypt locally
       credential_bundle = session.credential_bundle
   """
-  @spec create_read_write_session_for_client(organization_id(), String.t(), user_id(), keyword()) :: session_result()
-  def create_read_write_session_for_client(organization_id, target_public_key, user_id \\ nil, opts \\ []) do
+  @spec create_read_write_session_for_client(organization_id(), String.t(), user_id(), keyword()) ::
+          session_result()
+  def create_read_write_session_for_client(
+        organization_id,
+        target_public_key,
+        user_id \\ nil,
+        opts \\ []
+      ) do
     case Activities.create_read_write_session(organization_id, target_public_key, user_id, opts) do
       {:ok, response} ->
         extract_raw_session_data(response)
@@ -148,7 +154,8 @@ defmodule BeVotisWallet.Services.Turnkey.Sessions do
       
       # Use session.credentials for server-side authenticated API requests
   """
-  @spec create_read_write_session_for_server(organization_id(), user_id(), keyword()) :: session_result()
+  @spec create_read_write_session_for_server(organization_id(), user_id(), keyword()) ::
+          session_result()
   def create_read_write_session_for_server(organization_id, user_id \\ nil, opts \\ []) do
     # Extract our internal options
     target_public_key = Keyword.fetch!(opts, :target_public_key)

@@ -83,9 +83,11 @@ defmodule BeVotisWallet.Services.Turnkey.CryptoTest do
       # Verify stamp is base64url encoded JSON
       assert {:ok, decoded_json} = Base.url_decode64(stamp, padding: false)
       assert {:ok, stamp_data} = Jason.decode(decoded_json)
-      
+
       # Verify stamp contains required Turnkey fields
-      assert %{"publicKey" => _, "signature" => _, "scheme" => "SIGNATURE_SCHEME_TK_API_P256"} = stamp_data
+      assert %{"publicKey" => _, "signature" => _, "scheme" => "SIGNATURE_SCHEME_TK_API_P256"} =
+               stamp_data
+
       assert is_binary(stamp_data["publicKey"])
       assert is_binary(stamp_data["signature"])
       assert String.length(stamp_data["publicKey"]) > 0
@@ -224,9 +226,11 @@ defmodule BeVotisWallet.Services.Turnkey.CryptoTest do
       # Verify stamp format is Base64URL encoded JSON
       assert {:ok, decoded_json} = Base.url_decode64(stamp, padding: false)
       assert {:ok, stamp_data} = Jason.decode(decoded_json)
-      
+
       # Verify contains all required Turnkey stamp fields
-      assert %{"publicKey" => public_key, "signature" => signature, "scheme" => scheme} = stamp_data
+      assert %{"publicKey" => public_key, "signature" => signature, "scheme" => scheme} =
+               stamp_data
+
       assert scheme == "SIGNATURE_SCHEME_TK_API_P256"
       assert String.match?(public_key, ~r/^[0-9a-f]+$/)
       assert String.match?(signature, ~r/^[0-9a-f]+$/)

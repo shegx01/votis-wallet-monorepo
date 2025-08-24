@@ -2,15 +2,15 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
   @moduledoc """
   Multi-chain wallet service for creating and managing wallets across different blockchain networks.
 
-  This service provides a high-level interface for wallet operations that abstracts away 
-  blockchain-specific details like cryptographic curves and address formats. It builds on 
+  This service provides a high-level interface for wallet operations that abstracts away
+  blockchain-specific details like cryptographic curves and address formats. It builds on
   top of the Turnkey Activities service and uses the ChainConfig to manage supported chains.
 
   ## Features
 
   * Create wallets for specific blockchain networks
   * Create multi-chain wallets supporting multiple networks at once
-  * Add accounts to existing wallets for new blockchain networks  
+  * Add accounts to existing wallets for new blockchain networks
   * Automatic curve and address format management based on blockchain type
   * Support for Bitcoin, Ethereum, Solana, Tron and custom chains
 
@@ -18,16 +18,16 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
 
       # Create an Ethereum-only wallet
       {:ok, response} = MultiChainWallet.create_wallet_for_chain(
-        "org_123", 
-        "user_456", 
-        "My ETH Wallet", 
+        "org_123",
+        "user_456",
+        "My ETH Wallet",
         :ethereum
       )
 
       # Create a multi-chain wallet supporting multiple networks
       {:ok, response} = MultiChainWallet.create_multi_chain_wallet(
         "org_123",
-        "user_456", 
+        "user_456",
         "Universal Wallet",
         [:ethereum, :bitcoin, :solana]
       )
@@ -46,9 +46,9 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
 
       # Unsupported chain
       {:error, :unsupported_chain} = MultiChainWallet.create_wallet_for_chain(
-        "org_123", 
-        "user_456", 
-        "Invalid Wallet", 
+        "org_123",
+        "user_456",
+        "Invalid Wallet",
         :unknown_chain
       )
 
@@ -73,13 +73,13 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
   @doc """
   Creates a wallet for a specific blockchain network.
 
-  This is a convenience function for creating single-chain wallets. 
+  This is a convenience function for creating single-chain wallets.
   For multi-chain support, use `create_multi_chain_wallet/4`.
 
   ## Parameters
 
   * `organization_id` - Turnkey organization identifier
-  * `user_id` - User identifier who will own the wallet  
+  * `user_id` - User identifier who will own the wallet
   * `wallet_name` - Human-readable name for the wallet
   * `chain` - Blockchain identifier (atom or string)
 
@@ -165,13 +165,13 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
 
   * `organization_id` - Turnkey organization identifier
   * `user_id` - User identifier who will own the wallet
-  * `wallet_name` - Human-readable name for the wallet  
+  * `wallet_name` - Human-readable name for the wallet
   * `chains` - List of blockchain identifiers to support
 
   ## Returns
 
   * `{:ok, response}` - Success with wallet creation response from Turnkey
-  * `{:error, {:unsupported_chain, chain}}` - One or more unknown blockchain identifiers  
+  * `{:error, {:unsupported_chain, chain}}` - One or more unknown blockchain identifiers
   * `{:error, status_code, error_message}` - Activities service error
 
   ## Examples
@@ -286,7 +286,7 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
         }
       }}
 
-      iex> add_account("org_123", "wallet_456", "TRON")  
+      iex> add_account("org_123", "wallet_456", "TRON")
       {:ok, %{...}}
 
       iex> add_account("org_123", "wallet_456", :unknown)
@@ -305,7 +305,7 @@ defmodule BeVotisWallet.Services.MultiChainWallet do
       {:ok, chain_config} ->
         account_spec = build_account_spec(chain_config)
 
-        result = Activities.create_account(organization_id, wallet_id, account_spec)
+        result = Activities.create_wallet_account(organization_id, wallet_id, account_spec)
 
         case result do
           {:ok, response} ->

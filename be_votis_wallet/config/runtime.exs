@@ -145,17 +145,20 @@ if config_env() == :prod do
   turnkey_private_key_pem =
     System.get_env("TURNKEY_PRIVATE_KEY_PEM") ||
       case System.get_env("TURNKEY_PRIVATE_KEY_PATH") do
-        nil -> 
+        nil ->
           raise """
           environment variable TURNKEY_PRIVATE_KEY_PEM or TURNKEY_PRIVATE_KEY_PATH is missing.
           This is required for Turnkey API request signing.
           Either provide the PEM-encoded private key directly via TURNKEY_PRIVATE_KEY_PEM,
           or provide a file path to the private key via TURNKEY_PRIVATE_KEY_PATH.
           """
+
         path when is_binary(path) ->
           case File.read(path) do
-            {:ok, pem} -> pem
-            {:error, reason} -> 
+            {:ok, pem} ->
+              pem
+
+            {:error, reason} ->
               raise """
               Failed to read Turnkey private key from path: #{path}
               Error: #{inspect(reason)}
@@ -211,11 +214,13 @@ if config_env() == :dev do
     case {System.get_env("TURNKEY_PRIVATE_KEY_PEM"), System.get_env("TURNKEY_PRIVATE_KEY_PATH")} do
       {pem, _} when is_binary(pem) ->
         Map.put(dev_config, :api_private_key, pem)
+
       {nil, path} when is_binary(path) ->
         case File.read(path) do
           {:ok, pem} -> Map.put(dev_config, :api_private_key, pem)
           {:error, _} -> dev_config
         end
+
       {nil, nil} ->
         dev_config
     end

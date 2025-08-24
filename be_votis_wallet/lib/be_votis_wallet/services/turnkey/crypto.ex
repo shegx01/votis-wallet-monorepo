@@ -8,7 +8,6 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   @type keypair :: {public_key :: binary(), private_key :: binary()}
   @type stamp_result :: {:ok, binary()} | {:error, term()}
 
-
   ## ECDSA Key Generation and Signing
 
   @doc """
@@ -77,7 +76,7 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   - publicKey: the public key of API key (P-256 only)
   - signature: hex-encoded DER signature
   - scheme: "SIGNATURE_SCHEME_TK_API_P256"
-  
+
   Then Base64URL encodes the JSON for the X-Stamp header.
   """
   @spec create_request_stamp(binary(), binary()) :: stamp_result()
@@ -219,6 +218,7 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
   defp extract_public_key_from_private(private_key_pem) do
     try do
       [{:ECPrivateKey, key_der, _}] = :public_key.pem_decode(private_key_pem)
+
       {:ECPrivateKey, _version, _raw_private_key, _params, public_key_point, _attrs} =
         :public_key.der_decode(:ECPrivateKey, key_der)
 
@@ -246,15 +246,18 @@ defmodule BeVotisWallet.Services.Turnkey.Crypto do
     try do
       # Extract the raw public key point from PEM for hex encoding
       [{:SubjectPublicKeyInfo, public_der, _}] = :public_key.pem_decode(public_key_pem)
+
       {:SubjectPublicKeyInfo, _alg_id, public_key_point} =
         :public_key.der_decode(:SubjectPublicKeyInfo, public_der)
 
       # Ensure uncompressed format and convert to hex
       public_key_uncompressed = ensure_uncompressed_point(public_key_point)
-      public_key_hex = case public_key_uncompressed do
-        {:error, _} = error -> throw(error)
-        point -> Base.encode16(point, case: :lower)
-      end
+
+      public_key_hex =
+        case public_key_uncompressed do
+          {:error, _} = error -> throw(error)
+          point -> Base.encode16(point, case: :lower)
+        end
 
       # Convert DER signature to hex
       signature_hex = Base.encode16(signature, case: :lower)

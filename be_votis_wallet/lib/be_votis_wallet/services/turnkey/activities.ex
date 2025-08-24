@@ -168,7 +168,7 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   - `{:ok, response}` - Success with account data
   - `{:error, status_code, error_message}` - Failure response
   """
-  def create_account(organization_id, wallet_id, account_spec, opts \\ []) do
+  def create_wallet_account(organization_id, wallet_id, account_spec, opts \\ []) do
     activity_params = %{
       "walletId" => wallet_id,
       "accounts" => [account_spec]
