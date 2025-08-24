@@ -5,12 +5,16 @@ defmodule BeVotisWalletWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :private do
+    plug BeVotisWalletWeb.Plug.PrivateAuth
+  end
+
   scope "/api", BeVotisWalletWeb do
     pipe_through :api
   end
 
   scope "/private", BeVotisWalletWeb do
-    pipe_through :private
+    pipe_through [:api, :private]
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
