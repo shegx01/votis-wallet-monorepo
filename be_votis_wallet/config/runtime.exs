@@ -173,6 +173,10 @@ if config_env() == :prod do
     api_secret: turnkey_api_secret,
     organization_id: turnkey_org_id,
     api_private_key: turnkey_private_key_pem
+
+  config :be_votis_wallet, :private_auth_credentials,
+    username: System.get_env("PRIVATE_AUTH_USERNAME"),
+    password: System.get_env("PRIVATE_AUTH_PASSWORD")
 end
 
 # For development environment, allow environment variable override

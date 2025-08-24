@@ -9,6 +9,10 @@ defmodule BeVotisWalletWeb.Router do
     pipe_through :api
   end
 
+  scope "/private", BeVotisWalletWeb do
+    pipe_through :private
+  end
+
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:be_votis_wallet, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put
