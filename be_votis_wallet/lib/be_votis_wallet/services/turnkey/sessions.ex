@@ -61,37 +61,95 @@ defmodule BeVotisWallet.Services.Turnkey.Sessions do
   end
 
   @doc """
-  Create a read-write session with credential bundle decryption.
+  Create a read-write session for mobile clients.
 
-  Read-write sessions return an encrypted credential bundle that contains
-  the actual API key and private key needed for authenticated requests.
+  This function creates a read-write session and returns the encrypted credential
+  bundle for the mobile client to decrypt on their device. The backend does NOT
+  decrypt the credentials since it doesn't have access to the client's private key.
+
+  Mobile clients will:
+  1. Generate HPKE keypair on their device
+  2. Send only the public key to the backend
+  3. Receive the encrypted credential bundle
+  4. Decrypt the bundle on their device using their hardware security module
 
   ## Parameters
   - `organization_id` - Target organization UUID
+  - `target_public_key` - Client-generated HPKE public key for credential encryption
   - `user_id` - Optional user UUID (if not provided, uses authenticated user)
   - `opts` - Additional options:
     - `:api_key_name` - Optional name for the API key
     - `:expiration_seconds` - Session expiration time (default: 900)
     - `:invalidate_existing` - Whether to invalidate other sessions
-    - Additional options passed to the activity
+
+  ## Returns
+  - `{:ok, %{api_key_id: string, credential_bundle: string, metadata: map}}` - Raw session data for client
+  - `{:error, reason}` - Failure response
+
+  ## Example
+      # Mobile client calls this with their public key
+      {:ok, session} = Sessions.create_read_write_session_for_client(
+        "org-123", 
+        client_public_key_hex,
+        nil,
+        api_key_name: "Mobile Session"
+      )
+      
+      # Mobile client receives encrypted credential bundle to decrypt locally
+      credential_bundle = session.credential_bundle
+  """
+  @spec create_read_write_session_for_client(organization_id(), String.t(), user_id(), keyword()) :: session_result()
+  def create_read_write_session_for_client(organization_id, target_public_key, user_id \\ nil, opts \\ []) do
+    case Activities.create_read_write_session(organization_id, target_public_key, user_id, opts) do
+      {:ok, response} ->
+        extract_raw_session_data(response)
+
+      {:error, status_code, error_message} ->
+        Logger.error("Failed to create read-write session for client",
+          organization_id: organization_id,
+          user_id: user_id,
+          status: status_code,
+          error: error_message
+        )
+
+        {:error, {status_code, error_message}}
+    end
+  end
+
+  @doc """
+  Create a read-write session for server-side use with credential bundle decryption.
+
+  This function is for internal server use where the backend generates both the
+  public and private HPKE keys and can decrypt the credential bundle immediately.
+  This should only be used for server-to-server authentication scenarios.
+
+  ## Parameters
+  - `organization_id` - Target organization UUID
+  - `user_id` - Optional user UUID (if not provided, uses authenticated user)
+  - `opts` - Additional options:
+    - `:target_public_key` - HPKE public key for encryption (required)
+    - `:hpke_private_key` - HPKE private key for decryption (required)
+    - `:api_key_name` - Optional name for the API key
+    - `:expiration_seconds` - Session expiration time (default: 900)
+    - `:invalidate_existing` - Whether to invalidate other sessions
 
   ## Returns
   - `{:ok, %{credentials: credentials, metadata: metadata}}` - Success with decrypted credentials
   - `{:error, reason}` - Failure response
 
   ## Example
-      # Generate HPKE keypair for session encryption
-      {public_hex, private_hex} = Crypto.generate_hpke_keypair()
+      # Server generates keypair and decrypts credentials
+      {public_hex, private_hex} = Sessions.generate_session_keypair()
       
-      {:ok, session} = Sessions.create_read_write_session("org-123", nil, 
+      {:ok, session} = Sessions.create_read_write_session_for_server("org-123", nil, 
         target_public_key: public_hex,
         hpke_private_key: private_hex
       )
       
-      # Use session.credentials for authenticated API requests
+      # Use session.credentials for server-side authenticated API requests
   """
-  @spec create_read_write_session(organization_id(), user_id(), keyword()) :: session_result()
-  def create_read_write_session(organization_id, user_id \\ nil, opts \\ []) do
+  @spec create_read_write_session_for_server(organization_id(), user_id(), keyword()) :: session_result()
+  def create_read_write_session_for_server(organization_id, user_id \\ nil, opts \\ []) do
     # Extract our internal options
     target_public_key = Keyword.fetch!(opts, :target_public_key)
     hpke_private_key = Keyword.fetch!(opts, :hpke_private_key)
@@ -109,7 +167,7 @@ defmodule BeVotisWallet.Services.Turnkey.Sessions do
         extract_and_decrypt_credentials(response, hpke_private_key)
 
       {:error, status_code, error_message} ->
-        Logger.error("Failed to create read-write session",
+        Logger.error("Failed to create read-write session for server",
           organization_id: organization_id,
           user_id: user_id,
           status: status_code,
@@ -176,6 +234,24 @@ defmodule BeVotisWallet.Services.Turnkey.Sessions do
         credentials: normalize_credentials(credentials),
         metadata: %{
           api_key_id: result["apiKeyId"],
+          created_at: System.system_time(:second)
+        }
+      }
+
+      {:ok, session_data}
+    else
+      error -> error
+    end
+  end
+
+  defp extract_raw_session_data(response) do
+    with {:ok, result} <- extract_read_write_session_result(response),
+         {:ok, encrypted_bundle} <- extract_credential_bundle(result) do
+      # Return raw session data for mobile clients to decrypt themselves
+      session_data = %{
+        api_key_id: result["apiKeyId"],
+        credential_bundle: encrypted_bundle,
+        metadata: %{
           created_at: System.system_time(:second)
         }
       }

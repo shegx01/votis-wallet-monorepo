@@ -39,6 +39,21 @@ Mobile App → Passkey/FIDO2 → Turnkey Session Creation → Encrypted Credenti
 - **No JWT Verification**: Sessions use encrypted credential bundles, not JWTs
 - **No Recovery Flows**: Users must maintain access to their passkey
 
+### 4. Client vs Server Session Model
+
+The system strictly separates responsibilities between server and client for proper security:
+
+**Server-Side (Backend):**
+- Creates/manages read-only sessions for querying resources
+- Can create server-to-server read-write sessions for administrative operations
+- Never handles user private keys for client operations
+
+**Client-Side (Mobile):**
+- Generates HPKE keypairs locally on device
+- Receives encrypted credential bundles from backend
+- Decrypts credential bundles using local private key
+- Manages read-write sessions for user-initiated operations
+
 ## Technical Components
 
 ### Core Services
@@ -50,7 +65,15 @@ Production-ready cryptographic utilities:
 - **HPKE Decryption**: Decrypts read-write session credential bundles
 - **Request Stamping**: Signs API requests (used client-side)
 
-#### 2. Session Manager (`lib/be_votis_wallet/services/turnkey/session_manager.ex`)
+#### 2. Sessions Module (`lib/be_votis_wallet/services/turnkey/sessions.ex`)
+High-level session management with client/server separation:
+
+- **Client Session Creation**: Returns encrypted credential bundles for mobile clients
+- **Server Session Management**: Handles server-side credential decryption
+- **Read-Only Sessions**: Server manages these for resource querying
+- **Session Type Validation**: Enforces proper client vs server usage patterns
+
+#### 3. Session Manager (`lib/be_votis_wallet/services/turnkey/session_manager.ex`)
 GenServer-based session management:
 
 - **Proactive Session Refresh**: Prevents token expiration
@@ -58,7 +81,7 @@ GenServer-based session management:
 - **Automatic Cleanup**: Handles expired sessions
 - **Telemetry Integration**: Monitors session lifecycle
 
-#### 3. HTTP Client Behavior (`lib/be_votis_wallet/services/http_client_behavior.ex`)
+#### 4. HTTP Client Behavior (`lib/be_votis_wallet/services/http_client_behavior.ex`)
 Configurable HTTP interface:
 
 - **Finch-based Implementation**: Production HTTP client
