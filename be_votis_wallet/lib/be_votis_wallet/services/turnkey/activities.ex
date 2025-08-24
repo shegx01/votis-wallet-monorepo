@@ -330,6 +330,201 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     execute_activity(execute_activity_opts)
   end
 
+  @doc """
+  Create policies for an organization.
+
+  ## Parameters
+  - `organization_id` - Target organization UUID
+  - `policies` - List of policy specifications:
+    - `policyName` - Human-readable name for the policy
+    - `effect` - Policy effect (e.g., "EFFECT_ALLOW")
+    - `condition` - Policy condition expression
+    - `consensus` - Consensus requirements
+    - `notes` - Optional policy description/notes
+  - `opts` - Additional options:
+    - `:auth_type` - Authentication type (`:api_key`, `:webauthn`, `:passkey`)
+    - `:client_signature` - Pre-computed signature from client (required for WebAuthn/Passkey)
+
+  ## Returns
+  - `{:ok, response}` - Success with policy creation data
+  - `{:error, status_code, error_message}` - Failure response
+
+  ## Example
+      {:ok, %{"activity" => %{"result" => %{"createPoliciesResult" => %{...}}}}}
+  """
+  def create_policies(organization_id, policies, opts \\ []) do
+    activity_params = %{
+      "policies" => policies
+    }
+
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_CREATE_POLICIES",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+
+    # Add optional client_signature if provided
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
+    execute_activity(execute_activity_opts)
+  end
+
+  @doc """
+  Create OAuth providers for a user.
+
+  ## Parameters
+  - `organization_id` - Target organization UUID
+  - `user_id` - User UUID to add OAuth providers to
+  - `oauth_providers` - List of OAuth provider specifications:
+    - `providerName` - Name of the OAuth provider
+    - `oidcToken` - OIDC token for the provider
+  - `opts` - Additional options:
+    - `:auth_type` - Authentication type (`:api_key`, `:webauthn`, `:passkey`)
+    - `:client_signature` - Pre-computed signature from client (required for WebAuthn/Passkey)
+
+  ## Returns
+  - `{:ok, response}` - Success with OAuth provider creation data
+  - `{:error, status_code, error_message}` - Failure response
+
+  ## Example
+      {:ok, %{"activity" => %{"result" => %{"createOauthProvidersResult" => %{...}}}}}
+  """
+  def create_oauth_providers(organization_id, user_id, oauth_providers, opts \\ []) do
+    activity_params = %{
+      "userId" => user_id,
+      "oauthProviders" => oauth_providers
+    }
+
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_CREATE_OAUTH_PROVIDERS",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+
+    # Add optional client_signature if provided
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
+    execute_activity(execute_activity_opts)
+  end
+
+  @doc """
+  Perform OAuth login and create a session.
+
+  ## Parameters
+  - `organization_id` - Target organization UUID
+  - `oidc_token` - Base64 encoded OIDC token
+  - `public_key` - Client-side public key for session encryption
+  - `opts` - Additional options:
+    - `:expiration_seconds` - Expiration window in seconds (default: 900 = 15 minutes)
+    - `:invalidate_existing` - Whether to invalidate other session keys
+    - `:auth_type` - Authentication type (`:api_key`, `:webauthn`, `:passkey`)
+    - `:client_signature` - Pre-computed signature from client (required for WebAuthn/Passkey)
+
+  ## Returns
+  - `{:ok, response}` - Success with session data
+  - `{:error, status_code, error_message}` - Failure response
+
+  ## Example
+      {:ok, %{"activity" => %{"result" => %{"oauthLoginResult" => %{"session" => "token-data"}}}}}
+  """
+  def oauth_login(organization_id, oidc_token, public_key, opts \\ []) do
+    activity_params = %{
+      "oidcToken" => oidc_token,
+      "publicKey" => public_key,
+      "expirationSeconds" => to_string(Keyword.get(opts, :expiration_seconds, 900)),
+      "invalidateExisting" => Keyword.get(opts, :invalidate_existing, false)
+    }
+
+    # Remove nil values
+    activity_params = Enum.reject(activity_params, fn {_, v} -> is_nil(v) end) |> Enum.into(%{})
+
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_OAUTH_LOGIN",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: Keyword.get(opts, :auth_type, :api_key)
+    ]
+
+    # Add optional client_signature if provided
+    execute_activity_opts =
+      case Keyword.get(opts, :client_signature) do
+        nil -> execute_activity_opts
+        signature -> Keyword.put(execute_activity_opts, :client_signature, signature)
+      end
+
+    execute_activity(execute_activity_opts)
+  end
+
+  @doc """
+  Perform stamp login (via passkey/WebAuthn) and create a session.
+
+  ## Parameters
+  - `organization_id` - Target organization UUID
+  - `public_key` - Client-side public key for session encryption
+  - `opts` - Additional options:
+    - `:expiration_seconds` - Expiration window in seconds (default: 900 = 15 minutes)
+    - `:invalidate_existing` - Whether to invalidate other session keys
+    - `:auth_type` - Authentication type (`:webauthn`, `:passkey`)
+    - `:client_signature` - Pre-computed signature from client (required for this function)
+
+  ## Returns
+  - `{:ok, response}` - Success with session data
+  - `{:error, status_code, error_message}` - Failure response
+
+  ## Example
+      {:ok, %{"activity" => %{"result" => %{"stampLoginResult" => %{"session" => "token-data"}}}}}
+  """
+  def stamp_login(organization_id, public_key, opts \\ []) do
+    client_signature = Keyword.get(opts, :client_signature)
+
+    unless client_signature do
+      Logger.error("Client signature is required for stamp login")
+      raise ArgumentError, "client_signature is required for stamp_login"
+    end
+
+    activity_params = %{
+      "publicKey" => public_key,
+      "expirationSeconds" => to_string(Keyword.get(opts, :expiration_seconds, 900)),
+      "invalidateExisting" => Keyword.get(opts, :invalidate_existing, false)
+    }
+
+    # Remove nil values
+    activity_params = Enum.reject(activity_params, fn {_, v} -> is_nil(v) end) |> Enum.into(%{})
+
+    auth_type = Keyword.get(opts, :auth_type, :passkey)
+
+    auth_type =
+      unless auth_type in [:webauthn, :passkey] do
+        Logger.warning(
+          "Auth type #{inspect(auth_type)} not appropriate for stamp_login, using :passkey"
+        )
+
+        :passkey
+      else
+        auth_type
+      end
+
+    execute_activity_opts = [
+      activity_type: "ACTIVITY_TYPE_STAMP_LOGIN",
+      params: activity_params,
+      organization_id: organization_id,
+      auth_type: auth_type,
+      client_signature: client_signature
+    ]
+
+    execute_activity(execute_activity_opts)
+  end
+
   # Private helper functions
 
   defp execute_activity(opts) when is_list(opts) do
