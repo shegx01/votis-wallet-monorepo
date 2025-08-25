@@ -17,7 +17,8 @@ defmodule BeVotisWallet.MixProject do
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
-        "coveralls.html": :test
+        "coveralls.html": :test,
+        test_cover: :test
       ]
     ]
   end
@@ -34,7 +35,7 @@ defmodule BeVotisWallet.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test]
+      preferred_envs: [precommit: :test, test_cover: :test]
     ]
   end
 
@@ -89,6 +90,7 @@ defmodule BeVotisWallet.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      test_cover: ["ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
       precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
     ]
   end

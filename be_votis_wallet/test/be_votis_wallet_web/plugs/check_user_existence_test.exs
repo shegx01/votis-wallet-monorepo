@@ -1,5 +1,5 @@
 defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
-  use BeVotisWalletWeb.ConnCase
+  use BeVotisWalletWeb.ConnCase, async: true
 
   alias BeVotisWalletWeb.Plugs.CheckUserExistence
 
@@ -9,7 +9,8 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
 
       conn =
         conn
-        |> Map.put(:query_params, %{"email" => "existing@example.com"})
+        |> Map.put(:query_string, "email=existing@example.com")
+        |> fetch_query_params()
         |> CheckUserExistence.call([])
 
       assert conn.assigns[:user].id == user.id
@@ -21,6 +22,7 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
 
       conn =
         conn
+        |> fetch_query_params()
         |> Map.put(:body_params, %{"email" => "existing@example.com"})
         |> CheckUserExistence.call([])
 
@@ -34,6 +36,7 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
       conn =
         conn
         |> Map.put(:params, %{"email" => "existing@example.com"})
+        |> fetch_query_params()
         |> CheckUserExistence.call([])
 
       assert conn.assigns[:user].id == user.id
@@ -46,7 +49,8 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
 
       conn =
         conn
-        |> Map.put(:query_params, %{"email" => "query@example.com"})
+        |> Map.put(:query_string, "email=query@example.com")
+        |> fetch_query_params()
         |> Map.put(:body_params, %{"email" => "body@example.com"})
         |> CheckUserExistence.call([])
 
@@ -60,7 +64,8 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
 
       conn =
         conn
-        |> Map.put(:query_params, %{"email" => "query@example.com"})
+        |> Map.put(:query_string, "email=query@example.com")
+        |> fetch_query_params()
         |> Map.put(:params, %{"email" => "params@example.com"})
         |> CheckUserExistence.call([])
 
@@ -74,6 +79,7 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
 
       conn =
         conn
+        |> fetch_query_params()
         |> Map.put(:body_params, %{"email" => "body@example.com"})
         |> Map.put(:params, %{"email" => "params@example.com"})
         |> CheckUserExistence.call([])
@@ -87,7 +93,8 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
 
       conn =
         conn
-        |> Map.put(:query_params, %{"email" => "EXISTING@EXAMPLE.COM"})
+        |> Map.put(:query_string, "email=EXISTING@EXAMPLE.COM")
+        |> fetch_query_params()
         |> CheckUserExistence.call([])
 
       assert conn.assigns[:user].id == user.id
@@ -97,14 +104,18 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
     test "assigns nil when user does not exist", %{conn: conn} do
       conn =
         conn
-        |> Map.put(:query_params, %{"email" => "nonexistent@example.com"})
+        |> Map.put(:query_string, "email=nonexistent@example.com")
+        |> fetch_query_params()
         |> CheckUserExistence.call([])
 
       assert is_nil(conn.assigns[:user])
     end
 
     test "assigns nil when no email parameter provided", %{conn: conn} do
-      conn = CheckUserExistence.call(conn, [])
+      conn = 
+        conn
+        |> fetch_query_params()
+        |> CheckUserExistence.call([])
 
       assert is_nil(conn.assigns[:user])
     end
@@ -112,7 +123,8 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
     test "assigns nil when email parameter is empty string", %{conn: conn} do
       conn =
         conn
-        |> Map.put(:query_params, %{"email" => ""})
+        |> Map.put(:query_string, "email=")
+        |> fetch_query_params()
         |> CheckUserExistence.call([])
 
       assert is_nil(conn.assigns[:user])
@@ -121,7 +133,7 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
     test "assigns nil when email parameter is nil", %{conn: conn} do
       conn =
         conn
-        |> Map.put(:query_params, %{"email" => nil})
+        |> fetch_query_params()
         |> CheckUserExistence.call([])
 
       assert is_nil(conn.assigns[:user])
@@ -132,6 +144,7 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
 
       conn =
         conn
+        |> fetch_query_params()
         |> Map.put(:params, %{email: "existing@example.com"})
         |> CheckUserExistence.call([])
 

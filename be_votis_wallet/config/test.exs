@@ -41,3 +41,8 @@ config :be_votis_wallet, :turnkey,
   api_key: "test_api_key",
   api_secret: "test_api_secret",
   organization_id: "test_org_id"
+
+# Private auth test credentials
+config :be_votis_wallet, :private_auth_credentials,
+  username: "test_user",
+  password: "test_pass"

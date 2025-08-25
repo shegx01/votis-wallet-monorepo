@@ -74,9 +74,9 @@ defmodule BeVotisWalletWeb.SignUpController.Response do
         |> put_status(502)
         |> json(%{error: "External service error"})
 
-      {:error, :turnkey_parse_error, changeset} ->
+      {:error, :turnkey_parse_error, error_message} ->
         Logger.error("Failed to parse Turnkey response",
-          errors: inspect(changeset.errors)
+          error: inspect(error_message)
         )
 
         conn
@@ -129,7 +129,7 @@ defmodule BeVotisWalletWeb.SignUpController.Response do
   defp parse_turnkey_response(turnkey_response) do
     case CreateSubOrganizationResponse.parse_response(turnkey_response) do
       {:ok, user_data} -> {:ok, user_data}
-      {:error, changeset} -> {:error, :turnkey_parse_error, changeset}
+      {:error, error_message} -> {:error, :turnkey_parse_error, error_message}
     end
   end
 

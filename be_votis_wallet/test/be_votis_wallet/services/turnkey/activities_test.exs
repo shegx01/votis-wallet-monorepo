@@ -37,7 +37,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         assert [{"Content-Type", "application/json"}, {"X-Turnkey-API-Key", _}] = headers
 
         decoded_body = Jason.decode!(body)
-        assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION"
+        assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION_V7"
         assert decoded_body["parameters"]["subOrganizationName"] == org_name
         assert decoded_body["organizationId"]
         assert decoded_body["timestampMs"]
@@ -125,7 +125,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
         assert String.contains?(url, "/public/v1/submit/activity")
 
         decoded_body = Jason.decode!(body)
-        assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_USERS"
+        assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_USERS_V7"
         assert decoded_body["organizationId"] == org_id
         assert decoded_body["parameters"]["userName"] == user_name
         assert decoded_body["parameters"]["userEmail"] == user_email
