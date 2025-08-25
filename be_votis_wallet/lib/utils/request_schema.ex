@@ -22,7 +22,8 @@ defmodule BeVotisWallet.Utils.RequestSchema do
     end
   end
 
-  @spec to_request(%Changeset{}) :: {:ok, struct} | {:error, {:malformed_params, struct}}
+  @spec to_request(%Changeset{}) ::
+          {:ok, struct} | {:error, {:malformed_params, String.t(), struct}}
   def to_request(%Changeset{} = changeset) do
     case apply_action(changeset, :insert) do
       {:ok, request} ->
@@ -46,32 +47,34 @@ defmodule BeVotisWallet.Utils.RequestSchema do
     |> flatten_errors()
     |> Enum.join(". ")
   end
-  
-  # Helper to flatten nested error structures  
+
+  # Helper to flatten nested error structures
   defp flatten_errors(errors, path \\ []) when is_map(errors) do
     Enum.flat_map(errors, fn {field, error_data} ->
       current_path = path ++ [field]
-      
+
       case error_data do
         errors when is_list(errors) and is_binary(hd(errors)) ->
           # Simple error list - format as "field error1, error2"
           ["#{Enum.join(current_path, ".")}: #{Enum.join(errors, ", ")}"]
-          
+
         nested_errors when is_map(nested_errors) ->
           # Nested structure - recurse
           flatten_errors(nested_errors, current_path)
-          
+
         errors when is_list(errors) ->
           # List might contain mixed content - handle each item
           Enum.flat_map(errors, fn
             error when is_binary(error) ->
               ["#{Enum.join(current_path, ".")}: #{error}"]
+
             nested when is_map(nested) ->
               flatten_errors(nested, current_path)
+
             other ->
               ["#{Enum.join(current_path, ".")}: #{inspect(other)}"]
           end)
-          
+
         other ->
           ["#{Enum.join(current_path, ".")}: #{inspect(other)}"]
       end
@@ -94,7 +97,7 @@ defmodule BeVotisWallet.Utils.RequestSchema do
         end
 
       # Recursively process nested maps
-      value = 
+      value =
         cond do
           is_map(value) -> underscore_params(value)
           is_list(value) -> underscore_params(value)
@@ -104,11 +107,11 @@ defmodule BeVotisWallet.Utils.RequestSchema do
       Map.put(acc, key, value)
     end)
   end
-  
+
   def underscore_params(params) when is_list(params) do
     Enum.map(params, &underscore_params/1)
   end
-  
+
   def underscore_params(params), do: params
 
   @spec camelize_params(map()) :: map()
