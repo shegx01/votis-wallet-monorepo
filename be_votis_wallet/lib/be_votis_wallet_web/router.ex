@@ -3,6 +3,7 @@ defmodule BeVotisWalletWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+
     plug Plug.Parsers,
       parsers: [:json],
       pass: ["*/*"],
@@ -23,16 +24,6 @@ defmodule BeVotisWalletWeb.Router do
 
   scope "/private", BeVotisWalletWeb do
     pipe_through [:api, :private]
-
-    # FOR LLM -- Before implementation, let's create a migration for the user's table
-    # ---
-    # subOrganization_id: string, indexed
-    # wallet_id: string, indexed
-    # root_user_ids: string[],
-    # subOrganization_name: string, indexed
-    # email: string, indexed
-    # authenticatorName, string, indexed
-    #
 
     scope "/" do
       pipe_through :validate_jwt
