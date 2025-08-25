@@ -55,4 +55,25 @@ defmodule BeVotisWallet.DataCase do
       end)
     end)
   end
+
+  @doc """
+  Insert a user into the database for testing purposes.
+  """
+  def insert(:user, attrs \\ %{}) do
+    default_attrs = %{
+      email: "test#{System.unique_integer()}@example.com",
+      sub_org_id: "org_#{System.unique_integer()}",
+      sub_organization_name: "Test Organization #{System.unique_integer()}"
+    }
+
+    attrs =
+      if is_list(attrs) do
+        Map.merge(default_attrs, Enum.into(attrs, %{}))
+      else
+        Map.merge(default_attrs, attrs)
+      end
+
+    {:ok, user} = BeVotisWallet.Users.User.create_user(attrs)
+    user
+  end
 end

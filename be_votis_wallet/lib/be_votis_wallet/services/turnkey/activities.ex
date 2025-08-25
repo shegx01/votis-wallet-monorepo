@@ -51,7 +51,7 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       }
 
     execute_activity_opts = [
-      activity_type: "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION",
+      activity_type: "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION_V7",
       params: activity_params,
       auth_type: Keyword.get(opts, :auth_type, :api_key)
     ]
@@ -92,7 +92,7 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     }
 
     execute_activity_opts = [
-      activity_type: "ACTIVITY_TYPE_CREATE_USERS",
+      activity_type: "ACTIVITY_TYPE_CREATE_USERS_V7",
       params: activity_params,
       organization_id: organization_id,
       auth_type: Keyword.get(opts, :auth_type, :api_key)
@@ -525,6 +525,55 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     execute_activity(execute_activity_opts)
   end
 
+  @doc """
+  Execute a client-signed request directly to Turnkey.
+
+  This function is used when the client (mobile app) has already built
+  the complete request body and signature. We just need to forward it
+  to Turnkey with the proper headers.
+
+  ## Parameters
+  - `stamped_body` - The complete binary request body from the client
+  - `stamp` - The WebAuthn/Passkey signature from the client
+  - `opts` - Additional options:
+    - `:auth_type` - Authentication type (`:webauthn`, `:passkey`)
+
+  ## Returns
+  - `{:ok, response}` - Success response from Turnkey
+  - `{:error, status_code, error_message}` - Failure response
+  """
+  def client_signed_request(stamped_body, stamp, opts \\ []) do
+    auth_type = Keyword.get(opts, :auth_type, :passkey)
+
+    if auth_type in [:webauthn, :passkey] do
+      # Build headers with client signature
+      headers = build_client_signed_headers(stamp, auth_type)
+
+      url = build_activities_url("/public/v1/submit/activity")
+      payload = http_client().build_payload(:post, url, headers, stamped_body)
+
+      case http_client().request(payload) do
+        {:ok, data} ->
+          Logger.info("Successfully executed client-signed Turnkey request",
+            activity_id: get_in(data, ["activity", "id"])
+          )
+
+          {:ok, data}
+
+        {:error, status_code, error_message} ->
+          Logger.error("Failed to execute client-signed Turnkey request",
+            status_code: status_code,
+            error: inspect(error_message)
+          )
+
+          {:error, status_code, error_message}
+      end
+    else
+      Logger.error("Invalid auth type for client signed request", auth_type: auth_type)
+      {:error, 400, "Invalid auth type for client signed request"}
+    end
+  end
+
   # Private helper functions
 
   defp execute_activity(opts) when is_list(opts) do
@@ -649,6 +698,12 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       {"Content-Type", "application/json"},
       {"X-Turnkey-API-Key", api_key}
     ]
+  end
+
+  defp build_client_signed_headers(stamp, auth_type) do
+    base_headers = build_activities_headers()
+    stamp_header = get_stamp_header_name(auth_type)
+    [{stamp_header, stamp} | base_headers]
   end
 
   defp get_default_organization_id do
