@@ -122,11 +122,11 @@ defmodule BeVotisWalletWeb.SignUpController.Response do
     # For signup flow, we create a sub-organization with WebAuthn authentication
     # The stamped_body and stamp are used as client signature for WebAuthn
     sub_org_name = "User Sub Organization"
-    
-    case Activities.create_sub_organization(sub_org_name, 
-      auth_type: :webauthn, 
-      client_signature: stamp
-    ) do
+
+    case Activities.create_sub_organization(sub_org_name,
+           auth_type: :webauthn,
+           client_signature: stamp
+         ) do
       {:ok, response} -> {:ok, response}
       {:error, status_code, error_message} -> {:error, :turnkey_error, status_code, error_message}
     end

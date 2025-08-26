@@ -1,6 +1,6 @@
 defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
   use ExUnit.Case, async: true
-  
+
   alias BeVotisWalletWeb.LoginController.LoginParams
 
   describe "changeset/2" do
@@ -13,9 +13,9 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       assert changeset.valid?
-      
+
       result = Ecto.Changeset.apply_changes(changeset)
       assert result.auth_type == "passkey"
       assert result.org_id == "test_org_123"
@@ -32,9 +32,9 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       assert changeset.valid?
-      
+
       result = Ecto.Changeset.apply_changes(changeset)
       assert result.auth_type == "oauth"
       assert result.org_id == "test_org_456"
@@ -50,7 +50,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).auth_type
     end
@@ -63,7 +63,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).org_id
     end
@@ -76,7 +76,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       refute changeset.valid?
       assert "is required" in errors_on(changeset).stamped_body
     end
@@ -89,7 +89,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).stamp
     end
@@ -103,7 +103,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       refute changeset.valid?
       assert "must be 'passkey' or 'oauth'" in errors_on(changeset).auth_type
     end
@@ -117,7 +117,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).org_id
     end
@@ -131,7 +131,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).stamp
     end
@@ -145,7 +145,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       refute changeset.valid?
       assert "is required" in errors_on(changeset).stamped_body
     end
@@ -159,7 +159,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).stamped_body
     end
@@ -173,7 +173,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       assert changeset.valid?
     end
 
@@ -187,9 +187,9 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       assert changeset.valid?
-      
+
       result = Ecto.Changeset.apply_changes(changeset)
       # Verify unexpected field is not included
       refute Map.has_key?(result, :unexpected_field)
@@ -197,7 +197,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
 
     test "works with binary stamped_body for passkey" do
       binary_body = <<1, 2, 3, 4, 5>>
-      
+
       attrs = %{
         "auth_type" => "passkey",
         "org_id" => "test_org",
@@ -206,9 +206,9 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       assert changeset.valid?
-      
+
       result = Ecto.Changeset.apply_changes(changeset)
       assert result.stamped_body == binary_body
     end
@@ -216,7 +216,7 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
     test "works with large binary stamped_body" do
       # Create a larger binary to test
       large_binary = :crypto.strong_rand_bytes(1024)
-      
+
       attrs = %{
         "auth_type" => "oauth",
         "org_id" => "test_org",
@@ -225,9 +225,9 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       changeset = LoginParams.changeset(%LoginParams{}, attrs)
-      
+
       assert changeset.valid?
-      
+
       result = Ecto.Changeset.apply_changes(changeset)
       assert result.stamped_body == large_binary
       assert byte_size(result.stamped_body) == 1024
@@ -241,11 +241,15 @@ defmodule BeVotisWalletWeb.LoginController.LoginParamsTest do
       }
 
       # Test passkey
-      passkey_changeset = LoginParams.changeset(%LoginParams{}, Map.put(base_attrs, "auth_type", "passkey"))
+      passkey_changeset =
+        LoginParams.changeset(%LoginParams{}, Map.put(base_attrs, "auth_type", "passkey"))
+
       assert passkey_changeset.valid?
 
       # Test oauth
-      oauth_changeset = LoginParams.changeset(%LoginParams{}, Map.put(base_attrs, "auth_type", "oauth"))
+      oauth_changeset =
+        LoginParams.changeset(%LoginParams{}, Map.put(base_attrs, "auth_type", "oauth"))
+
       assert oauth_changeset.valid?
     end
   end

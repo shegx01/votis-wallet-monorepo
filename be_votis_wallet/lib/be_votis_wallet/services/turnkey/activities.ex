@@ -763,101 +763,215 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   defp get_activity_endpoint(activity_type) do
     case activity_type do
       # Authentication endpoints
-      "ACTIVITY_TYPE_STAMP_LOGIN" -> Path.join(@path, "/stamp_login")
-      "ACTIVITY_TYPE_OAUTH_LOGIN" -> Path.join(@path, "/oauth_login")
-      "ACTIVITY_TYPE_OTP_LOGIN" -> Path.join(@path, "/otp_login")
-      "ACTIVITY_TYPE_OAUTH" -> Path.join(@path, "/oauth")
-      "ACTIVITY_TYPE_OTP_AUTH" -> Path.join(@path, "/otp_auth")
-      "ACTIVITY_TYPE_EMAIL_AUTH_V2" -> Path.join(@path, "/email_auth")
+      "ACTIVITY_TYPE_STAMP_LOGIN" ->
+        Path.join(@path, "/stamp_login")
+
+      "ACTIVITY_TYPE_OAUTH_LOGIN" ->
+        Path.join(@path, "/oauth_login")
+
+      "ACTIVITY_TYPE_OTP_LOGIN" ->
+        Path.join(@path, "/otp_login")
+
+      "ACTIVITY_TYPE_OAUTH" ->
+        Path.join(@path, "/oauth")
+
+      "ACTIVITY_TYPE_OTP_AUTH" ->
+        Path.join(@path, "/otp_auth")
+
+      "ACTIVITY_TYPE_EMAIL_AUTH_V2" ->
+        Path.join(@path, "/email_auth")
 
       # Organization and user management
-      "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION_V7" -> Path.join(@path, "/create_sub_organization")
-      "ACTIVITY_TYPE_CREATE_USERS_V7" -> Path.join(@path, "/create_users")
-      "ACTIVITY_TYPE_CREATE_USERS_V3" -> Path.join(@path, "/create_users")
-      "ACTIVITY_TYPE_DELETE_SUB_ORGANIZATION" -> Path.join(@path, "/delete_sub_organization")
-      "ACTIVITY_TYPE_DELETE_USERS" -> Path.join(@path, "/delete_users")
-      "ACTIVITY_TYPE_UPDATE_USER" -> Path.join(@path, "/update_user")
-      "ACTIVITY_TYPE_UPDATE_USER_NAME" -> Path.join(@path, "/update_user_name")
-      "ACTIVITY_TYPE_UPDATE_USER_EMAIL" -> Path.join(@path, "/update_user_email")
-      "ACTIVITY_TYPE_UPDATE_USER_PHONE_NUMBER" -> Path.join(@path, "/update_user_phone_number")
-      "ACTIVITY_TYPE_RECOVER_USER" -> Path.join(@path, "/recover_user")
-      "ACTIVITY_TYPE_INIT_USER_EMAIL_RECOVERY" -> Path.join(@path, "/init_user_email_recovery")
+      "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION_V7" ->
+        Path.join(@path, "/create_sub_organization")
+
+      "ACTIVITY_TYPE_CREATE_USERS_V7" ->
+        Path.join(@path, "/create_users")
+
+      "ACTIVITY_TYPE_CREATE_USERS_V3" ->
+        Path.join(@path, "/create_users")
+
+      "ACTIVITY_TYPE_DELETE_SUB_ORGANIZATION" ->
+        Path.join(@path, "/delete_sub_organization")
+
+      "ACTIVITY_TYPE_DELETE_USERS" ->
+        Path.join(@path, "/delete_users")
+
+      "ACTIVITY_TYPE_UPDATE_USER" ->
+        Path.join(@path, "/update_user")
+
+      "ACTIVITY_TYPE_UPDATE_USER_NAME" ->
+        Path.join(@path, "/update_user_name")
+
+      "ACTIVITY_TYPE_UPDATE_USER_EMAIL" ->
+        Path.join(@path, "/update_user_email")
+
+      "ACTIVITY_TYPE_UPDATE_USER_PHONE_NUMBER" ->
+        Path.join(@path, "/update_user_phone_number")
+
+      "ACTIVITY_TYPE_RECOVER_USER" ->
+        Path.join(@path, "/recover_user")
+
+      "ACTIVITY_TYPE_INIT_USER_EMAIL_RECOVERY" ->
+        Path.join(@path, "/init_user_email_recovery")
 
       # API keys and authentication credentials
-      "ACTIVITY_TYPE_CREATE_API_KEYS_V2" -> Path.join(@path, "/create_api_keys")
-      "ACTIVITY_TYPE_DELETE_API_KEYS" -> Path.join(@path, "/delete_api_keys")
-      "ACTIVITY_TYPE_CREATE_AUTHENTICATORS_V2" -> Path.join(@path, "/create_authenticators")
-      "ACTIVITY_TYPE_DELETE_AUTHENTICATORS" -> Path.join(@path, "/delete_authenticators")
+      "ACTIVITY_TYPE_CREATE_API_KEYS_V2" ->
+        Path.join(@path, "/create_api_keys")
+
+      "ACTIVITY_TYPE_DELETE_API_KEYS" ->
+        Path.join(@path, "/delete_api_keys")
+
+      "ACTIVITY_TYPE_CREATE_AUTHENTICATORS_V2" ->
+        Path.join(@path, "/create_authenticators")
+
+      "ACTIVITY_TYPE_DELETE_AUTHENTICATORS" ->
+        Path.join(@path, "/delete_authenticators")
 
       # Sessions
-      "ACTIVITY_TYPE_CREATE_READ_ONLY_SESSION" -> Path.join(@path, "/create_read_only_session")
-      "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2" -> Path.join(@path, "/create_read_write_session")
+      "ACTIVITY_TYPE_CREATE_READ_ONLY_SESSION" ->
+        Path.join(@path, "/create_read_only_session")
+
+      "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2" ->
+        Path.join(@path, "/create_read_write_session")
 
       # Wallet management
-      "ACTIVITY_TYPE_CREATE_WALLET" -> Path.join(@path, "/create_wallet")
-      "ACTIVITY_TYPE_CREATE_WALLET_ACCOUNTS" -> Path.join(@path, "/create_wallet_accounts")
-      "ACTIVITY_TYPE_DELETE_WALLETS" -> Path.join(@path, "/delete_wallets")
-      "ACTIVITY_TYPE_UPDATE_WALLET" -> Path.join(@path, "/update_wallet")
-      "ACTIVITY_TYPE_EXPORT_WALLET" -> Path.join(@path, "/export_wallet")
-      "ACTIVITY_TYPE_EXPORT_WALLET_ACCOUNT" -> Path.join(@path, "/export_wallet_account")
-      "ACTIVITY_TYPE_IMPORT_WALLET" -> Path.join(@path, "/import_wallet")
-      "ACTIVITY_TYPE_INIT_IMPORT_WALLET" -> Path.join(@path, "/init_import_wallet")
+      "ACTIVITY_TYPE_CREATE_WALLET" ->
+        Path.join(@path, "/create_wallet")
+
+      "ACTIVITY_TYPE_CREATE_WALLET_ACCOUNTS" ->
+        Path.join(@path, "/create_wallet_accounts")
+
+      "ACTIVITY_TYPE_DELETE_WALLETS" ->
+        Path.join(@path, "/delete_wallets")
+
+      "ACTIVITY_TYPE_UPDATE_WALLET" ->
+        Path.join(@path, "/update_wallet")
+
+      "ACTIVITY_TYPE_EXPORT_WALLET" ->
+        Path.join(@path, "/export_wallet")
+
+      "ACTIVITY_TYPE_EXPORT_WALLET_ACCOUNT" ->
+        Path.join(@path, "/export_wallet_account")
+
+      "ACTIVITY_TYPE_IMPORT_WALLET" ->
+        Path.join(@path, "/import_wallet")
+
+      "ACTIVITY_TYPE_INIT_IMPORT_WALLET" ->
+        Path.join(@path, "/init_import_wallet")
 
       # Private key management
-      "ACTIVITY_TYPE_CREATE_PRIVATE_KEYS_V2" -> Path.join(@path, "/create_private_keys")
-      "ACTIVITY_TYPE_DELETE_PRIVATE_KEYS" -> Path.join(@path, "/delete_private_keys")
-      "ACTIVITY_TYPE_EXPORT_PRIVATE_KEY" -> Path.join(@path, "/export_private_key")
-      "ACTIVITY_TYPE_IMPORT_PRIVATE_KEY" -> Path.join(@path, "/import_private_key")
-      "ACTIVITY_TYPE_INIT_IMPORT_PRIVATE_KEY" -> Path.join(@path, "/init_import_private_key")
-      "ACTIVITY_TYPE_CREATE_PRIVATE_KEY_TAG" -> Path.join(@path, "/create_private_key_tag")
-      "ACTIVITY_TYPE_DELETE_PRIVATE_KEY_TAGS" -> Path.join(@path, "/delete_private_key_tags")
-      "ACTIVITY_TYPE_UPDATE_PRIVATE_KEY_TAG" -> Path.join(@path, "/update_private_key_tag")
+      "ACTIVITY_TYPE_CREATE_PRIVATE_KEYS_V2" ->
+        Path.join(@path, "/create_private_keys")
+
+      "ACTIVITY_TYPE_DELETE_PRIVATE_KEYS" ->
+        Path.join(@path, "/delete_private_keys")
+
+      "ACTIVITY_TYPE_EXPORT_PRIVATE_KEY" ->
+        Path.join(@path, "/export_private_key")
+
+      "ACTIVITY_TYPE_IMPORT_PRIVATE_KEY" ->
+        Path.join(@path, "/import_private_key")
+
+      "ACTIVITY_TYPE_INIT_IMPORT_PRIVATE_KEY" ->
+        Path.join(@path, "/init_import_private_key")
+
+      "ACTIVITY_TYPE_CREATE_PRIVATE_KEY_TAG" ->
+        Path.join(@path, "/create_private_key_tag")
+
+      "ACTIVITY_TYPE_DELETE_PRIVATE_KEY_TAGS" ->
+        Path.join(@path, "/delete_private_key_tags")
+
+      "ACTIVITY_TYPE_UPDATE_PRIVATE_KEY_TAG" ->
+        Path.join(@path, "/update_private_key_tag")
 
       # Transaction signing
-      "ACTIVITY_TYPE_SIGN_TRANSACTION_V2" -> Path.join(@path, "/sign_transaction")
-      "ACTIVITY_TYPE_SIGN_RAW_PAYLOAD_V2" -> Path.join(@path, "/sign_raw_payload")
-      "ACTIVITY_TYPE_SIGN_RAW_PAYLOADS" -> Path.join(@path, "/sign_raw_payloads")
+      "ACTIVITY_TYPE_SIGN_TRANSACTION_V2" ->
+        Path.join(@path, "/sign_transaction")
+
+      "ACTIVITY_TYPE_SIGN_RAW_PAYLOAD_V2" ->
+        Path.join(@path, "/sign_raw_payload")
+
+      "ACTIVITY_TYPE_SIGN_RAW_PAYLOADS" ->
+        Path.join(@path, "/sign_raw_payloads")
 
       # Policy management
-      "ACTIVITY_TYPE_CREATE_POLICIES" -> Path.join(@path, "/create_policies")
-      "ACTIVITY_TYPE_CREATE_POLICY_V3" -> Path.join(@path, "/create_policy")
-      "ACTIVITY_TYPE_DELETE_POLICY" -> Path.join(@path, "/delete_policy")
-      "ACTIVITY_TYPE_UPDATE_POLICY_V2" -> Path.join(@path, "/update_policy")
-      "ACTIVITY_TYPE_APPROVE_ACTIVITY" -> Path.join(@path, "/approve_activity")
-      "ACTIVITY_TYPE_REJECT_ACTIVITY" -> Path.join(@path, "/reject_activity")
+      "ACTIVITY_TYPE_CREATE_POLICIES" ->
+        Path.join(@path, "/create_policies")
+
+      "ACTIVITY_TYPE_CREATE_POLICY_V3" ->
+        Path.join(@path, "/create_policy")
+
+      "ACTIVITY_TYPE_DELETE_POLICY" ->
+        Path.join(@path, "/delete_policy")
+
+      "ACTIVITY_TYPE_UPDATE_POLICY_V2" ->
+        Path.join(@path, "/update_policy")
+
+      "ACTIVITY_TYPE_APPROVE_ACTIVITY" ->
+        Path.join(@path, "/approve_activity")
+
+      "ACTIVITY_TYPE_REJECT_ACTIVITY" ->
+        Path.join(@path, "/reject_activity")
 
       # OAuth providers
-      "ACTIVITY_TYPE_CREATE_OAUTH_PROVIDERS" -> Path.join(@path, "/create_oauth_providers")
-      "ACTIVITY_TYPE_DELETE_OAUTH_PROVIDERS" -> Path.join(@path, "/delete_oauth_providers")
+      "ACTIVITY_TYPE_CREATE_OAUTH_PROVIDERS" ->
+        Path.join(@path, "/create_oauth_providers")
+
+      "ACTIVITY_TYPE_DELETE_OAUTH_PROVIDERS" ->
+        Path.join(@path, "/delete_oauth_providers")
 
       # OTP management
-      "ACTIVITY_TYPE_INIT_OTP" -> Path.join(@path, "/init_otp")
-      "ACTIVITY_TYPE_INIT_OTP_AUTH_V2" -> Path.join(@path, "/init_otp_auth")
-      "ACTIVITY_TYPE_VERIFY_OTP" -> Path.join(@path, "/verify_otp")
+      "ACTIVITY_TYPE_INIT_OTP" ->
+        Path.join(@path, "/init_otp")
+
+      "ACTIVITY_TYPE_INIT_OTP_AUTH_V2" ->
+        Path.join(@path, "/init_otp_auth")
+
+      "ACTIVITY_TYPE_VERIFY_OTP" ->
+        Path.join(@path, "/verify_otp")
 
       # Organization features
-      "ACTIVITY_TYPE_SET_ORGANIZATION_FEATURE" -> Path.join(@path, "/set_organization_feature")
-      "ACTIVITY_TYPE_REMOVE_ORGANIZATION_FEATURE" -> Path.join(@path, "/remove_organization_feature")
-      "ACTIVITY_TYPE_UPDATE_ROOT_QUORUM" -> Path.join(@path, "/update_root_quorum")
+      "ACTIVITY_TYPE_SET_ORGANIZATION_FEATURE" ->
+        Path.join(@path, "/set_organization_feature")
+
+      "ACTIVITY_TYPE_REMOVE_ORGANIZATION_FEATURE" ->
+        Path.join(@path, "/remove_organization_feature")
+
+      "ACTIVITY_TYPE_UPDATE_ROOT_QUORUM" ->
+        Path.join(@path, "/update_root_quorum")
 
       # User and key tagging
-      "ACTIVITY_TYPE_CREATE_USER_TAG" -> Path.join(@path, "/create_user_tag")
-      "ACTIVITY_TYPE_DELETE_USER_TAGS" -> Path.join(@path, "/delete_user_tags")
-      "ACTIVITY_TYPE_UPDATE_USER_TAG" -> Path.join(@path, "/update_user_tag")
+      "ACTIVITY_TYPE_CREATE_USER_TAG" ->
+        Path.join(@path, "/create_user_tag")
+
+      "ACTIVITY_TYPE_DELETE_USER_TAGS" ->
+        Path.join(@path, "/delete_user_tags")
+
+      "ACTIVITY_TYPE_UPDATE_USER_TAG" ->
+        Path.join(@path, "/update_user_tag")
 
       # Invitations
-      "ACTIVITY_TYPE_CREATE_INVITATIONS" -> Path.join(@path, "/create_invitations")
-      "ACTIVITY_TYPE_DELETE_INVITATION" -> Path.join(@path, "/delete_invitation")
+      "ACTIVITY_TYPE_CREATE_INVITATIONS" ->
+        Path.join(@path, "/create_invitations")
+
+      "ACTIVITY_TYPE_DELETE_INVITATION" ->
+        Path.join(@path, "/delete_invitation")
 
       # Smart contracts
-      "ACTIVITY_TYPE_CREATE_SMART_CONTRACT_INTERFACE" -> Path.join(@path, "/create_smart_contract_interface")
-      "ACTIVITY_TYPE_DELETE_SMART_CONTRACT_INTERFACE" -> Path.join(@path, "/delete_smart_contract_interface")
+      "ACTIVITY_TYPE_CREATE_SMART_CONTRACT_INTERFACE" ->
+        Path.join(@path, "/create_smart_contract_interface")
+
+      "ACTIVITY_TYPE_DELETE_SMART_CONTRACT_INTERFACE" ->
+        Path.join(@path, "/delete_smart_contract_interface")
 
       # Fiat on-ramp
-      "ACTIVITY_TYPE_INIT_FIAT_ON_RAMP" -> Path.join(@path, "/init_fiat_on_ramp")
+      "ACTIVITY_TYPE_INIT_FIAT_ON_RAMP" ->
+        Path.join(@path, "/init_fiat_on_ramp")
 
       # Default fallback for any unknown activity types
-      _ -> Path.join(@path, "/activity")
+      _ ->
+        Path.join(@path, "/activity")
     end
   end
 end

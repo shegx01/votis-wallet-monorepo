@@ -112,7 +112,7 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistenceTest do
     end
 
     test "assigns nil when no email parameter provided", %{conn: conn} do
-      conn = 
+      conn =
         conn
         |> fetch_query_params()
         |> CheckUserExistence.call([])

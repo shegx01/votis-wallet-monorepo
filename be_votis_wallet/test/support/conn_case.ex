@@ -34,13 +34,13 @@ defmodule BeVotisWalletWeb.ConnCase do
 
   setup tags do
     BeVotisWallet.DataCase.setup_sandbox(tags)
-    
+
     conn = Phoenix.ConnTest.build_conn()
-    
+
     # Add basic auth for private endpoints
     auth_header = Plug.BasicAuth.encode_basic_auth("test_user", "test_pass")
     conn = Plug.Conn.put_req_header(conn, "authorization", auth_header)
-    
+
     {:ok, conn: conn}
   end
 end

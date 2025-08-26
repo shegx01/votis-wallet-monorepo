@@ -51,11 +51,11 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistence do
   defp get_email_from_params(conn) do
     # Try query params first, then body params, then general params
     # Handle unfetched params safely
-    email = 
+    email =
       get_param_safely(conn.query_params, "email") ||
-      get_param_safely(conn.body_params, "email") ||
-      get_param_safely(conn.params, "email")
-    
+        get_param_safely(conn.body_params, "email") ||
+        get_param_safely(conn.params, "email")
+
     case email do
       nil -> nil
       "" -> nil
@@ -63,7 +63,7 @@ defmodule BeVotisWalletWeb.Plugs.CheckUserExistence do
       _ -> nil
     end
   end
-  
+
   # Safely get parameter from potentially unfetched params
   defp get_param_safely(%Plug.Conn.Unfetched{}, _key), do: nil
   defp get_param_safely(params, key) when is_map(params), do: params[key]

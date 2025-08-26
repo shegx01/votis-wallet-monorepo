@@ -171,7 +171,8 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "passkey",
-          "org_id" => "direct_org_789",  # Not base64 encoded
+          # Not base64 encoded
+          "org_id" => "direct_org_789",
           "stamped_body" => "stamped_request",
           "stamp" => "signature"
         })
@@ -236,7 +237,10 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
         })
 
       response = json_response(conn, 400)
-      assert %{"error" => "Invalid parameters", "errors" => %{"auth_type" => [error_msg]}} = response
+
+      assert %{"error" => "Invalid parameters", "errors" => %{"auth_type" => [error_msg]}} =
+               response
+
       assert String.contains?(error_msg, "must be 'passkey' or 'oauth'")
     end
 
@@ -259,12 +263,16 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
         post(conn, ~p"/private/login", %{
           "auth_type" => "passkey",
           "org_id" => "test_org",
-          "stamped_body" => 12345,  # Not a binary
+          # Not a binary
+          "stamped_body" => 12345,
           "stamp" => "stamp"
         })
 
       response = json_response(conn, 400)
-      assert %{"error" => "Invalid parameters", "errors" => %{"stamped_body" => error_msgs}} = response
+
+      assert %{"error" => "Invalid parameters", "errors" => %{"stamped_body" => error_msgs}} =
+               response
+
       # When cast to :binary field fails, we get both "is required" and "is invalid" errors
       assert "is required" in error_msgs or "must be a non-empty binary" in error_msgs
     end
@@ -279,7 +287,11 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
         })
 
       response = json_response(conn, 404)
-      assert %{"error" => "Organization not found", "message" => "The specified organization does not exist"} = response
+
+      assert %{
+               "error" => "Organization not found",
+               "message" => "The specified organization does not exist"
+             } = response
     end
 
     test "returns 404 for base64 encoded non-existent organization", %{conn: conn} do
@@ -292,7 +304,11 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
         })
 
       response = json_response(conn, 404)
-      assert %{"error" => "Organization not found", "message" => "The specified organization does not exist"} = response
+
+      assert %{
+               "error" => "Organization not found",
+               "message" => "The specified organization does not exist"
+             } = response
     end
 
     test "returns 401 for Turnkey authentication failure", %{conn: conn} do
@@ -316,7 +332,11 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
         })
 
       response = json_response(conn, 401)
-      assert %{"error" => "Authentication failed", "message" => "Invalid credentials or authentication service error"} = response
+
+      assert %{
+               "error" => "Authentication failed",
+               "message" => "Invalid credentials or authentication service error"
+             } = response
     end
 
     test "returns 400 for Turnkey bad request", %{conn: conn} do
@@ -441,12 +461,13 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
         {:ok, passkey_response}
       end)
 
-      conn1 = post(conn, ~p"/private/login", %{
-        "auth_type" => "passkey",
-        "org_id" => Base.encode64(user.sub_org_id),
-        "stamped_body" => "passkey_body",
-        "stamp" => "passkey_stamp"
-      })
+      conn1 =
+        post(conn, ~p"/private/login", %{
+          "auth_type" => "passkey",
+          "org_id" => Base.encode64(user.sub_org_id),
+          "stamped_body" => "passkey_body",
+          "stamp" => "passkey_stamp"
+        })
 
       assert %{"jwt" => "passkey_session"} = json_response(conn1, 200)
 
@@ -469,12 +490,13 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
         {:ok, oauth_response}
       end)
 
-      conn2 = post(conn, ~p"/private/login", %{
-        "auth_type" => "oauth",
-        "org_id" => Base.encode64(user.sub_org_id),
-        "stamped_body" => "oauth_body",
-        "stamp" => "oauth_stamp"
-      })
+      conn2 =
+        post(conn, ~p"/private/login", %{
+          "auth_type" => "oauth",
+          "org_id" => Base.encode64(user.sub_org_id),
+          "stamped_body" => "oauth_body",
+          "stamp" => "oauth_stamp"
+        })
 
       assert %{"jwt" => "oauth_session"} = json_response(conn2, 200)
     end
