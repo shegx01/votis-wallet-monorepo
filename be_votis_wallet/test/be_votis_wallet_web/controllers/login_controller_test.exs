@@ -18,7 +18,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
     test "successfully authenticates passkey user with valid stamped request", %{conn: conn} do
       # Create a user in the database
       user = insert(:user, %{sub_org_id: "test_org_123"})
-      
+
       # Mock successful passkey login response
       passkey_response = %{
         "activity" => %{
@@ -54,7 +54,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
         assert String.contains?(url, "/public/v1/submit/stamp_login")
-        
+
         # Verify passkey signature headers
         assert Enum.any?(headers, fn
                  {"X-Stamp-WebAuthn", _} -> true
@@ -83,7 +83,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
     test "successfully authenticates oauth user with valid stamped request", %{conn: conn} do
       # Create a user in the database
       user = insert(:user, %{sub_org_id: "test_org_456"})
-      
+
       # Mock successful OAuth login response
       oauth_response = %{
         "activity" => %{
@@ -142,8 +142,8 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
 
     test "handles organization with non-base64 encoded org_id", %{conn: conn} do
       # Create a user with a direct org_id (not base64 encoded)
-      user = insert(:user, %{sub_org_id: "direct_org_789"})
-      
+      insert(:user, %{sub_org_id: "direct_org_789"})
+
       # Mock successful response
       passkey_response = %{
         "activity" => %{
@@ -219,7 +219,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
 
       for %{params: params, expected_field: field} <- test_cases do
         conn = post(base_conn, ~p"/private/login", params)
-        
+
         response = json_response(conn, 400)
         assert %{"error" => "Invalid parameters", "errors" => errors} = response
         assert Map.has_key?(errors, field)
@@ -345,7 +345,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
 
     test "handles non-standard Turnkey response structure gracefully", %{conn: conn} do
       user = insert(:user, %{sub_org_id: "test_org_custom"})
-      
+
       # Mock non-standard response structure
       custom_response = %{
         "activity" => %{
@@ -384,7 +384,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
 
     test "handles completely unexpected response structure", %{conn: conn} do
       user = insert(:user, %{sub_org_id: "test_org_unexpected"})
-      
+
       # Mock completely unexpected response
       unexpected_response = %{
         "unexpected" => "structure",
@@ -417,7 +417,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
 
     test "supports both passkey and oauth auth types with same user", %{conn: conn} do
       user = insert(:user, %{sub_org_id: "multi_auth_org"})
-      
+
       # Test passkey first
       passkey_response = %{
         "activity" => %{
