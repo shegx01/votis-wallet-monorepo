@@ -81,7 +81,7 @@ defmodule BeVotisWallet.Services.Turnkey.SessionsTest do
       # Mock HTTP client calls
       stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_read_write_session")
 
         assert [{"Content-Type", "application/json"}, {"X-Turnkey-API-Key", "test_api_key"}] =
                  headers
@@ -188,7 +188,7 @@ defmodule BeVotisWallet.Services.Turnkey.SessionsTest do
       # Mock HTTP client calls
       stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_read_write_session")
 
         assert [{"Content-Type", "application/json"}, {"X-Turnkey-API-Key", "test_api_key"}] =
                  headers
@@ -244,7 +244,7 @@ defmodule BeVotisWallet.Services.Turnkey.SessionsTest do
       # Mock HTTP client calls
       stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_read_only_session")
 
         assert [{"Content-Type", "application/json"}, {"X-Turnkey-API-Key", "test_api_key"}] =
                  headers

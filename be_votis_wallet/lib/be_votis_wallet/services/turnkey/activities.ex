@@ -761,10 +761,102 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   # Map activity types to their specific Turnkey endpoints
   defp get_activity_endpoint(activity_type) do
     case activity_type do
-      "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION_V7" -> "/public/v1/submit/create_sub_organization"
+      # Authentication endpoints
       "ACTIVITY_TYPE_STAMP_LOGIN" -> "/public/v1/submit/stamp_login"
       "ACTIVITY_TYPE_OAUTH_LOGIN" -> "/public/v1/submit/oauth_login"
-      _ -> "/public/v1/submit/activity"  # Default fallback for other activities
+      "ACTIVITY_TYPE_OTP_LOGIN" -> "/public/v1/submit/otp_login"
+      "ACTIVITY_TYPE_OAUTH" -> "/public/v1/submit/oauth"
+      "ACTIVITY_TYPE_OTP_AUTH" -> "/public/v1/submit/otp_auth"
+      "ACTIVITY_TYPE_EMAIL_AUTH_V2" -> "/public/v1/submit/email_auth"
+      
+      # Organization and user management
+      "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION_V7" -> "/public/v1/submit/create_sub_organization"
+      "ACTIVITY_TYPE_CREATE_USERS_V7" -> "/public/v1/submit/create_users"
+      "ACTIVITY_TYPE_CREATE_USERS_V3" -> "/public/v1/submit/create_users"
+      "ACTIVITY_TYPE_DELETE_SUB_ORGANIZATION" -> "/public/v1/submit/delete_sub_organization"
+      "ACTIVITY_TYPE_DELETE_USERS" -> "/public/v1/submit/delete_users"
+      "ACTIVITY_TYPE_UPDATE_USER" -> "/public/v1/submit/update_user"
+      "ACTIVITY_TYPE_UPDATE_USER_NAME" -> "/public/v1/submit/update_user_name"
+      "ACTIVITY_TYPE_UPDATE_USER_EMAIL" -> "/public/v1/submit/update_user_email"
+      "ACTIVITY_TYPE_UPDATE_USER_PHONE_NUMBER" -> "/public/v1/submit/update_user_phone_number"
+      "ACTIVITY_TYPE_RECOVER_USER" -> "/public/v1/submit/recover_user"
+      "ACTIVITY_TYPE_INIT_USER_EMAIL_RECOVERY" -> "/public/v1/submit/init_user_email_recovery"
+      
+      # API keys and authentication credentials
+      "ACTIVITY_TYPE_CREATE_API_KEYS_V2" -> "/public/v1/submit/create_api_keys"
+      "ACTIVITY_TYPE_DELETE_API_KEYS" -> "/public/v1/submit/delete_api_keys"
+      "ACTIVITY_TYPE_CREATE_AUTHENTICATORS_V2" -> "/public/v1/submit/create_authenticators"
+      "ACTIVITY_TYPE_DELETE_AUTHENTICATORS" -> "/public/v1/submit/delete_authenticators"
+      
+      # Sessions
+      "ACTIVITY_TYPE_CREATE_READ_ONLY_SESSION" -> "/public/v1/submit/create_read_only_session"
+      "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2" -> "/public/v1/submit/create_read_write_session"
+      
+      # Wallet management
+      "ACTIVITY_TYPE_CREATE_WALLET" -> "/public/v1/submit/create_wallet"
+      "ACTIVITY_TYPE_CREATE_WALLET_ACCOUNTS" -> "/public/v1/submit/create_wallet_accounts"
+      "ACTIVITY_TYPE_DELETE_WALLETS" -> "/public/v1/submit/delete_wallets"
+      "ACTIVITY_TYPE_UPDATE_WALLET" -> "/public/v1/submit/update_wallet"
+      "ACTIVITY_TYPE_EXPORT_WALLET" -> "/public/v1/submit/export_wallet"
+      "ACTIVITY_TYPE_EXPORT_WALLET_ACCOUNT" -> "/public/v1/submit/export_wallet_account"
+      "ACTIVITY_TYPE_IMPORT_WALLET" -> "/public/v1/submit/import_wallet"
+      "ACTIVITY_TYPE_INIT_IMPORT_WALLET" -> "/public/v1/submit/init_import_wallet"
+      
+      # Private key management
+      "ACTIVITY_TYPE_CREATE_PRIVATE_KEYS_V2" -> "/public/v1/submit/create_private_keys"
+      "ACTIVITY_TYPE_DELETE_PRIVATE_KEYS" -> "/public/v1/submit/delete_private_keys"
+      "ACTIVITY_TYPE_EXPORT_PRIVATE_KEY" -> "/public/v1/submit/export_private_key"
+      "ACTIVITY_TYPE_IMPORT_PRIVATE_KEY" -> "/public/v1/submit/import_private_key"
+      "ACTIVITY_TYPE_INIT_IMPORT_PRIVATE_KEY" -> "/public/v1/submit/init_import_private_key"
+      "ACTIVITY_TYPE_CREATE_PRIVATE_KEY_TAG" -> "/public/v1/submit/create_private_key_tag"
+      "ACTIVITY_TYPE_DELETE_PRIVATE_KEY_TAGS" -> "/public/v1/submit/delete_private_key_tags"
+      "ACTIVITY_TYPE_UPDATE_PRIVATE_KEY_TAG" -> "/public/v1/submit/update_private_key_tag"
+      
+      # Transaction signing
+      "ACTIVITY_TYPE_SIGN_TRANSACTION_V2" -> "/public/v1/submit/sign_transaction"
+      "ACTIVITY_TYPE_SIGN_RAW_PAYLOAD_V2" -> "/public/v1/submit/sign_raw_payload"
+      "ACTIVITY_TYPE_SIGN_RAW_PAYLOADS" -> "/public/v1/submit/sign_raw_payloads"
+      
+      # Policy management
+      "ACTIVITY_TYPE_CREATE_POLICIES" -> "/public/v1/submit/create_policies"
+      "ACTIVITY_TYPE_CREATE_POLICY_V3" -> "/public/v1/submit/create_policy"
+      "ACTIVITY_TYPE_DELETE_POLICY" -> "/public/v1/submit/delete_policy"
+      "ACTIVITY_TYPE_UPDATE_POLICY_V2" -> "/public/v1/submit/update_policy"
+      "ACTIVITY_TYPE_APPROVE_ACTIVITY" -> "/public/v1/submit/approve_activity"
+      "ACTIVITY_TYPE_REJECT_ACTIVITY" -> "/public/v1/submit/reject_activity"
+      
+      # OAuth providers
+      "ACTIVITY_TYPE_CREATE_OAUTH_PROVIDERS" -> "/public/v1/submit/create_oauth_providers"
+      "ACTIVITY_TYPE_DELETE_OAUTH_PROVIDERS" -> "/public/v1/submit/delete_oauth_providers"
+      
+      # OTP management
+      "ACTIVITY_TYPE_INIT_OTP" -> "/public/v1/submit/init_otp"
+      "ACTIVITY_TYPE_INIT_OTP_AUTH_V2" -> "/public/v1/submit/init_otp_auth"
+      "ACTIVITY_TYPE_VERIFY_OTP" -> "/public/v1/submit/verify_otp"
+      
+      # Organization features
+      "ACTIVITY_TYPE_SET_ORGANIZATION_FEATURE" -> "/public/v1/submit/set_organization_feature"
+      "ACTIVITY_TYPE_REMOVE_ORGANIZATION_FEATURE" -> "/public/v1/submit/remove_organization_feature"
+      "ACTIVITY_TYPE_UPDATE_ROOT_QUORUM" -> "/public/v1/submit/update_root_quorum"
+      
+      # User and key tagging
+      "ACTIVITY_TYPE_CREATE_USER_TAG" -> "/public/v1/submit/create_user_tag"
+      "ACTIVITY_TYPE_DELETE_USER_TAGS" -> "/public/v1/submit/delete_user_tags"
+      "ACTIVITY_TYPE_UPDATE_USER_TAG" -> "/public/v1/submit/update_user_tag"
+      
+      # Invitations
+      "ACTIVITY_TYPE_CREATE_INVITATIONS" -> "/public/v1/submit/create_invitations"
+      "ACTIVITY_TYPE_DELETE_INVITATION" -> "/public/v1/submit/delete_invitation"
+      
+      # Smart contracts
+      "ACTIVITY_TYPE_CREATE_SMART_CONTRACT_INTERFACE" -> "/public/v1/submit/create_smart_contract_interface"
+      "ACTIVITY_TYPE_DELETE_SMART_CONTRACT_INTERFACE" -> "/public/v1/submit/delete_smart_contract_interface"
+      
+      # Fiat on-ramp
+      "ACTIVITY_TYPE_INIT_FIAT_ON_RAMP" -> "/public/v1/submit/init_fiat_on_ramp"
+      
+      # Default fallback for any unknown activity types
+      _ -> "/public/v1/submit/activity"
     end
   end
 end

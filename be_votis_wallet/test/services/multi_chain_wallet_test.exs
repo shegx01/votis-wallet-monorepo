@@ -48,7 +48,7 @@ defmodule BeVotisWallet.Services.MultiChainWalletTest do
       Mock
       |> expect(:build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_wallet")
         assert [{"Content-Type", "application/json"}, {"X-Turnkey-API-Key", _}] = headers
 
         decoded_body = Jason.decode!(body)
@@ -427,7 +427,7 @@ defmodule BeVotisWallet.Services.MultiChainWalletTest do
       Mock
       |> expect(:build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_wallet_accounts")
 
         decoded_body = Jason.decode!(body)
         assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_WALLET_ACCOUNTS"

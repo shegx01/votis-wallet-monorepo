@@ -122,7 +122,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
       stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_users")
 
         decoded_body = Jason.decode!(body)
         assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_USERS_V7"
@@ -290,7 +290,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
       stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_read_only_session")
 
         decoded_body = Jason.decode!(body)
         assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_READ_ONLY_SESSION"
@@ -353,7 +353,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
 
       stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_read_write_session")
 
         decoded_body = Jason.decode!(body)
         assert decoded_body["type"] == "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2"
