@@ -33,7 +33,7 @@ defmodule BeVotisWallet.Services.Turnkey.ActivitiesTest do
       # Set up mock stubs
       stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_sub_organization")
         assert [{"Content-Type", "application/json"}, {"X-Turnkey-API-Key", _}] = headers
 
         decoded_body = Jason.decode!(body)

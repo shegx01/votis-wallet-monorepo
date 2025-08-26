@@ -105,4 +105,14 @@ defmodule BeVotisWallet.Users.User do
     from(u in __MODULE__, where: u.email == ^String.downcase(email))
     |> Repo.exists?()
   end
+
+  @doc """
+  Check if a user exists by sub_org_id.
+
+  Returns `true` if user exists, `false` otherwise.
+  """
+  def exists_by_sub_org_id?(sub_org_id) when is_binary(sub_org_id) do
+    from(u in __MODULE__, where: u.sub_org_id == ^sub_org_id)
+    |> Repo.exists?()
+  end
 end

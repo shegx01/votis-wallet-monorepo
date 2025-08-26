@@ -549,7 +549,7 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
       # Build headers with client signature
       headers = build_client_signed_headers(stamp, auth_type)
 
-      url = build_activities_url("/public/v1/submit/activity")
+      url = build_activities_url("/public/v1/submit/stamp_login")
       payload = http_client().build_payload(:post, url, headers, stamped_body)
 
       case http_client().request(payload) do
@@ -574,6 +574,45 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     end
   end
 
+  @doc """
+  Execute an OAuth-signed request to Turnkey for login.
+
+  This function handles OAuth login requests that have been pre-signed by the client.
+  OAuth requests use the dedicated `/public/v1/submit/oauth_login` endpoint.
+
+  ## Parameters
+  - `stamped_body` - The complete binary request body from the client for OAuth login
+  - `stamp` - The OAuth signature from the client
+
+  ## Returns
+  - `{:ok, response}` - Success response from Turnkey
+  - `{:error, status_code, error_message}` - Failure response
+  """
+  def oauth_signed_request(stamped_body, stamp) do
+    # OAuth requests use WebAuthn signatures
+    headers = build_client_signed_headers(stamp, :webauthn)
+
+    url = build_activities_url("/public/v1/submit/oauth_login")
+    payload = http_client().build_payload(:post, url, headers, stamped_body)
+
+    case http_client().request(payload) do
+      {:ok, data} ->
+        Logger.info("Successfully executed OAuth signed request",
+          activity_id: get_in(data, ["activity", "id"])
+        )
+
+        {:ok, data}
+
+      {:error, status_code, error_message} ->
+        Logger.error("Failed to execute OAuth signed request",
+          status_code: status_code,
+          error: inspect(error_message)
+        )
+
+        {:error, status_code, error_message}
+    end
+  end
+
   # Private helper functions
 
   defp execute_activity(opts) when is_list(opts) do
@@ -592,7 +631,9 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     # Build headers with signature using specified auth type and optional client signature
     headers = build_activities_headers_with_signature(json_body, auth_type, client_signature)
 
-    url = build_activities_url("/public/v1/submit/activity")
+    # Use specific endpoint based on activity type
+    endpoint = get_activity_endpoint(activity_type)
+    url = build_activities_url(endpoint)
     payload = http_client().build_payload(:post, url, headers, json_body)
 
     case http_client().request(payload) do
@@ -714,6 +755,16 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     case Keyword.get(turnkey_config(), key) do
       {:system, env_var} -> System.get_env(env_var)
       value -> value
+    end
+  end
+
+  # Map activity types to their specific Turnkey endpoints
+  defp get_activity_endpoint(activity_type) do
+    case activity_type do
+      "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION_V7" -> "/public/v1/submit/create_sub_organization"
+      "ACTIVITY_TYPE_STAMP_LOGIN" -> "/public/v1/submit/stamp_login"
+      "ACTIVITY_TYPE_OAUTH_LOGIN" -> "/public/v1/submit/oauth_login"
+      _ -> "/public/v1/submit/activity"  # Default fallback for other activities
     end
   end
 end

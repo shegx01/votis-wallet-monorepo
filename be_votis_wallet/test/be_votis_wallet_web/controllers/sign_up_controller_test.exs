@@ -57,7 +57,7 @@ defmodule BeVotisWalletWeb.SignUpControllerTest do
       # Set up Turnkey client mock
       stub(Mock, :build_payload, fn method, url, headers, body ->
         assert method == :post
-        assert String.contains?(url, "/public/v1/submit/activity")
+        assert String.contains?(url, "/public/v1/submit/create_sub_organization")
 
         # Verify client signature headers
         assert Enum.any?(headers, fn

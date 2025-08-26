@@ -117,9 +117,16 @@ defmodule BeVotisWalletWeb.SignUpController.Response do
     end
   end
 
-  # Turnkey integration using client-signed request
-  defp create_turnkey_sub_organization(stamped_body, stamp) do
-    case Activities.client_signed_request(stamped_body, stamp, auth_type: :passkey) do
+  # Turnkey integration using create_sub_organization with WebAuthn auth
+  defp create_turnkey_sub_organization(_stamped_body, stamp) do
+    # For signup flow, we create a sub-organization with WebAuthn authentication
+    # The stamped_body and stamp are used as client signature for WebAuthn
+    sub_org_name = "User Sub Organization"
+    
+    case Activities.create_sub_organization(sub_org_name, 
+      auth_type: :webauthn, 
+      client_signature: stamp
+    ) do
       {:ok, response} -> {:ok, response}
       {:error, status_code, error_message} -> {:error, :turnkey_error, status_code, error_message}
     end
