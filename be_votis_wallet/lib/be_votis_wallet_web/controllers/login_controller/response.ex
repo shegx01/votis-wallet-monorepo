@@ -102,8 +102,13 @@ defmodule BeVotisWalletWeb.LoginController.Response do
   end
 
   defp perform_authentication(%LoginParams{auth_type: "passkey"} = params) do
-    # For passkey authentication, use client_signed_request with the stamped body and stamp
-    case Activities.client_signed_request(params.stamped_body, params.stamp, auth_type: :passkey) do
+    # For passkey authentication, use execute_signed_request directly with STAMP_LOGIN activity
+    case Activities.execute_signed_request(
+           params.stamped_body,
+           params.stamp,
+           "ACTIVITY_TYPE_STAMP_LOGIN",
+           auth_type: :passkey
+         ) do
       {:ok, response} ->
         {:ok, response}
 
@@ -113,8 +118,13 @@ defmodule BeVotisWalletWeb.LoginController.Response do
   end
 
   defp perform_authentication(%LoginParams{auth_type: "oauth"} = params) do
-    # For OAuth authentication, use oauth_signed_request with the stamped body and stamp
-    case Activities.oauth_signed_request(params.stamped_body, params.stamp) do
+    # For OAuth authentication, use execute_signed_request directly with OAUTH_LOGIN activity
+    case Activities.execute_signed_request(
+           params.stamped_body,
+           params.stamp,
+           "ACTIVITY_TYPE_OAUTH_LOGIN",
+           auth_type: :webauthn
+         ) do
       {:ok, response} ->
         {:ok, response}
 

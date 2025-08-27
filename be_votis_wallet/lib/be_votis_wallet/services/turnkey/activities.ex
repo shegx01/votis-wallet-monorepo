@@ -526,63 +526,37 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
     execute_activity(execute_activity_opts)
   end
 
+  # Private helper functions
+
   @doc """
-  Execute a client-signed request directly to Turnkey.
+  Execute a signed request to Turnkey using the activity type to determine the endpoint.
 
-  This function is used when the client (mobile app) has already built
-  the complete request body and signature. We just need to forward it
-  to Turnkey with the proper headers.
-
-  This function uses the stamp_login endpoint for client-signed requests.
+  This is the unified implementation for handling pre-signed requests from clients
+  (mobile apps, web clients) that have already built the complete request body and
+  signature. The endpoint is determined using the existing activity type mapping.
 
   ## Parameters
   - `stamped_body` - The complete binary request body from the client
-  - `stamp` - The WebAuthn/Passkey signature from the client
+  - `stamp` - The signature from the client (OAuth, WebAuthn, or Passkey)
+  - `activity_type` - The activity type (e.g., "ACTIVITY_TYPE_OAUTH_LOGIN", "ACTIVITY_TYPE_STAMP_LOGIN")
   - `opts` - Additional options:
-    - `:auth_type` - Authentication type (`:webauthn`, `:passkey`)
+    - `:auth_type` - Authentication type (`:webauthn`, `:passkey`) (default: `:passkey`)
 
   ## Returns
   - `{:ok, response}` - Success response from Turnkey
   - `{:error, status_code, error_message}` - Failure response
+
+  ## Examples
+      # OAuth login
+      execute_signed_request(body, stamp, "ACTIVITY_TYPE_OAUTH_LOGIN", auth_type: :webauthn)
+
+      # Stamp/Passkey login
+      execute_signed_request(body, stamp, "ACTIVITY_TYPE_STAMP_LOGIN", auth_type: :passkey)
+
+      # Future stamped activities:
+      # execute_signed_request(body, stamp, "ACTIVITY_TYPE_SIGN_TRANSACTION_V2", auth_type: :passkey)
   """
-  def client_signed_request(stamped_body, stamp, opts \\ []) do
-    execute_signed_request(stamped_body, stamp, "ACTIVITY_TYPE_STAMP_LOGIN", opts)
-  end
-
-  @doc """
-  Execute an OAuth-signed request to Turnkey for login.
-
-  This function handles OAuth login requests that have been pre-signed by the client.
-  OAuth requests use the dedicated `/oauth_login` endpoint and WebAuthn signatures.
-
-  ## Parameters
-  - `stamped_body` - The complete binary request body from the client for OAuth login
-  - `stamp` - The OAuth signature from the client
-
-  ## Returns
-  - `{:ok, response}` - Success response from Turnkey
-  - `{:error, status_code, error_message}` - Failure response
-  """
-  def oauth_signed_request(stamped_body, stamp) do
-    execute_signed_request(stamped_body, stamp, "ACTIVITY_TYPE_OAUTH_LOGIN", [auth_type: :webauthn])
-  end
-
-  # Private helper functions
-
-  # Execute a signed request to Turnkey using the activity type to determine the endpoint.
-  # 
-  # This is the unified implementation for handling pre-signed requests from clients
-  # (mobile apps, web clients) that have already built the complete request body and
-  # signature. The endpoint is determined using the existing activity type mapping.
-  #
-  # Parameters:
-  # - stamped_body: The complete binary request body from the client
-  # - stamp: The signature from the client (OAuth, WebAuthn, or Passkey)
-  # - activity_type: The activity type (e.g., "ACTIVITY_TYPE_OAUTH_LOGIN", "ACTIVITY_TYPE_STAMP_LOGIN")
-  # - opts: Additional options (auth_type defaults to :passkey)
-  #
-  # Returns: {:ok, response} | {:error, status_code, error_message}
-  defp execute_signed_request(stamped_body, stamp, activity_type, opts) do
+  def execute_signed_request(stamped_body, stamp, activity_type, opts \\ []) do
     auth_type = Keyword.get(opts, :auth_type, :passkey)
 
     if auth_type in [:webauthn, :passkey] do
