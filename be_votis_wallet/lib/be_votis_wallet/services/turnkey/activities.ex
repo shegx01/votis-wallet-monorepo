@@ -533,6 +533,8 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   the complete request body and signature. We just need to forward it
   to Turnkey with the proper headers.
 
+  This function uses the stamp_login endpoint for client-signed requests.
+
   ## Parameters
   - `stamped_body` - The complete binary request body from the client
   - `stamp` - The WebAuthn/Passkey signature from the client
@@ -544,42 +546,14 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   - `{:error, status_code, error_message}` - Failure response
   """
   def client_signed_request(stamped_body, stamp, opts \\ []) do
-    auth_type = Keyword.get(opts, :auth_type, :passkey)
-
-    if auth_type in [:webauthn, :passkey] do
-      # Build headers with client signature
-      headers = build_client_signed_headers(stamp, auth_type)
-
-      url = build_activities_url("/public/v1/submit/stamp_login")
-      payload = http_client().build_payload(:post, url, headers, stamped_body)
-
-      case http_client().request(payload) do
-        {:ok, data} ->
-          Logger.info("Successfully executed client-signed Turnkey request",
-            activity_id: get_in(data, ["activity", "id"])
-          )
-
-          {:ok, data}
-
-        {:error, status_code, error_message} ->
-          Logger.error("Failed to execute client-signed Turnkey request",
-            status_code: status_code,
-            error: inspect(error_message)
-          )
-
-          {:error, status_code, error_message}
-      end
-    else
-      Logger.error("Invalid auth type for client signed request", auth_type: auth_type)
-      {:error, 400, "Invalid auth type for client signed request"}
-    end
+    execute_signed_request(stamped_body, stamp, "ACTIVITY_TYPE_STAMP_LOGIN", opts)
   end
 
   @doc """
   Execute an OAuth-signed request to Turnkey for login.
 
   This function handles OAuth login requests that have been pre-signed by the client.
-  OAuth requests use the dedicated `/public/v1/submit/oauth_login` endpoint.
+  OAuth requests use the dedicated `/oauth_login` endpoint and WebAuthn signatures.
 
   ## Parameters
   - `stamped_body` - The complete binary request body from the client for OAuth login
@@ -590,31 +564,63 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   - `{:error, status_code, error_message}` - Failure response
   """
   def oauth_signed_request(stamped_body, stamp) do
-    # OAuth requests use WebAuthn signatures
-    headers = build_client_signed_headers(stamp, :webauthn)
-
-    url = build_activities_url("/public/v1/submit/oauth_login")
-    payload = http_client().build_payload(:post, url, headers, stamped_body)
-
-    case http_client().request(payload) do
-      {:ok, data} ->
-        Logger.info("Successfully executed OAuth signed request",
-          activity_id: get_in(data, ["activity", "id"])
-        )
-
-        {:ok, data}
-
-      {:error, status_code, error_message} ->
-        Logger.error("Failed to execute OAuth signed request",
-          status_code: status_code,
-          error: inspect(error_message)
-        )
-
-        {:error, status_code, error_message}
-    end
+    execute_signed_request(stamped_body, stamp, "ACTIVITY_TYPE_OAUTH_LOGIN", [auth_type: :webauthn])
   end
 
   # Private helper functions
+
+  # Execute a signed request to Turnkey using the activity type to determine the endpoint.
+  # 
+  # This is the unified implementation for handling pre-signed requests from clients
+  # (mobile apps, web clients) that have already built the complete request body and
+  # signature. The endpoint is determined using the existing activity type mapping.
+  #
+  # Parameters:
+  # - stamped_body: The complete binary request body from the client
+  # - stamp: The signature from the client (OAuth, WebAuthn, or Passkey)
+  # - activity_type: The activity type (e.g., "ACTIVITY_TYPE_OAUTH_LOGIN", "ACTIVITY_TYPE_STAMP_LOGIN")
+  # - opts: Additional options (auth_type defaults to :passkey)
+  #
+  # Returns: {:ok, response} | {:error, status_code, error_message}
+  defp execute_signed_request(stamped_body, stamp, activity_type, opts) do
+    auth_type = Keyword.get(opts, :auth_type, :passkey)
+
+    if auth_type in [:webauthn, :passkey] do
+      # Build headers with client signature
+      headers = build_client_signed_headers(stamp, auth_type)
+
+      # Use existing endpoint mapping to get the correct URL
+      endpoint = get_activity_endpoint(activity_type)
+      url = build_activities_url(endpoint)
+      payload = http_client().build_payload(:post, url, headers, stamped_body)
+
+      case http_client().request(payload) do
+        {:ok, data} ->
+          Logger.info("Successfully executed signed Turnkey request",
+            activity_type: activity_type,
+            auth_type: auth_type,
+            endpoint: endpoint,
+            activity_id: get_in(data, ["activity", "id"])
+          )
+
+          {:ok, data}
+
+        {:error, status_code, error_message} ->
+          Logger.error("Failed to execute signed Turnkey request",
+            activity_type: activity_type,
+            auth_type: auth_type,
+            endpoint: endpoint,
+            status_code: status_code,
+            error: inspect(error_message)
+          )
+
+          {:error, status_code, error_message}
+      end
+    else
+      Logger.error("Invalid auth type for signed request", auth_type: auth_type)
+      {:error, 400, "Invalid auth type for signed request"}
+    end
+  end
 
   defp execute_activity(opts) when is_list(opts) do
     # Required arguments - use fetch! for clear error messages
