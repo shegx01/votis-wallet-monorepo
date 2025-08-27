@@ -22,14 +22,15 @@ defmodule BeVotisWalletWeb.LoginController.Response do
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, params) do
     with {:ok, validated_params} <- validate_and_parse_params(params),
-         :ok <- validate_organization_exists(validated_params.org_id),
+         {:ok, user} <- validate_user_exists(conn.assigns[:user]),
          {:ok, session_data} <- perform_authentication(validated_params) do
       # Extract JWT from session data
       jwt = extract_jwt_from_session(session_data)
 
       Logger.info("Successful login",
         auth_type: validated_params.auth_type,
-        org_id: validated_params.org_id,
+        email: validated_params.email,
+        user_id: user.id,
         activity_id: get_in(session_data, ["activity", "id"])
       )
 
@@ -46,16 +47,16 @@ defmodule BeVotisWalletWeb.LoginController.Response do
         |> put_status(:bad_request)
         |> json(%{error: "Invalid parameters", errors: format_changeset_errors(changeset)})
 
-      {:error, :organization_not_found} ->
-        Logger.warning("Organization not found for login",
-          org_id: Map.get(params, "org_id")
+      {:error, :user_not_found} ->
+        Logger.warning("User not found for login",
+          email: Map.get(params, "email")
         )
 
         conn
         |> put_status(:not_found)
         |> json(%{
-          error: "Organization not found",
-          message: "The specified organization does not exist"
+          error: "User not found",
+          message: "The specified user does not exist"
         })
 
       {:error, :authentication_failed, status_code, error_message} ->
@@ -85,19 +86,10 @@ defmodule BeVotisWalletWeb.LoginController.Response do
     end
   end
 
-  defp validate_organization_exists(org_id) do
-    # Decode the base64 encoded org_id if needed, similar to signup flow
-    decoded_org_id =
-      case Base.decode64(org_id) do
-        {:ok, decoded} -> decoded
-        # If not base64 encoded, use as-is
-        :error -> org_id
-      end
-
-    if User.exists_by_sub_org_id?(decoded_org_id) do
-      :ok
-    else
-      {:error, :organization_not_found}
+  defp validate_user_exists(user) do
+    case user do
+      nil -> {:error, :user_not_found}
+      %User{} = user -> {:ok, user}
     end
   end
 

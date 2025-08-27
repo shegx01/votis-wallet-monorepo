@@ -82,7 +82,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
 
     test "successfully authenticates oauth user with valid stamped request", %{conn: conn} do
       # Create a user in the database
-      user = insert(:user, %{email: "oauth@example.com", sub_org_id: "test_org_456"})
+      user = insert(:user, %{sub_org_id: "test_org_456"})
 
       # Mock successful OAuth login response
       oauth_response = %{
@@ -131,7 +131,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "oauth",
-          "email" => user.email,
+          "org_id" => Base.encode64(user.sub_org_id),
           "stamped_body" => "stamped_oauth_request_body",
           "stamp" => "oauth_signature_67890"
         })
@@ -140,12 +140,53 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       assert %{"jwt" => "oauth_jwt_token_abc"} = response
     end
 
+    test "handles organization with non-base64 encoded org_id", %{conn: conn} do
+      # Create a user with a direct org_id (not base64 encoded)
+      insert(:user, %{sub_org_id: "direct_org_789"})
+
+      # Mock successful response
+      passkey_response = %{
+        "activity" => %{
+          "id" => "activity_123",
+          "result" => %{
+            "activity" => %{
+              "result" => %{
+                "stampLoginResult" => %{
+                  "session" => "direct_jwt_token"
+                }
+              }
+            }
+          }
+        }
+      }
+
+      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+        %{method: :post, url: "test", headers: [], body: ""}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, passkey_response}
+      end)
+
+      conn =
+        post(conn, ~p"/private/login", %{
+          "auth_type" => "passkey",
+          # Not base64 encoded
+          "org_id" => "direct_org_789",
+          "stamped_body" => "stamped_request",
+          "stamp" => "signature"
+        })
+
+      response = json_response(conn, 200)
+      assert %{"jwt" => "direct_jwt_token"} = response
+    end
+
     test "returns 400 for missing required parameters", %{conn: base_conn} do
       test_cases = [
         %{
           params: %{
             # missing auth_type
-            "email" => "test@example.com",
+            "org_id" => "test_org",
             "stamped_body" => "body",
             "stamp" => "stamp"
           },
@@ -154,14 +195,14 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
         %{
           params: %{
             "auth_type" => "passkey"
-            # missing email, stamped_body, stamp
+            # missing org_id, stamped_body, stamp
           },
-          expected_field: "email"
+          expected_field: "org_id"
         },
         %{
           params: %{
             "auth_type" => "passkey",
-            "email" => "test@example.com"
+            "org_id" => "test_org"
             # missing stamped_body, stamp
           },
           expected_field: "stamped_body"
@@ -169,7 +210,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
         %{
           params: %{
             "auth_type" => "passkey",
-            "email" => "test@example.com",
+            "org_id" => "test_org",
             "stamped_body" => "body"
             # missing stamp
           },
@@ -190,7 +231,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "invalid",
-          "email" => "test@example.com",
+          "org_id" => "test_org",
           "stamped_body" => "body",
           "stamp" => "stamp"
         })
@@ -203,31 +244,17 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       assert String.contains?(error_msg, "must be 'passkey' or 'oauth'")
     end
 
-    test "returns 400 for invalid email format", %{conn: conn} do
+    test "returns 400 for empty required parameters", %{conn: conn} do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "passkey",
-          "email" => "invalid_email",
+          "org_id" => "",
           "stamped_body" => "body",
           "stamp" => "stamp"
         })
 
       response = json_response(conn, 400)
-      assert %{"error" => "Invalid parameters", "errors" => %{"email" => [error_msg]}} = response
-      assert String.contains?(error_msg, "must be a valid email")
-    end
-
-    test "returns 400 for empty email", %{conn: conn} do
-      conn =
-        post(conn, ~p"/private/login", %{
-          "auth_type" => "passkey",
-          "email" => "",
-          "stamped_body" => "body",
-          "stamp" => "stamp"
-        })
-
-      response = json_response(conn, 400)
-      assert %{"error" => "Invalid parameters", "errors" => %{"email" => [error_msg]}} = response
+      assert %{"error" => "Invalid parameters", "errors" => %{"org_id" => [error_msg]}} = response
       assert String.contains?(error_msg, "can't be blank")
     end
 
@@ -235,7 +262,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "passkey",
-          "email" => "test@example.com",
+          "org_id" => "test_org",
           # Not a binary
           "stamped_body" => 12345,
           "stamp" => "stamp"
@@ -250,11 +277,11 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       assert "is required" in error_msgs or "must be a non-empty binary" in error_msgs
     end
 
-    test "returns 404 for non-existent user", %{conn: conn} do
+    test "returns 404 for non-existent organization", %{conn: conn} do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "passkey",
-          "email" => "nonexistent@example.com",
+          "org_id" => "non_existent_org",
           "stamped_body" => "body",
           "stamp" => "stamp"
         })
@@ -262,13 +289,30 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       response = json_response(conn, 404)
 
       assert %{
-               "error" => "User not found",
-               "message" => "The specified user does not exist"
+               "error" => "Organization not found",
+               "message" => "The specified organization does not exist"
+             } = response
+    end
+
+    test "returns 404 for base64 encoded non-existent organization", %{conn: conn} do
+      conn =
+        post(conn, ~p"/private/login", %{
+          "auth_type" => "passkey",
+          "org_id" => Base.encode64("non_existent_org"),
+          "stamped_body" => "body",
+          "stamp" => "stamp"
+        })
+
+      response = json_response(conn, 404)
+
+      assert %{
+               "error" => "Organization not found",
+               "message" => "The specified organization does not exist"
              } = response
     end
 
     test "returns 401 for Turnkey authentication failure", %{conn: conn} do
-      user = insert(:user, %{email: "authfail@example.com", sub_org_id: "test_org_auth_fail"})
+      user = insert(:user, %{sub_org_id: "test_org_auth_fail"})
 
       # Mock Turnkey authentication failure
       stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
@@ -282,7 +326,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "passkey",
-          "email" => user.email,
+          "org_id" => Base.encode64(user.sub_org_id),
           "stamped_body" => "invalid_body",
           "stamp" => "invalid_stamp"
         })
@@ -296,7 +340,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
     end
 
     test "returns 400 for Turnkey bad request", %{conn: conn} do
-      user = insert(:user, %{email: "badreq@example.com", sub_org_id: "test_org_bad_request"})
+      user = insert(:user, %{sub_org_id: "test_org_bad_request"})
 
       # Mock Turnkey bad request
       stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
@@ -310,7 +354,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "oauth",
-          "email" => user.email,
+          "org_id" => Base.encode64(user.sub_org_id),
           "stamped_body" => "malformed_body",
           "stamp" => "stamp"
         })
@@ -320,7 +364,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
     end
 
     test "handles non-standard Turnkey response structure gracefully", %{conn: conn} do
-      user = insert(:user, %{email: "custom@example.com", sub_org_id: "test_org_custom"})
+      user = insert(:user, %{sub_org_id: "test_org_custom"})
 
       # Mock non-standard response structure
       custom_response = %{
@@ -345,7 +389,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "passkey",
-          "email" => user.email,
+          "org_id" => Base.encode64(user.sub_org_id),
           "stamped_body" => "custom_body",
           "stamp" => "custom_stamp"
         })
@@ -359,7 +403,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
     end
 
     test "handles completely unexpected response structure", %{conn: conn} do
-      user = insert(:user, %{email: "unexpected@example.com", sub_org_id: "test_org_unexpected"})
+      user = insert(:user, %{sub_org_id: "test_org_unexpected"})
 
       # Mock completely unexpected response
       unexpected_response = %{
@@ -378,7 +422,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn =
         post(conn, ~p"/private/login", %{
           "auth_type" => "oauth",
-          "email" => user.email,
+          "org_id" => Base.encode64(user.sub_org_id),
           "stamped_body" => "unexpected_body",
           "stamp" => "unexpected_stamp"
         })
@@ -392,7 +436,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
     end
 
     test "supports both passkey and oauth auth types with same user", %{conn: conn} do
-      user = insert(:user, %{email: "multi@example.com", sub_org_id: "multi_auth_org"})
+      user = insert(:user, %{sub_org_id: "multi_auth_org"})
 
       # Test passkey first
       passkey_response = %{
@@ -420,7 +464,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn1 =
         post(conn, ~p"/private/login", %{
           "auth_type" => "passkey",
-          "email" => user.email,
+          "org_id" => Base.encode64(user.sub_org_id),
           "stamped_body" => "passkey_body",
           "stamp" => "passkey_stamp"
         })
@@ -449,7 +493,7 @@ defmodule BeVotisWalletWeb.LoginControllerTest do
       conn2 =
         post(conn, ~p"/private/login", %{
           "auth_type" => "oauth",
-          "email" => user.email,
+          "org_id" => Base.encode64(user.sub_org_id),
           "stamped_body" => "oauth_body",
           "stamp" => "oauth_stamp"
         })
