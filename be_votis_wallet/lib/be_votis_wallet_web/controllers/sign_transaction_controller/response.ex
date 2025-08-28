@@ -12,111 +12,59 @@ defmodule BeVotisWalletWeb.SignTransactionController.Response do
   """
   use BeVotisWalletWeb, :controller
 
-  require Logger
-
-  alias BeVotisWallet.Services.Turnkey.Activities
   alias BeVotisWallet.Users.User
-  alias BeVotisWalletWeb.Utils.TurnkeyResponse
+  alias BeVotisWalletWeb.Utils.{SigningUtils, TurnkeyResponse}
 
   @spec create(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def create(conn, params) do
+    context = SigningUtils.create_signing_context(
+      "transaction signing",
+      "Transaction signed successfully",
+      "Failed to sign transaction"
+    )
+
     case conn.assigns[:user] do
       %User{} = user ->
         # User exists, proceed with transaction signing
-        handle_sign_transaction(conn, params, user)
+        handle_signing_operation(conn, params, user, context)
 
       nil ->
         # User doesn't exist, return 404
-        Logger.warning("Sign transaction attempt for non-existent user",
-          email: Map.get(params, "email")
-        )
+        SigningUtils.log_user_not_found(Map.get(params, "email"), "transaction signing")
+        error_data = SigningUtils.prepare_user_not_found_error()
 
         conn
         |> put_status(:not_found)
-        |> json(%{
-          error: "User not found",
-          message: "The specified user does not exist"
-        })
+        |> json(error_data)
     end
   end
 
-  # Private function to handle transaction signing flow
-  defp handle_sign_transaction(conn, params, user) do
-    with {:ok, stamped_body} <- extract_stamped_body(params),
-         {:ok, stamp} <- extract_stamp(params),
-         {:ok, turnkey_response} <- sign_turnkey_transaction(stamped_body, stamp) do
-      # Log successful transaction signing
-      Logger.info("Successful transaction signing",
-        email: user.email,
-        user_id: user.id,
-        sub_org_id: user.sub_org_id,
-        activity_id: get_in(turnkey_response, ["activity", "id"])
-      )
+  # Private function to handle transaction signing using SigningUtils
+  defp handle_signing_operation(conn, params, user, context) do
+    case SigningUtils.execute_signing_operation(
+           params,
+           user,
+           "ACTIVITY_TYPE_SIGN_TRANSACTION_V2",
+           context
+         ) do
+      {:ok, response_data} ->
+        conn
+        |> put_status(:ok)
+        |> json(response_data)
 
-      # Return 200 with the signed transaction result
-      case get_in(turnkey_response, ["activity", "result"]) do
-        nil ->
-          # Fallback if result structure is unexpected
-          conn
-          |> put_status(:ok)
-          |> json(%{message: "Transaction signed successfully"})
-
-        result ->
-          # Return the actual signing result from Turnkey
-          conn
-          |> put_status(:ok)
-          |> json(result)
-      end
-    else
       {:error, :missing_parameter, param} ->
-        Logger.warning("Missing required parameter for transaction signing",
-          parameter: param,
-          user_id: user.id
-        )
+        error_data = SigningUtils.prepare_missing_param_error(param)
 
         conn
         |> put_status(:bad_request)
-        |> json(%{error: "Missing required parameter: #{param}"})
+        |> json(error_data)
 
-      {:error, :turnkey_error, status_code, error_message} ->
-        Logger.error("Turnkey API error during transaction signing",
-          status_code: status_code,
-          error: inspect(error_message),
-          user_id: user.id
-        )
+      {:error, :turnkey_error, status_code, _error_message} ->
+        error_data = SigningUtils.prepare_turnkey_error(context.error_prefix)
 
         conn
         |> put_status(TurnkeyResponse.map_status_code(status_code))
-        |> json(%{
-          error: "Failed to sign transaction",
-          message: "External service error"
-        })
-    end
-  end
-
-  # Parameter extraction helpers
-  defp extract_stamped_body(params), do: get_required_param(params, "stamped_body")
-  defp extract_stamp(params), do: get_required_param(params, "stamp")
-
-  defp get_required_param(params, key) do
-    case Map.get(params, key) do
-      nil -> {:error, :missing_parameter, key}
-      value when is_binary(value) and byte_size(value) > 0 -> {:ok, value}
-      _ -> {:error, :missing_parameter, key}
-    end
-  end
-
-  # Turnkey integration using execute_signed_request with API key authentication (X-Stamp)
-  # This uses X-Stamp header for client-signed requests with API key from signup or login
-  defp sign_turnkey_transaction(stamped_body, stamp) do
-    case Activities.execute_signed_request(
-           stamped_body,
-           stamp,
-           "ACTIVITY_TYPE_SIGN_TRANSACTION_V2",
-           auth_type: :api_key
-         ) do
-      {:ok, response} -> {:ok, response}
-      {:error, status_code, error_message} -> {:error, :turnkey_error, status_code, error_message}
+        |> json(error_data)
     end
   end
 end
