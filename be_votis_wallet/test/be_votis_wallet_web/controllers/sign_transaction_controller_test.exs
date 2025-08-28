@@ -9,25 +9,45 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
 
   setup_all do
     %{
-      test_user_attrs: build_test_user_attrs(),
+      user_attrs: build_test_user_attrs(),
       turnkey_responses: build_turnkey_responses(),
       request_params: build_request_params()
     }
   end
 
-  setup do
+  setup %{user_attrs: user_attrs} do
     BeVotisWallet.Test.Mocks.setup_mocks()
-    :ok
+    
+    # Create actual users in database based on the user_attrs
+    users = %{
+      signer: insert(:user, user_attrs.signer),
+      custom: insert(:user, user_attrs.custom),
+      no_result: insert(:user, user_attrs.no_result),
+      auth_fail: insert(:user, user_attrs.auth_fail),
+      bad_request: insert(:user, user_attrs.bad_request),
+      unprocessable: insert(:user, user_attrs.unprocessable),
+      unknown_error: insert(:user, user_attrs.unknown_error),
+      exists: insert(:user, user_attrs.exists),
+      valid: insert(:user, user_attrs.valid)
+    }
+    
+    on_exit(fn ->
+      # Clean up created users
+      Enum.each(users, fn {_key, user} ->
+        BeVotisWallet.Repo.delete(user)
+      end)
+    end)
+    
+    %{users: users}
   end
 
   describe "POST /private/sign_transaction" do
     test "successfully signs transaction for existing user", context do
-      %{conn: conn, test_user_attrs: users, turnkey_responses: responses, request_params: params} = context
-      user = insert(:user, users.signer)
+      %{conn: conn, users: users, turnkey_responses: responses, request_params: params} = context
 
       setup_detailed_turnkey_mock(responses.success_with_details)
 
-      conn = post_sign_transaction(conn, user, params.valid)
+      conn = post_sign_transaction(conn, users.signer, params.valid)
       response = json_response(conn, 200)
 
       assert %{
@@ -39,12 +59,11 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
     end
 
     test "handles non-standard Turnkey response structure gracefully", context do
-      %{conn: conn, test_user_attrs: users, turnkey_responses: responses, request_params: params} = context
-      user = insert(:user, users.custom)
+      %{conn: conn, users: users, turnkey_responses: responses, request_params: params} = context
 
       setup_simple_turnkey_mock(responses.success_custom)
 
-      conn = post_sign_transaction(conn, user, params.custom)
+      conn = post_sign_transaction(conn, users.custom, params.custom)
       response = json_response(conn, 200)
 
       assert %{
@@ -55,21 +74,19 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
     end
 
     test "handles missing result in response with fallback message", context do
-      %{conn: conn, test_user_attrs: users, turnkey_responses: responses, request_params: params} = context
-      user = insert(:user, users.no_result)
+      %{conn: conn, users: users, turnkey_responses: responses, request_params: params} = context
 
       setup_simple_turnkey_mock(responses.success_no_result)
 
-      conn = post_sign_transaction(conn, user, params.basic)
+      conn = post_sign_transaction(conn, users.no_result, params.basic)
       response = json_response(conn, 200)
       assert %{"message" => "Transaction signed successfully"} = response
     end
 
     test "returns 400 for missing required parameters", context do
-      %{conn: conn, test_user_attrs: users} = context
-      user = insert(:user, users.valid)
+      %{conn: conn, users: users} = context
       
-      test_cases = build_invalid_param_test_cases(user.email)
+      test_cases = build_invalid_param_test_cases(users.valid.email)
 
       for %{params: params, expected_field: field} <- test_cases do
         conn = post(conn, ~p"/private/sign_transaction", params)
@@ -94,12 +111,11 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
     end
 
     test "returns 401 for Turnkey authentication failure", context do
-      %{conn: conn, test_user_attrs: users, request_params: params} = context
-      user = insert(:user, users.auth_fail)
+      %{conn: conn, users: users, request_params: params} = context
 
       setup_failed_turnkey_mock(401, %{"message" => "Invalid signature"})
 
-      conn = post_sign_transaction(conn, user, params.invalid_auth)
+      conn = post_sign_transaction(conn, users.auth_fail, params.invalid_auth)
       response = json_response(conn, 401)
 
       assert %{
@@ -108,25 +124,12 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
              } = response
     end
 
-    test "returns 400 for Turnkey bad request", %{conn: conn} do
-      user = insert(:user, %{email: "badreq@example.com", sub_org_id: "test_org_bad_request"})
+    test "returns 400 for Turnkey bad request", context do
+      %{conn: conn, users: users, request_params: params} = context
 
-      # Mock Turnkey bad request
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
+      setup_failed_turnkey_mock(400, %{"message" => "Malformed transaction data"})
 
-      stub(Mock, :request, fn _payload ->
-        {:error, 400, %{"message" => "Malformed transaction data"}}
-      end)
-
-      conn =
-        post(conn, ~p"/private/sign_transaction", %{
-          "email" => user.email,
-          "stamped_body" => "malformed_body",
-          "stamp" => "stamp"
-        })
-
+      conn = post_sign_transaction(conn, users.bad_request, params.malformed)
       response = json_response(conn, 400)
 
       assert %{
@@ -135,25 +138,12 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
              } = response
     end
 
-    test "returns 422 for Turnkey unprocessable entity", %{conn: conn} do
-      user = insert(:user, %{email: "unprocessable@example.com", sub_org_id: "test_org_422"})
+    test "returns 422 for Turnkey unprocessable entity", context do
+      %{conn: conn, users: users, request_params: params} = context
 
-      # Mock Turnkey unprocessable entity (invalid transaction format)
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
+      setup_failed_turnkey_mock(422, %{"message" => "Invalid transaction format"})
 
-      stub(Mock, :request, fn _payload ->
-        {:error, 422, %{"message" => "Invalid transaction format"}}
-      end)
-
-      conn =
-        post(conn, ~p"/private/sign_transaction", %{
-          "email" => user.email,
-          "stamped_body" => "invalid_transaction_format",
-          "stamp" => "stamp"
-        })
-
+      conn = post_sign_transaction(conn, users.unprocessable, params.invalid_format)
       response = json_response(conn, 422)
 
       assert %{
@@ -162,25 +152,12 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
              } = response
     end
 
-    test "returns 500 for unknown Turnkey error codes", %{conn: conn} do
-      user = insert(:user, %{email: "unknown@example.com", sub_org_id: "test_org_unknown"})
+    test "returns 500 for unknown Turnkey error codes", context do
+      %{conn: conn, users: users, request_params: params} = context
 
-      # Mock unknown error code
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
+      setup_failed_turnkey_mock(999, %{"message" => "Unknown error"})
 
-      stub(Mock, :request, fn _payload ->
-        {:error, 999, %{"message" => "Unknown error"}}
-      end)
-
-      conn =
-        post(conn, ~p"/private/sign_transaction", %{
-          "email" => user.email,
-          "stamped_body" => "body",
-          "stamp" => "stamp"
-        })
-
+      conn = post_sign_transaction(conn, users.unknown_error, params.basic)
       response = json_response(conn, 500)
 
       assert %{
@@ -191,27 +168,14 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
   end
 
   describe "CheckUserExistence plug integration" do
-    test "properly sets user in conn assigns for existing user", %{conn: conn} do
-      user = insert(:user, %{email: "exists@example.com", sub_org_id: "test_org"})
+    test "properly sets user in conn assigns for existing user", context do
+      %{conn: conn, users: users, turnkey_responses: responses} = context
 
-      # Mock successful response
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:ok,
-         %{
-           "activity" => %{
-             "id" => "test_activity",
-             "result" => %{"signTransactionResult" => %{"signedTransaction" => "0x123"}}
-           }
-         }}
-      end)
+      setup_simple_turnkey_mock(responses.success_basic)
 
       conn =
         post(conn, ~p"/private/sign_transaction", %{
-          "email" => user.email,
+          "email" => users.exists.email,
           "stamped_body" => "body",
           "stamp" => "stamp"
         })
