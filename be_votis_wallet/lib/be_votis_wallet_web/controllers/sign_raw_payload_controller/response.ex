@@ -25,11 +25,9 @@ defmodule BeVotisWalletWeb.SignRawPayloadController.Response do
 
     case conn.assigns[:user] do
       %User{} = user ->
-        # User exists, proceed with raw payload signing
         handle_signing_operation(conn, params, user, context)
 
       nil ->
-        # User doesn't exist, return 404
         SigningUtils.log_user_not_found(Map.get(params, "email"), "raw payload signing")
         error_data = SigningUtils.prepare_user_not_found_error()
 
@@ -39,7 +37,6 @@ defmodule BeVotisWalletWeb.SignRawPayloadController.Response do
     end
   end
 
-  # Private function to handle raw payload signing using SigningUtils
   defp handle_signing_operation(conn, params, user, context) do
     case SigningUtils.execute_signing_operation(
            params,

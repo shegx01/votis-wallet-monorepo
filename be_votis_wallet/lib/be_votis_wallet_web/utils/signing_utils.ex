@@ -28,32 +28,12 @@ defmodule BeVotisWalletWeb.Utils.SigningUtils do
           | {:error, :missing_parameter, String.t()}
           | {:error, :turnkey_error, integer(), term()}
 
-  @doc """
-  Execute a complete signing operation with the given parameters.
-
-  This function handles:
-  1. Parameter extraction and validation
-  2. Turnkey API request execution
-  3. Success/error result preparation
-  4. Appropriate logging
-
-  ## Parameters
-  - `params` - Request parameters map
-  - `user` - The authenticated user
-  - `activity_type` - The Turnkey activity type
-  - `context` - Signing context with operation-specific messaging
-
-  ## Returns
-  - `{:ok, response_data}` - Success with response data to return
-  - `{:error, :missing_parameter, param_name}` - Missing parameter error
-  - `{:error, :turnkey_error, status_code, error_message}` - Turnkey API error
-  """
+@doc "Execute a complete signing operation with parameter validation, Turnkey API integration, and logging."
   @spec execute_signing_operation(map(), %User{}, activity_type(), signing_context()) ::
           signing_result()
   def execute_signing_operation(params, %User{} = user, activity_type, context) do
     with {:ok, {stamped_body, stamp}} <- extract_signing_params(params),
          {:ok, turnkey_response} <- execute_turnkey_signing(stamped_body, stamp, activity_type) do
-      # Log successful signing operation
       Logger.info("Successful #{context.operation_name}",
         email: user.email,
         user_id: user.id,
@@ -62,7 +42,6 @@ defmodule BeVotisWalletWeb.Utils.SigningUtils do
         activity_type: activity_type
       )
 
-      # Prepare success response data
       response_data = prepare_success_response(turnkey_response, context.success_message)
       {:ok, response_data}
     else
@@ -86,13 +65,6 @@ defmodule BeVotisWalletWeb.Utils.SigningUtils do
     end
   end
 
-  @doc """
-  Log a user not found attempt for a signing operation.
-
-  ## Parameters
-  - `email` - The email that was attempted (may be nil)
-  - `operation_name` - Name of the operation for logging
-  """
   @spec log_user_not_found(String.t() | nil, String.t()) :: :ok
   def log_user_not_found(email, operation_name) do
     Logger.warning("#{String.capitalize(operation_name)} attempt for non-existent user",
@@ -100,16 +72,6 @@ defmodule BeVotisWalletWeb.Utils.SigningUtils do
     )
   end
 
-  @doc """
-  Extract and validate required signing parameters from request.
-
-  ## Parameters
-  - `params` - Request parameters map
-
-  ## Returns
-  - `{:ok, {stamped_body, stamp}}` on success
-  - `{:error, :missing_parameter, param_name}` on missing/invalid parameter
-  """
   @spec extract_signing_params(map()) ::
           {:ok, {String.t(), String.t()}} | {:error, :missing_parameter, String.t()}
   def extract_signing_params(params) do
@@ -119,17 +81,6 @@ defmodule BeVotisWalletWeb.Utils.SigningUtils do
     end
   end
 
-  @doc """
-  Create a signing context for operation-specific messaging.
-
-  ## Parameters
-  - `operation_name` - Name of the operation (e.g., "transaction signing")
-  - `success_message` - Message for successful fallback response
-  - `error_prefix` - Prefix for error messages
-
-  ## Returns
-  - `signing_context()` map with operation-specific strings
-  """
   @spec create_signing_context(String.t(), String.t(), String.t()) :: signing_context()
   def create_signing_context(operation_name, success_message, error_prefix) do
     %{
@@ -139,29 +90,11 @@ defmodule BeVotisWalletWeb.Utils.SigningUtils do
     }
   end
 
-  @doc """
-  Prepare error response data for missing parameter errors.
-
-  ## Parameters
-  - `param_name` - Name of the missing parameter
-
-  ## Returns
-  - Map with error response data
-  """
   @spec prepare_missing_param_error(String.t()) :: map()
   def prepare_missing_param_error(param_name) do
     %{error: "Missing required parameter: #{param_name}"}
   end
 
-  @doc """
-  Prepare error response data for Turnkey API errors.
-
-  ## Parameters
-  - `error_prefix` - Prefix for the error message
-
-  ## Returns
-  - Map with error response data
-  """
   @spec prepare_turnkey_error(String.t()) :: map()
   def prepare_turnkey_error(error_prefix) do
     %{
@@ -170,12 +103,6 @@ defmodule BeVotisWalletWeb.Utils.SigningUtils do
     }
   end
 
-  @doc """
-  Prepare user not found error response data.
-
-  ## Returns
-  - Map with error response data
-  """
   @spec prepare_user_not_found_error() :: map()
   def prepare_user_not_found_error do
     %{
@@ -211,13 +138,8 @@ defmodule BeVotisWalletWeb.Utils.SigningUtils do
 
   defp prepare_success_response(turnkey_response, fallback_message) do
     case get_in(turnkey_response, ["activity", "result"]) do
-      nil ->
-        # Fallback if result structure is unexpected
-        %{message: fallback_message}
-
-      result ->
-        # Return the actual signing result from Turnkey
-        result
+      nil -> %{message: fallback_message}
+      result -> result
     end
   end
 end
