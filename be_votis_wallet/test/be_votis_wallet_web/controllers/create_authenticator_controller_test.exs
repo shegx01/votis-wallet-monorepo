@@ -20,10 +20,11 @@ defmodule BeVotisWalletWeb.CreateAuthenticatorControllerTest do
   describe "POST /private/create_authenticators" do
     test "successfully creates authenticator for existing user", %{conn: conn} do
       # Create a test user using factory
-      user = insert(:user, %{
-        email: "test@example.com",
-        sub_org_id: "org_123"
-      })
+      user =
+        insert(:user, %{
+          email: "test@example.com",
+          sub_org_id: "org_123"
+        })
 
       # Mock Turnkey response
       expected_response = %{
