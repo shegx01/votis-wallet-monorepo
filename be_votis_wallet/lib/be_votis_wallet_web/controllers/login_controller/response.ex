@@ -6,6 +6,7 @@ defmodule BeVotisWalletWeb.LoginController.Response do
   alias BeVotisWallet.Services.Turnkey.Activities
   alias BeVotisWallet.Users.User
   alias BeVotisWalletWeb.LoginController.LoginParams
+  alias BeVotisWalletWeb.Utils.TurnkeyResponse
 
   @moduledoc """
   LoginController response handler
@@ -66,7 +67,7 @@ defmodule BeVotisWalletWeb.LoginController.Response do
         )
 
         conn
-        |> put_status(map_turnkey_status_code(status_code))
+        |> put_status(TurnkeyResponse.map_status_code(status_code))
         |> json(%{
           error: "Authentication failed",
           message: "Invalid credentials or authentication service error"
@@ -115,7 +116,7 @@ defmodule BeVotisWalletWeb.LoginController.Response do
            params.stamped_body,
            params.stamp,
            "ACTIVITY_TYPE_OAUTH_LOGIN",
-           auth_type: :webauthn
+           auth_type: :api_key
          ) do
       {:ok, response} ->
         {:ok, response}
@@ -207,21 +208,5 @@ defmodule BeVotisWalletWeb.LoginController.Response do
         String.replace(acc, "%{#{key}}", to_string(value))
       end)
     end)
-  end
-
-  defp map_turnkey_status_code(status_code) do
-    case status_code do
-      400 -> :bad_request
-      401 -> :unauthorized
-      403 -> :forbidden
-      404 -> :not_found
-      409 -> :conflict
-      422 -> :unprocessable_entity
-      429 -> :too_many_requests
-      500 -> :internal_server_error
-      502 -> :bad_gateway
-      503 -> :service_unavailable
-      _ -> :internal_server_error
-    end
   end
 end

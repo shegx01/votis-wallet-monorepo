@@ -540,7 +540,7 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
   - `stamp` - The signature from the client (OAuth, WebAuthn, or Passkey)
   - `activity_type` - The activity type (e.g., "ACTIVITY_TYPE_OAUTH_LOGIN", "ACTIVITY_TYPE_STAMP_LOGIN")
   - `opts` - Additional options:
-    - `:auth_type` - Authentication type (`:webauthn`, `:passkey`) (default: `:passkey`)
+    - `:auth_type` - Authentication type (`:api_key`, `:webauthn`, `:passkey`) (default: `:passkey`)
 
   ## Returns
   - `{:ok, response}` - Success response from Turnkey
@@ -548,18 +548,18 @@ defmodule BeVotisWallet.Services.Turnkey.Activities do
 
   ## Examples
       # OAuth login
-      execute_signed_request(body, stamp, "ACTIVITY_TYPE_OAUTH_LOGIN", auth_type: :webauthn)
+      execute_signed_request(body, stamp, "ACTIVITY_TYPE_OAUTH_LOGIN", auth_type: :api_key)
 
       # Stamp/Passkey login
       execute_signed_request(body, stamp, "ACTIVITY_TYPE_STAMP_LOGIN", auth_type: :passkey)
 
-      # Future stamped activities:
-      # execute_signed_request(body, stamp, "ACTIVITY_TYPE_SIGN_TRANSACTION_V2", auth_type: :passkey)
+      # Create authenticators
+      execute_signed_request(body, stamp, "ACTIVITY_TYPE_CREATE_AUTHENTICATORS_V2", auth_type: :api_key)
   """
   def execute_signed_request(stamped_body, stamp, activity_type, opts \\ []) do
     auth_type = Keyword.get(opts, :auth_type, :passkey)
 
-    if auth_type in [:webauthn, :passkey] do
+    if auth_type in [:api_key, :webauthn, :passkey] do
       # Build headers with client signature
       headers = build_client_signed_headers(stamp, auth_type)
 

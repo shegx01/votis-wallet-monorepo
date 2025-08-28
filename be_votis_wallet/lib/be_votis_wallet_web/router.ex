@@ -34,6 +34,9 @@ defmodule BeVotisWalletWeb.Router do
     # returns sub_org_id
     post "/sign_up", SignUpController, :create
 
+    # creates authenticators for existing users
+    post "/create_authenticators", CreateAuthenticatorController, :create
+
     #  returns payload for the client to sign with passkey or webauthn if user not found, otherwise returns org_id
     # this endpoint requires user_email as a query param
     get "/user_info", UserInfoController, :show
