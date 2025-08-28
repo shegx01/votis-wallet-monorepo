@@ -21,18 +21,13 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
   end
 
   describe "POST /private/sign_transaction" do
-    test "successfully signs transaction for existing user", %{conn: conn, turnkey_responses: responses, request_params: params} do
-      user = insert(:user, %{email: "signer@example.com", sub_org_id: "test_org_123"})
+    test "successfully signs transaction for existing user", context do
+      %{conn: conn, test_user_attrs: users, turnkey_responses: responses, request_params: params} = context
+      user = insert(:user, users.signer)
 
       setup_detailed_turnkey_mock(responses.success_with_details)
 
-      conn =
-        post(conn, ~p"/private/sign_transaction", %{
-          "email" => user.email,
-          "stamped_body" => params.valid.stamped_body,
-          "stamp" => params.valid.stamp
-        })
-
+      conn = post_sign_transaction(conn, user, params.valid)
       response = json_response(conn, 200)
 
       assert %{
@@ -43,39 +38,15 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
              } = response
     end
 
-    test "handles non-standard Turnkey response structure gracefully", %{conn: conn} do
-      user = insert(:user, %{email: "custom@example.com", sub_org_id: "test_org_custom"})
+    test "handles non-standard Turnkey response structure gracefully", context do
+      %{conn: conn, test_user_attrs: users, turnkey_responses: responses, request_params: params} = context
+      user = insert(:user, users.custom)
 
-      # Mock response with unexpected structure
-      custom_response = %{
-        "activity" => %{
-          "id" => "activity_custom",
-          "result" => %{
-            "customSignResult" => %{
-              "signature" => "custom_signature_data"
-            }
-          }
-        }
-      }
+      setup_simple_turnkey_mock(responses.success_custom)
 
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:ok, custom_response}
-      end)
-
-      conn =
-        post(conn, ~p"/private/sign_transaction", %{
-          "email" => user.email,
-          "stamped_body" => "custom_body",
-          "stamp" => "custom_stamp"
-        })
-
+      conn = post_sign_transaction(conn, user, params.custom)
       response = json_response(conn, 200)
 
-      # Should return the custom result structure
       assert %{
                "customSignResult" => %{
                  "signature" => "custom_signature_data"
@@ -83,91 +54,36 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
              } = response
     end
 
-    test "handles missing result in response with fallback message", %{conn: conn} do
-      user = insert(:user, %{email: "noresult@example.com", sub_org_id: "test_org_noresult"})
+    test "handles missing result in response with fallback message", context do
+      %{conn: conn, test_user_attrs: users, turnkey_responses: responses, request_params: params} = context
+      user = insert(:user, users.no_result)
 
-      # Mock response without result field
-      no_result_response = %{
-        "activity" => %{
-          "id" => "activity_no_result",
-          "status" => "ACTIVITY_STATUS_COMPLETED"
-        }
-      }
+      setup_simple_turnkey_mock(responses.success_no_result)
 
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:ok, no_result_response}
-      end)
-
-      conn =
-        post(conn, ~p"/private/sign_transaction", %{
-          "email" => user.email,
-          "stamped_body" => "body",
-          "stamp" => "stamp"
-        })
-
+      conn = post_sign_transaction(conn, user, params.basic)
       response = json_response(conn, 200)
       assert %{"message" => "Transaction signed successfully"} = response
     end
 
-    test "returns 400 for missing required parameters", %{conn: base_conn} do
-      user = insert(:user, %{email: "test@example.com", sub_org_id: "test_org"})
-
-      test_cases = [
-        %{
-          params: %{
-            "email" => user.email,
-            "stamp" => "stamp"
-            # missing stamped_body
-          },
-          expected_field: "stamped_body"
-        },
-        %{
-          params: %{
-            "email" => user.email,
-            "stamped_body" => "body"
-            # missing stamp
-          },
-          expected_field: "stamp"
-        },
-        %{
-          params: %{
-            "email" => user.email,
-            "stamped_body" => "",
-            "stamp" => "stamp"
-            # empty stamped_body
-          },
-          expected_field: "stamped_body"
-        },
-        %{
-          params: %{
-            "email" => user.email,
-            "stamped_body" => "body",
-            "stamp" => ""
-            # empty stamp
-          },
-          expected_field: "stamp"
-        }
-      ]
+    test "returns 400 for missing required parameters", context do
+      %{conn: conn, test_user_attrs: users} = context
+      user = insert(:user, users.valid)
+      
+      test_cases = build_invalid_param_test_cases(user.email)
 
       for %{params: params, expected_field: field} <- test_cases do
-        conn = post(base_conn, ~p"/private/sign_transaction", params)
+        conn = post(conn, ~p"/private/sign_transaction", params)
 
         response = json_response(conn, 400)
         assert %{"error" => "Missing required parameter: " <> ^field} = response
       end
     end
 
-    test "returns 404 for non-existent user", %{conn: conn} do
+    test "returns 404 for non-existent user", context do
+      %{conn: conn, request_params: params} = context
+      
       conn =
-        post(conn, ~p"/private/sign_transaction", %{
-          "email" => "nonexistent@example.com",
-          "stamped_body" => "body",
-          "stamp" => "stamp"
-        })
+        post(conn, ~p"/private/sign_transaction", params.nonexistent_user)
 
       response = json_response(conn, 404)
 
@@ -177,25 +93,13 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
              } = response
     end
 
-    test "returns 401 for Turnkey authentication failure", %{conn: conn} do
-      user = insert(:user, %{email: "authfail@example.com", sub_org_id: "test_org_auth_fail"})
+    test "returns 401 for Turnkey authentication failure", context do
+      %{conn: conn, test_user_attrs: users, request_params: params} = context
+      user = insert(:user, users.auth_fail)
 
-      # Mock Turnkey authentication failure
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
+      setup_failed_turnkey_mock(401, %{"message" => "Invalid signature"})
 
-      stub(Mock, :request, fn _payload ->
-        {:error, 401, %{"message" => "Invalid signature"}}
-      end)
-
-      conn =
-        post(conn, ~p"/private/sign_transaction", %{
-          "email" => user.email,
-          "stamped_body" => "invalid_body",
-          "stamp" => "invalid_stamp"
-        })
-
+      conn = post_sign_transaction(conn, user, params.invalid_auth)
       response = json_response(conn, 401)
 
       assert %{
@@ -335,7 +239,13 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
     %{
       valid: %{email: "test@example.com", sub_org_id: "test_org_123"},
       signer: %{email: "signer@example.com", sub_org_id: "test_org_123"},
-      custom: %{email: "custom@example.com", sub_org_id: "test_org_custom"}
+      custom: %{email: "custom@example.com", sub_org_id: "test_org_custom"},
+      no_result: %{email: "noresult@example.com", sub_org_id: "test_org_noresult"},
+      auth_fail: %{email: "authfail@example.com", sub_org_id: "test_org_auth_fail"},
+      bad_request: %{email: "badreq@example.com", sub_org_id: "test_org_bad_request"},
+      unprocessable: %{email: "unprocessable@example.com", sub_org_id: "test_org_422"},
+      unknown_error: %{email: "unknown@example.com", sub_org_id: "test_org_unknown"},
+      exists: %{email: "exists@example.com", sub_org_id: "test_org"}
     }
   end
 
@@ -345,11 +255,35 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
         stamped_body: "stamped_transaction_request_body",
         stamp: "transaction_signature_12345"
       },
-      invalid: %{
-        missing_body: %{stamp: "stamp"},
-        missing_stamp: %{stamped_body: "body"},
-        empty_body: %{stamped_body: "", stamp: "stamp"},
-        empty_stamp: %{stamped_body: "body", stamp: ""}
+      custom: %{
+        stamped_body: "custom_body",
+        stamp: "custom_stamp"
+      },
+      basic: %{
+        stamped_body: "body",
+        stamp: "stamp"
+      },
+      invalid_auth: %{
+        stamped_body: "invalid_body",
+        stamp: "invalid_stamp"
+      },
+      malformed: %{
+        stamped_body: "malformed_body",
+        stamp: "stamp"
+      },
+      invalid_format: %{
+        stamped_body: "invalid_transaction_format",
+        stamp: "stamp"
+      },
+      nonexistent_user: %{
+        email: "nonexistent@example.com",
+        stamped_body: "body",
+        stamp: "stamp"
+      },
+      missing_user: %{
+        email: "doesnotexist@example.com",
+        stamped_body: "body",
+        stamp: "stamp"
       }
     }
   end
@@ -426,5 +360,34 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
     end)
 
     stub(Mock, :request, fn _payload -> {:error, status_code, error_message} end)
+  end
+
+  defp post_sign_transaction(conn, user, params) do
+    post(conn, ~p"/private/sign_transaction", %{
+      "email" => user.email,
+      "stamped_body" => params.stamped_body,
+      "stamp" => params.stamp
+    })
+  end
+
+  defp build_invalid_param_test_cases(email) do
+    [
+      %{
+        params: %{"email" => email, "stamp" => "stamp"},
+        expected_field: "stamped_body"
+      },
+      %{
+        params: %{"email" => email, "stamped_body" => "body"},
+        expected_field: "stamp"
+      },
+      %{
+        params: %{"email" => email, "stamped_body" => "", "stamp" => "stamp"},
+        expected_field: "stamped_body"
+      },
+      %{
+        params: %{"email" => email, "stamped_body" => "body", "stamp" => ""},
+        expected_field: "stamp"
+      }
+    ]
   end
 end
