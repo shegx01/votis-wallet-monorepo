@@ -1,0 +1,437 @@
+defmodule BeVotisWalletWeb.SignRawPayloadsControllerTest do
+  use BeVotisWalletWeb.ConnCase, async: false
+
+  import Mox
+
+  alias BeVotisWallet.HTTPClient.Mock
+
+  # Make sure mocks are verified when the test exits
+  setup :verify_on_exit!
+
+  # Set up the mock context
+  setup do
+    BeVotisWallet.Test.Mocks.setup_mocks()
+    :ok
+  end
+
+  describe "POST /private/sign_raw_payloads" do
+    test "successfully signs multiple raw payloads for existing user", %{conn: conn} do
+      # Create a user in the database
+      user = insert(:user, %{email: "multisigner@example.com", sub_org_id: "test_org_123"})
+
+      # Mock successful multiple raw payloads signing response with array of r,s,v components
+      signing_response = %{
+        "activity" => %{
+          "id" => "activity_raw_signs_123",
+          "status" => "ACTIVITY_STATUS_COMPLETED",
+          "type" => "ACTIVITY_TYPE_SIGN_RAW_PAYLOADS",
+          "organizationId" => user.sub_org_id,
+          "timestampMs" => "1746736509954",
+          "result" => %{
+            "signRawPayloadsResult" => %{
+              "signatures" => [
+                %{
+                  "r" => "0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01",
+                  "s" => "0x23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef012",
+                  "v" => "0x1b"
+                },
+                %{
+                  "r" => "0x345678901bcdef23456789abcdef0123456789abcdef0123456789abcdef0123",
+                  "s" => "0x456789ab2def0123456789abcdef0123456789abcdef0123456789abcdef01234",
+                  "v" => "0x1c"
+                }
+              ]
+            }
+          }
+        }
+      }
+
+      # Set up Turnkey client mock
+      stub(Mock, :build_payload, fn method, url, headers, body ->
+        assert method == :post
+        assert String.contains?(url, "/public/v1/submit/sign_raw_payloads")
+
+        # Verify API key signature headers
+        assert Enum.any?(headers, fn
+                 {"X-Stamp", _} -> true
+                 _ -> false
+               end)
+
+        %{method: method, url: url, headers: headers, body: body}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, signing_response}
+      end)
+
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => user.email,
+          "stamped_body" => "stamped_raw_payloads_request_body",
+          "stamp" => "raw_payloads_signature_12345"
+        })
+
+      response = json_response(conn, 200)
+
+      assert %{
+               "signRawPayloadsResult" => %{
+                 "signatures" => [
+                   %{
+                     "r" => "0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01",
+                     "s" => "0x23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef012",
+                     "v" => "0x1b"
+                   },
+                   %{
+                     "r" => "0x345678901bcdef23456789abcdef0123456789abcdef0123456789abcdef0123",
+                     "s" => "0x456789ab2def0123456789abcdef0123456789abcdef0123456789abcdef01234",
+                     "v" => "0x1c"
+                   }
+                 ]
+               }
+             } = response
+    end
+
+    test "handles single payload in array format", %{conn: conn} do
+      user = insert(:user, %{email: "singlemulti@example.com", sub_org_id: "test_org_456"})
+
+      # Mock response with single signature in array
+      signing_response = %{
+        "activity" => %{
+          "id" => "activity_single_multi",
+          "result" => %{
+            "signRawPayloadsResult" => %{
+              "signatures" => [
+                %{
+                  "r" => "0x111111111111111111111111111111111111111111111111111111111111111",
+                  "s" => "0x222222222222222222222222222222222222222222222222222222222222222",
+                  "v" => "0x1b"
+                }
+              ]
+            }
+          }
+        }
+      }
+
+      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+        %{method: :post, url: "test", headers: [], body: ""}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, signing_response}
+      end)
+
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => user.email,
+          "stamped_body" => "single_payload_body",
+          "stamp" => "single_stamp"
+        })
+
+      response = json_response(conn, 200)
+
+      assert %{
+               "signRawPayloadsResult" => %{
+                 "signatures" => [
+                   %{
+                     "r" => "0x111111111111111111111111111111111111111111111111111111111111111",
+                     "s" => "0x222222222222222222222222222222222222222222222222222222222222222",
+                     "v" => "0x1b"
+                   }
+                 ]
+               }
+             } = response
+    end
+
+    test "handles non-standard Turnkey response structure gracefully", %{conn: conn} do
+      user = insert(:user, %{email: "custom@example.com", sub_org_id: "test_org_custom"})
+
+      # Mock response with unexpected structure
+      custom_response = %{
+        "activity" => %{
+          "id" => "activity_custom",
+          "result" => %{
+            "customMultiSignResult" => %{
+              "results" => ["sig1", "sig2", "sig3"]
+            }
+          }
+        }
+      }
+
+      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+        %{method: :post, url: "test", headers: [], body: ""}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, custom_response}
+      end)
+
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => user.email,
+          "stamped_body" => "custom_body",
+          "stamp" => "custom_stamp"
+        })
+
+      response = json_response(conn, 200)
+
+      # Should return the custom result structure
+      assert %{
+               "customMultiSignResult" => %{
+                 "results" => ["sig1", "sig2", "sig3"]
+               }
+             } = response
+    end
+
+    test "handles missing result in response with fallback message", %{conn: conn} do
+      user = insert(:user, %{email: "noresult@example.com", sub_org_id: "test_org_noresult"})
+
+      # Mock response without result field
+      no_result_response = %{
+        "activity" => %{
+          "id" => "activity_no_result",
+          "status" => "ACTIVITY_STATUS_COMPLETED"
+        }
+      }
+
+      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+        %{method: :post, url: "test", headers: [], body: ""}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok, no_result_response}
+      end)
+
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => user.email,
+          "stamped_body" => "body",
+          "stamp" => "stamp"
+        })
+
+      response = json_response(conn, 200)
+      assert %{"message" => "Raw payloads signed successfully"} = response
+    end
+
+    test "returns 400 for missing required parameters", %{conn: base_conn} do
+      user = insert(:user, %{email: "test@example.com", sub_org_id: "test_org"})
+
+      test_cases = [
+        %{
+          params: %{
+            "email" => user.email,
+            "stamp" => "stamp"
+            # missing stamped_body
+          },
+          expected_field: "stamped_body"
+        },
+        %{
+          params: %{
+            "email" => user.email,
+            "stamped_body" => "body"
+            # missing stamp
+          },
+          expected_field: "stamp"
+        },
+        %{
+          params: %{
+            "email" => user.email,
+            "stamped_body" => "",
+            "stamp" => "stamp"
+            # empty stamped_body
+          },
+          expected_field: "stamped_body"
+        },
+        %{
+          params: %{
+            "email" => user.email,
+            "stamped_body" => "body",
+            "stamp" => ""
+            # empty stamp
+          },
+          expected_field: "stamp"
+        }
+      ]
+
+      for %{params: params, expected_field: field} <- test_cases do
+        conn = post(base_conn, ~p"/private/sign_raw_payloads", params)
+
+        response = json_response(conn, 400)
+        assert %{"error" => "Missing required parameter: " <> ^field} = response
+      end
+    end
+
+    test "returns 404 for non-existent user", %{conn: conn} do
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => "nonexistent@example.com",
+          "stamped_body" => "body",
+          "stamp" => "stamp"
+        })
+
+      response = json_response(conn, 404)
+
+      assert %{
+               "error" => "User not found",
+               "message" => "The specified user does not exist"
+             } = response
+    end
+
+    test "returns 401 for Turnkey authentication failure", %{conn: conn} do
+      user = insert(:user, %{email: "authfail@example.com", sub_org_id: "test_org_auth_fail"})
+
+      # Mock Turnkey authentication failure
+      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+        %{method: :post, url: "test", headers: [], body: ""}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:error, 401, %{"message" => "Invalid signature"}}
+      end)
+
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => user.email,
+          "stamped_body" => "invalid_body",
+          "stamp" => "invalid_stamp"
+        })
+
+      response = json_response(conn, 401)
+
+      assert %{
+               "error" => "Failed to sign raw payloads",
+               "message" => "External service error"
+             } = response
+    end
+
+    test "returns 400 for Turnkey bad request", %{conn: conn} do
+      user = insert(:user, %{email: "badreq@example.com", sub_org_id: "test_org_bad_request"})
+
+      # Mock Turnkey bad request
+      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+        %{method: :post, url: "test", headers: [], body: ""}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:error, 400, %{"message" => "Malformed payloads data"}}
+      end)
+
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => user.email,
+          "stamped_body" => "malformed_body",
+          "stamp" => "stamp"
+        })
+
+      response = json_response(conn, 400)
+
+      assert %{
+               "error" => "Failed to sign raw payloads",
+               "message" => "External service error"
+             } = response
+    end
+
+    test "returns 422 for Turnkey unprocessable entity", %{conn: conn} do
+      user = insert(:user, %{email: "unprocessable@example.com", sub_org_id: "test_org_422"})
+
+      # Mock Turnkey unprocessable entity (invalid payloads format)
+      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+        %{method: :post, url: "test", headers: [], body: ""}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:error, 422, %{"message" => "Invalid payloads format"}}
+      end)
+
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => user.email,
+          "stamped_body" => "invalid_payloads_format",
+          "stamp" => "stamp"
+        })
+
+      response = json_response(conn, 422)
+
+      assert %{
+               "error" => "Failed to sign raw payloads",
+               "message" => "External service error"
+             } = response
+    end
+
+    test "returns 500 for unknown Turnkey error codes", %{conn: conn} do
+      user = insert(:user, %{email: "unknown@example.com", sub_org_id: "test_org_unknown"})
+
+      # Mock unknown error code
+      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+        %{method: :post, url: "test", headers: [], body: ""}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:error, 999, %{"message" => "Unknown error"}}
+      end)
+
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => user.email,
+          "stamped_body" => "body",
+          "stamp" => "stamp"
+        })
+
+      response = json_response(conn, 500)
+
+      assert %{
+               "error" => "Failed to sign raw payloads",
+               "message" => "External service error"
+             } = response
+    end
+  end
+
+  describe "CheckUserExistence plug integration" do
+    test "properly sets user in conn assigns for existing user", %{conn: conn} do
+      user = insert(:user, %{email: "exists@example.com", sub_org_id: "test_org"})
+
+      # Mock successful response
+      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+        %{method: :post, url: "test", headers: [], body: ""}
+      end)
+
+      stub(Mock, :request, fn _payload ->
+        {:ok,
+         %{
+           "activity" => %{
+             "id" => "test_activity",
+             "result" => %{
+               "signRawPayloadsResult" => %{
+                 "signatures" => [
+                   %{"r" => "0x123", "s" => "0x456", "v" => "0x1b"}
+                 ]
+               }
+             }
+           }
+         }}
+      end)
+
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => user.email,
+          "stamped_body" => "body",
+          "stamp" => "stamp"
+        })
+
+      # Should succeed because user exists
+      assert json_response(conn, 200)
+    end
+
+    test "handles non-existent user gracefully", %{conn: conn} do
+      conn =
+        post(conn, ~p"/private/sign_raw_payloads", %{
+          "email" => "doesnotexist@example.com",
+          "stamped_body" => "body",
+          "stamp" => "stamp"
+        })
+
+      # Should return 404 without calling Turnkey
+      response = json_response(conn, 404)
+      assert %{"error" => "User not found"} = response
+    end
+  end
+end

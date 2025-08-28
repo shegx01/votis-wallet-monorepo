@@ -40,6 +40,12 @@ defmodule BeVotisWalletWeb.Router do
     # signs transactions for existing users
     post "/sign_transaction", SignTransactionController, :create
 
+    # signs raw payload for existing users
+    post "/sign_raw_payload", SignRawPayloadController, :create
+
+    # signs multiple raw payloads for existing users
+    post "/sign_raw_payloads", SignRawPayloadsController, :create
+
     #  returns payload for the client to sign with passkey or webauthn if user not found, otherwise returns org_id
     # this endpoint requires user_email as a query param
     get "/user_info", UserInfoController, :show
