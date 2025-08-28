@@ -5,60 +5,32 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
 
   alias BeVotisWallet.HTTPClient.Mock
 
-  # Make sure mocks are verified when the test exits
   setup :verify_on_exit!
 
-  # Set up the mock context
+  setup_all do
+    %{
+      test_user_attrs: build_test_user_attrs(),
+      turnkey_responses: build_turnkey_responses(),
+      request_params: build_request_params()
+    }
+  end
+
   setup do
     BeVotisWallet.Test.Mocks.setup_mocks()
     :ok
   end
 
   describe "POST /private/sign_transaction" do
-    test "successfully signs transaction for existing user", %{conn: conn} do
-      # Create a user in the database
+    test "successfully signs transaction for existing user", %{conn: conn, turnkey_responses: responses, request_params: params} do
       user = insert(:user, %{email: "signer@example.com", sub_org_id: "test_org_123"})
 
-      # Mock successful transaction signing response
-      signing_response = %{
-        "activity" => %{
-          "id" => "activity_sign_123",
-          "status" => "ACTIVITY_STATUS_COMPLETED",
-          "type" => "ACTIVITY_TYPE_SIGN_TRANSACTION_V2",
-          "organizationId" => user.sub_org_id,
-          "timestampMs" => "1746736509954",
-          "result" => %{
-            "signTransactionResult" => %{
-              "signedTransaction" => "0x987654321fedcba...",
-              "transactionHash" => "0xabcdef123456789..."
-            }
-          }
-        }
-      }
-
-      # Set up Turnkey client mock
-      stub(Mock, :build_payload, fn method, url, headers, body ->
-        assert method == :post
-        assert String.contains?(url, "/public/v1/submit/sign_transaction")
-
-        # Verify API key signature headers
-        assert Enum.any?(headers, fn
-                 {"X-Stamp", _} -> true
-                 _ -> false
-               end)
-
-        %{method: method, url: url, headers: headers, body: body}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:ok, signing_response}
-      end)
+      setup_detailed_turnkey_mock(responses.success_with_details)
 
       conn =
         post(conn, ~p"/private/sign_transaction", %{
           "email" => user.email,
-          "stamped_body" => "stamped_transaction_request_body",
-          "stamp" => "transaction_signature_12345"
+          "stamped_body" => params.valid.stamped_body,
+          "stamp" => params.valid.stamp
         })
 
       response = json_response(conn, 200)
@@ -356,5 +328,103 @@ defmodule BeVotisWalletWeb.SignTransactionControllerTest do
       response = json_response(conn, 404)
       assert %{"error" => "User not found"} = response
     end
+  end
+
+  # Test data builders
+  defp build_test_user_attrs do
+    %{
+      valid: %{email: "test@example.com", sub_org_id: "test_org_123"},
+      signer: %{email: "signer@example.com", sub_org_id: "test_org_123"},
+      custom: %{email: "custom@example.com", sub_org_id: "test_org_custom"}
+    }
+  end
+
+  defp build_request_params do
+    %{
+      valid: %{
+        stamped_body: "stamped_transaction_request_body",
+        stamp: "transaction_signature_12345"
+      },
+      invalid: %{
+        missing_body: %{stamp: "stamp"},
+        missing_stamp: %{stamped_body: "body"},
+        empty_body: %{stamped_body: "", stamp: "stamp"},
+        empty_stamp: %{stamped_body: "body", stamp: ""}
+      }
+    }
+  end
+
+  defp build_turnkey_responses do
+    %{
+      success_with_details: %{
+        "activity" => %{
+          "id" => "activity_sign_123",
+          "status" => "ACTIVITY_STATUS_COMPLETED",
+          "type" => "ACTIVITY_TYPE_SIGN_TRANSACTION_V2",
+          "organizationId" => "test_org_123",
+          "timestampMs" => "1746736509954",
+          "result" => %{
+            "signTransactionResult" => %{
+              "signedTransaction" => "0x987654321fedcba...",
+              "transactionHash" => "0xabcdef123456789..."
+            }
+          }
+        }
+      },
+      success_custom: %{
+        "activity" => %{
+          "id" => "activity_custom",
+          "result" => %{
+            "customSignResult" => %{
+              "signature" => "custom_signature_data"
+            }
+          }
+        }
+      },
+      success_no_result: %{
+        "activity" => %{
+          "id" => "activity_no_result",
+          "status" => "ACTIVITY_STATUS_COMPLETED"
+        }
+      },
+      success_basic: %{
+        "activity" => %{
+          "id" => "test_activity",
+          "result" => %{"signTransactionResult" => %{"signedTransaction" => "0x123"}}
+        }
+      }
+    }
+  end
+
+  defp setup_simple_turnkey_mock(response) do
+    stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+      %{method: :post, url: "test", headers: [], body: ""}
+    end)
+
+    stub(Mock, :request, fn _payload -> {:ok, response} end)
+  end
+
+  defp setup_detailed_turnkey_mock(response) do
+    stub(Mock, :build_payload, fn method, url, headers, body ->
+      assert method == :post
+      assert String.contains?(url, "/public/v1/submit/sign_transaction")
+
+      assert Enum.any?(headers, fn
+               {"X-Stamp", _} -> true
+               _ -> false
+             end)
+
+      %{method: method, url: url, headers: headers, body: body}
+    end)
+
+    stub(Mock, :request, fn _payload -> {:ok, response} end)
+  end
+
+  defp setup_failed_turnkey_mock(status_code, error_message) do
+    stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+      %{method: :post, url: "test", headers: [], body: ""}
+    end)
+
+    stub(Mock, :request, fn _payload -> {:error, status_code, error_message} end)
   end
 end

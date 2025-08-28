@@ -8,10 +8,17 @@ defmodule BeVotisWalletWeb.Utils.SigningUtilsTest do
   alias BeVotisWallet.Users.User
   alias BeVotisWalletWeb.Utils.SigningUtils
 
-  # Make sure mocks are verified when the test exits
   setup :verify_on_exit!
 
-  # Set up the mock context
+  setup_all do
+    %{
+      test_user: build_test_user(),
+      test_context: build_test_context(),
+      valid_params: build_valid_params(),
+      turnkey_responses: build_turnkey_responses()
+    }
+  end
+
   setup do
     BeVotisWallet.Test.Mocks.setup_mocks()
     :ok
@@ -83,90 +90,30 @@ defmodule BeVotisWalletWeb.Utils.SigningUtilsTest do
   end
 
   describe "execute_signing_operation/4" do
-    setup do
-      user = %User{
-        id: "user_123",
-        email: "test@example.com",
-        sub_org_id: "org_456"
-      }
+    test "successfully executes signing operation", context do
+      %{test_user: user, test_context: context, valid_params: params, turnkey_responses: responses} = context
+      setup_successful_turnkey_mock(responses.success_with_result)
 
-      context = SigningUtils.create_signing_context(
-        "test operation",
-        "Test operation completed successfully",
-        "Failed to perform test operation"
-      )
+      capture_log(fn ->
+        assert {:ok, response_data} =
+                 SigningUtils.execute_signing_operation(
+                   params,
+                   user,
+                   "ACTIVITY_TYPE_TEST",
+                   context
+                 )
 
-      %{user: user, context: context}
-    end
-
-    test "successfully executes signing operation", %{user: user, context: context} do
-      params = %{
-        "stamped_body" => "test_body",
-        "stamp" => "test_stamp"
-      }
-
-      turnkey_response = %{
-        "activity" => %{
-          "id" => "activity_123",
-          "result" => %{
-            "testResult" => %{
-              "signature" => "test_signature"
-            }
-          }
-        }
-      }
-
-      # Mock successful Turnkey response
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:ok, turnkey_response}
-      end)
-
-      # Capture logs to verify proper logging
-      log_output =
-        capture_log(fn ->
-          assert {:ok, response_data} =
-                   SigningUtils.execute_signing_operation(
-                     params,
-                     user,
-                     "ACTIVITY_TYPE_TEST",
-                     context
-                   )
-
-          assert response_data == %{
-                   "testResult" => %{
-                     "signature" => "test_signature"
-                   }
+        assert response_data == %{
+                 "testResult" => %{
+                   "signature" => "test_signature"
                  }
-        end)
-
-      # Don't check for specific log content as logging may be filtered in tests
-      # Just verify that the function executed successfully
+               }
+      end)
     end
 
-    test "returns fallback message when Turnkey result is missing", %{user: user, context: context} do
-      params = %{
-        "stamped_body" => "test_body",
-        "stamp" => "test_stamp"
-      }
-
-      turnkey_response = %{
-        "activity" => %{
-          "id" => "activity_123"
-          # Missing result field
-        }
-      }
-
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:ok, turnkey_response}
-      end)
+    test "returns fallback message when Turnkey result is missing", context do
+      %{test_user: user, test_context: context, valid_params: params, turnkey_responses: responses} = context
+      setup_successful_turnkey_mock(responses.success_without_result)
 
       assert {:ok, response_data} =
                SigningUtils.execute_signing_operation(
@@ -179,11 +126,9 @@ defmodule BeVotisWalletWeb.Utils.SigningUtilsTest do
       assert response_data == %{message: "Test operation completed successfully"}
     end
 
-    test "returns error for missing parameter", %{user: user, context: context} do
-      params = %{
-        "stamp" => "test_stamp"
-        # Missing stamped_body
-      }
+    test "returns error for missing parameter", context do
+      %{test_user: user, test_context: context} = context
+      params = %{"stamp" => "test_stamp"}
 
       assert {:error, :missing_parameter, "stamped_body"} =
                SigningUtils.execute_signing_operation(
@@ -194,19 +139,9 @@ defmodule BeVotisWalletWeb.Utils.SigningUtilsTest do
                )
     end
 
-    test "returns error for Turnkey API failure", %{user: user, context: context} do
-      params = %{
-        "stamped_body" => "test_body",
-        "stamp" => "test_stamp"
-      }
-
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:error, 400, %{"message" => "Bad request"}}
-      end)
+    test "returns error for Turnkey API failure", context do
+      %{test_user: user, test_context: context, valid_params: params} = context
+      setup_failed_turnkey_mock(400, %{"message" => "Bad request"})
 
       assert {:error, :turnkey_error, 400, %{"message" => "Bad request"}} =
                SigningUtils.execute_signing_operation(
@@ -220,12 +155,10 @@ defmodule BeVotisWalletWeb.Utils.SigningUtilsTest do
 
   describe "log_user_not_found/2" do
     test "function executes successfully with email" do
-      # Just verify the function doesn't crash - logging assertions are environment dependent
       assert :ok = SigningUtils.log_user_not_found("test@example.com", "test operation")
     end
 
     test "function executes successfully with nil email" do
-      # Just verify the function doesn't crash - logging assertions are environment dependent
       assert :ok = SigningUtils.log_user_not_found(nil, "test operation")
     end
   end
@@ -261,46 +194,10 @@ defmodule BeVotisWalletWeb.Utils.SigningUtilsTest do
   end
 
   describe "integration with different activity types" do
-    setup do
-      user = %User{
-        id: "user_123",
-        email: "test@example.com",
-        sub_org_id: "org_456"
-      }
-
-      params = %{
-        "stamped_body" => "test_body",
-        "stamp" => "test_stamp"
-      }
-
-      %{user: user, params: params}
-    end
-
-    test "works with ACTIVITY_TYPE_SIGN_TRANSACTION_V2", %{user: user, params: params} do
-      context = SigningUtils.create_signing_context(
-        "transaction signing",
-        "Transaction signed successfully",
-        "Failed to sign transaction"
-      )
-
-      turnkey_response = %{
-        "activity" => %{
-          "id" => "activity_123",
-          "result" => %{
-            "signTransactionResult" => %{
-              "signedTransaction" => "0x123..."
-            }
-          }
-        }
-      }
-
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:ok, turnkey_response}
-      end)
+    test "works with ACTIVITY_TYPE_SIGN_TRANSACTION_V2", context do
+      %{test_user: user, valid_params: params, turnkey_responses: responses} = context
+      context = build_context_for("transaction signing")
+      setup_successful_turnkey_mock(responses.transaction_result)
 
       assert {:ok, response_data} =
                SigningUtils.execute_signing_operation(
@@ -317,33 +214,10 @@ defmodule BeVotisWalletWeb.Utils.SigningUtilsTest do
              }
     end
 
-    test "works with ACTIVITY_TYPE_SIGN_RAW_PAYLOAD_V2", %{user: user, params: params} do
-      context = SigningUtils.create_signing_context(
-        "raw payload signing",
-        "Raw payload signed successfully",
-        "Failed to sign raw payload"
-      )
-
-      turnkey_response = %{
-        "activity" => %{
-          "id" => "activity_123",
-          "result" => %{
-            "signRawPayloadResult" => %{
-              "r" => "0x123...",
-              "s" => "0x456...",
-              "v" => "0x1b"
-            }
-          }
-        }
-      }
-
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:ok, turnkey_response}
-      end)
+    test "works with ACTIVITY_TYPE_SIGN_RAW_PAYLOAD_V2", context do
+      %{test_user: user, valid_params: params, turnkey_responses: responses} = context
+      context = build_context_for("raw payload signing")
+      setup_successful_turnkey_mock(responses.raw_payload_result)
 
       assert {:ok, response_data} =
                SigningUtils.execute_signing_operation(
@@ -362,34 +236,10 @@ defmodule BeVotisWalletWeb.Utils.SigningUtilsTest do
              }
     end
 
-    test "works with ACTIVITY_TYPE_SIGN_RAW_PAYLOADS", %{user: user, params: params} do
-      context = SigningUtils.create_signing_context(
-        "raw payloads signing",
-        "Raw payloads signed successfully",
-        "Failed to sign raw payloads"
-      )
-
-      turnkey_response = %{
-        "activity" => %{
-          "id" => "activity_123",
-          "result" => %{
-            "signRawPayloadsResult" => %{
-              "signatures" => [
-                %{"r" => "0x123...", "s" => "0x456...", "v" => "0x1b"},
-                %{"r" => "0x789...", "s" => "0xabc...", "v" => "0x1c"}
-              ]
-            }
-          }
-        }
-      }
-
-      stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
-        %{method: :post, url: "test", headers: [], body: ""}
-      end)
-
-      stub(Mock, :request, fn _payload ->
-        {:ok, turnkey_response}
-      end)
+    test "works with ACTIVITY_TYPE_SIGN_RAW_PAYLOADS", context do
+      %{test_user: user, valid_params: params, turnkey_responses: responses} = context
+      context = build_context_for("raw payloads signing")
+      setup_successful_turnkey_mock(responses.raw_payloads_result)
 
       assert {:ok, response_data} =
                SigningUtils.execute_signing_operation(
@@ -408,5 +258,106 @@ defmodule BeVotisWalletWeb.Utils.SigningUtilsTest do
                }
              }
     end
+  end
+
+  # Test data builders
+  defp build_test_user do
+    %User{
+      id: "user_123",
+      email: "test@example.com",
+      sub_org_id: "org_456"
+    }
+  end
+
+  defp build_test_context do
+    SigningUtils.create_signing_context(
+      "test operation",
+      "Test operation completed successfully",
+      "Failed to perform test operation"
+    )
+  end
+
+  defp build_valid_params do
+    %{
+      "stamped_body" => "test_body",
+      "stamp" => "test_stamp"
+    }
+  end
+
+  defp build_turnkey_responses do
+    %{
+      success_with_result: %{
+        "activity" => %{
+          "id" => "activity_123",
+          "result" => %{
+            "testResult" => %{
+              "signature" => "test_signature"
+            }
+          }
+        }
+      },
+      success_without_result: %{
+        "activity" => %{
+          "id" => "activity_123"
+        }
+      },
+      transaction_result: %{
+        "activity" => %{
+          "id" => "activity_123",
+          "result" => %{
+            "signTransactionResult" => %{
+              "signedTransaction" => "0x123..."
+            }
+          }
+        }
+      },
+      raw_payload_result: %{
+        "activity" => %{
+          "id" => "activity_123",
+          "result" => %{
+            "signRawPayloadResult" => %{
+              "r" => "0x123...",
+              "s" => "0x456...",
+              "v" => "0x1b"
+            }
+          }
+        }
+      },
+      raw_payloads_result: %{
+        "activity" => %{
+          "id" => "activity_123",
+          "result" => %{
+            "signRawPayloadsResult" => %{
+              "signatures" => [
+                %{"r" => "0x123...", "s" => "0x456...", "v" => "0x1b"},
+                %{"r" => "0x789...", "s" => "0xabc...", "v" => "0x1c"}
+              ]
+            }
+          }
+        }
+      }
+    }
+  end
+
+  defp setup_successful_turnkey_mock(response) do
+    stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+      %{method: :post, url: "test", headers: [], body: ""}
+    end)
+
+    stub(Mock, :request, fn _payload -> {:ok, response} end)
+  end
+
+  defp setup_failed_turnkey_mock(status_code, error_message) do
+    stub(Mock, :build_payload, fn _method, _url, _headers, _body ->
+      %{method: :post, url: "test", headers: [], body: ""}
+    end)
+
+    stub(Mock, :request, fn _payload -> {:error, status_code, error_message} end)
+  end
+
+  defp build_context_for(operation_name) do
+    success_message = "#{String.capitalize(operation_name)} completed successfully"
+    error_prefix = "Failed to perform #{operation_name}"
+    SigningUtils.create_signing_context(operation_name, success_message, error_prefix)
   end
 end
