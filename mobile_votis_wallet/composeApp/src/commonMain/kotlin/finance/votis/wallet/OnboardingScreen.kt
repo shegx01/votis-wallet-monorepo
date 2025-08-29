@@ -4,13 +4,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Login
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -24,6 +22,8 @@ import finance.votis.wallet.ui.theme.dimensions
 import finance.votis.wallet.ui.theme.votisColors
 import finance.votis.wallet.utils.PlatformUtils
 import mobilevotiswallet.composeapp.generated.resources.Res
+import mobilevotiswallet.composeapp.generated.resources.ic_apple
+import mobilevotiswallet.composeapp.generated.resources.ic_google
 import mobilevotiswallet.composeapp.generated.resources.votis_landing
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -86,8 +86,8 @@ fun OnboardingScreen() {
                 if (PlatformUtils.isIos) {
                     SocialSignInButton(
                         text = "Continue with Apple",
-                        icon = Icons.Filled.AccountCircle,
-                        iconSize = 24.dp,
+                        icon = painterResource(Res.drawable.ic_apple),
+                        iconSize = 34.dp,
                         onClick = {
                             // TODO: Implement Apple Sign-In
                             println("Apple Sign-In clicked")
@@ -97,7 +97,8 @@ fun OnboardingScreen() {
 
                 SocialSignInButton(
                     text = "Continue with Google",
-                    icon = Icons.AutoMirrored.Filled.Login,
+                    icon = painterResource(Res.drawable.ic_google),
+                    iconTint = Color.Unspecified,
                     onClick = {
                         // TODO: Implement Google Sign-In
                         println("Google Sign-In clicked")
