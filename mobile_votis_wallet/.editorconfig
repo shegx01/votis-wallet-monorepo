@@ -1,0 +1,31 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# Allow Compose functions to start with capital letters
+ktlint_standard_function-naming = disabled
+# Allow wildcard imports for common packages
+ktlint_standard_no-wildcard-imports = disabled
+# Allow file naming flexibility for Compose/UI files
+ktlint_standard_filename = disabled
+# Allow longer lines for complex Compose layouts
+max_line_length = 120
+
+[*.{yaml,yml}]
+indent_size = 2
+
+[*.{json,json5}]
+indent_size = 2
+
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+
+[{build.gradle.kts,gradle.properties,settings.gradle.kts}]
+indent_size = 4

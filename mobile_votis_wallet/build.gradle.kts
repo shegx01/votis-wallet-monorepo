@@ -6,4 +6,33 @@ plugins {
     alias(libs.plugins.composeMultiplatform) apply false
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.detekt) apply false
+}
+
+// Define common quality tasks that run across all modules
+tasks.register("formatCode") {
+    description = "Format all Kotlin code using ktlint"
+    group = "formatting"
+    dependsOn(subprojects.map { ":${it.name}:ktlintFormat" })
+}
+
+tasks.register("checkCodeStyle") {
+    description = "Check code style using ktlint"
+    group = "verification"
+    dependsOn(subprojects.map { ":${it.name}:ktlintCheck" })
+}
+
+tasks.register("codeQuality") {
+    description = "Run all code quality checks (ktlint + detekt)"
+    group = "verification"
+    dependsOn("checkCodeStyle")
+    dependsOn(subprojects.map { ":${it.name}:detekt" })
+}
+
+tasks.register("formatAndCheck") {
+    description = "Format code and run quality checks"
+    group = "verification"
+    dependsOn("formatCode")
+    finalizedBy("codeQuality")
 }
