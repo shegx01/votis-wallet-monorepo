@@ -1,0 +1,55 @@
+version: 2
+updates:
+  # Enable version updates for Gradle dependencies
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    groups:
+      # Group Android/AndroidX dependencies together
+      android:
+        patterns:
+          - "com.android.*"
+          - "androidx.*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Group Kotlin ecosystem dependencies
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "org.jetbrains.compose*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Group code quality tools
+      code-quality:
+        patterns:
+          - "*ktlint*"
+          - "*detekt*"
+        update-types:
+          - "minor"
+          - "patch"
+    
+    # Ignore alpha/beta/rc versions for stable releases
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.android.*"
+        versions: ["*-alpha*", "*-beta*", "*-rc*"]
+      - dependency-name: "org.jetbrains.compose"
+        versions: ["*-alpha*", "*-beta*", "*-rc*"]
+      - dependency-name: "org.jetbrains.kotlin.*"
+        versions: ["*-RC*", "*-Beta*", "*-Alpha*"]
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5

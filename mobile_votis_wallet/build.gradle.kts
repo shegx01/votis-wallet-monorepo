@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.detekt) apply false
+    id("com.github.ben-manes.versions") version "0.51.0"
 }
 
 // Define common quality tasks that run across all modules

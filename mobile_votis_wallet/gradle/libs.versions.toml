@@ -1,20 +1,20 @@
 [versions]
-agp = "8.7.3"
+agp = "8.7.3"  # Staying on stable; AGP 9.0 is alpha
 android-compileSdk = "35"
 android-minSdk = "24"
 android-targetSdk = "35"
-androidx-activity = "1.10.1"
+androidx-activity = "1.10.1"  # Staying on stable; 1.12 is alpha
 androidx-appcompat = "1.7.1"
 androidx-core = "1.16.0"
 androidx-espresso = "3.6.1"
-androidx-lifecycle = "2.9.1"
+androidx-lifecycle = "2.9.3"  # Safe update
 androidx-testExt = "1.2.1"
-composeMultiplatform = "1.8.2"
+composeMultiplatform = "1.8.2"  # Staying on stable; 1.9.0 is RC
 junit = "4.13.2"
-kotlin = "2.2.0"
-ktlint = "1.3.1"
-ktlint-gradle = "12.1.1"
-detekt = "1.23.7"
+kotlin = "2.2.0"  # Staying on stable; 2.2.20 is RC
+ktlint = "1.7.1"  # Safe update
+ktlint-gradle = "12.1.1"  # Staying on current; 13.x needs testing
+detekt = "1.23.8"  # Safe update
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
