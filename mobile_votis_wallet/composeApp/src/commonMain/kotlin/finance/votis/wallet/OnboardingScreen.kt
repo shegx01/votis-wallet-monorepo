@@ -20,6 +20,7 @@ import finance.votis.wallet.ui.components.SocialSignInButton
 import finance.votis.wallet.ui.theme.AppTheme
 import finance.votis.wallet.ui.theme.dimensions
 import finance.votis.wallet.ui.theme.votisColors
+import finance.votis.wallet.utils.PlatformUtils
 import mobilevotiswallet.composeapp.generated.resources.Res
 import mobilevotiswallet.composeapp.generated.resources.ic_apple
 import mobilevotiswallet.composeapp.generated.resources.ic_google
@@ -81,15 +82,18 @@ fun OnboardingScreen() {
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingMedium),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                SocialSignInButton(
-                    text = "Continue with Apple",
-                    icon = painterResource(Res.drawable.ic_apple),
-                    iconSize = 34.dp,
-                    onClick = {
-                        // TODO: Implement Apple Sign-In
-                        println("Apple Sign-In clicked")
-                    },
-                )
+                // Only show Apple Sign-In on iOS devices
+                if (PlatformUtils.isIos) {
+                    SocialSignInButton(
+                        text = "Continue with Apple",
+                        icon = painterResource(Res.drawable.ic_apple),
+                        iconSize = 34.dp,
+                        onClick = {
+                            // TODO: Implement Apple Sign-In
+                            println("Apple Sign-In clicked")
+                        },
+                    )
+                }
 
                 SocialSignInButton(
                     text = "Continue with Google",
