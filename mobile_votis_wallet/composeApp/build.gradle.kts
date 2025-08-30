@@ -54,9 +54,8 @@ kotlin {
             isStatic = true
         }
 
-        pod("GoogleSignIn") {
-            version = "~> 7.0"
-        }
+        // GoogleSignIn is now handled directly in the Podfile
+        // to avoid symbol collision issues
     }
 
     sourceSets {

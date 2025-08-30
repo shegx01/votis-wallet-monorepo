@@ -21,3 +21,9 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
+
+# CocoaPods - iOS Dependencies
+**/Pods/
+**/Podfile.lock
+*.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
