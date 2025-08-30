@@ -41,7 +41,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-fun OnboardingScreen() {
+fun OnboardingScreen(onContinue: () -> Unit = {}) {
     val uriHandler = LocalUriHandler.current
 
     Column(
@@ -103,6 +103,7 @@ fun OnboardingScreen() {
                         onClick = {
                             // TODO: Implement Apple Sign-In
                             println("Apple Sign-In clicked")
+                            onContinue()
                         },
                     )
                 }
@@ -114,6 +115,7 @@ fun OnboardingScreen() {
                     onClick = {
                         // TODO: Implement Google Sign-In
                         println("Google Sign-In clicked")
+                        onContinue()
                     },
                 )
             }

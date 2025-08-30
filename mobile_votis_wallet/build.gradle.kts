@@ -37,3 +37,15 @@ tasks.register("formatAndCheck") {
     dependsOn("formatCode")
     finalizedBy("codeQuality")
 }
+
+tasks.register("testAll") {
+    description = "Run tests for all modules"
+    group = "verification"
+    dependsOn(subprojects.map { ":${it.name}:test" })
+}
+
+tasks.register("buildAll") {
+    description = "Build all modules"
+    group = "build"
+    dependsOn(subprojects.map { ":${it.name}:build" })
+}

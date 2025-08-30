@@ -1,0 +1,144 @@
+package finance.votis.wallet.feature.wallet
+
+import finance.votis.wallet.core.domain.repository.AuthRepository
+import finance.votis.wallet.core.domain.repository.WalletRepository
+import finance.votis.wallet.core.ui.mvi.BaseViewModel
+
+/**
+ * ViewModel for the wallet screen implementing MVI pattern.
+ * Handles wallet balance, transaction history, and authentication state.
+ */
+class WalletViewModel(
+    private val walletRepository: WalletRepository,
+    private val authRepository: AuthRepository
+) : BaseViewModel<WalletUiState, WalletIntent>(
+    initialState = WalletUiState()
+) {
+
+    override fun handleIntent(intent: WalletIntent) {
+        when (intent) {
+            is WalletIntent.LoadWallet -> loadWallet()
+            is WalletIntent.RefreshBalance -> refreshBalance()
+            is WalletIntent.Authenticate -> authenticate()
+            is WalletIntent.ClearError -> clearError()
+        }
+    }
+
+    private fun loadWallet() {
+        launchViewModelScope {
+            updateState { copy(isLoading = true, error = null) }
+
+            try {
+                // Check if user is authenticated
+                val isAuthenticated = authRepository.isAuthenticated()
+                if (!isAuthenticated) {
+                    updateState { 
+                        copy(
+                            isLoading = false,
+                            needsAuthentication = true,
+                            isAuthenticated = false
+                        ) 
+                    }
+                    return@launchViewModelScope
+                }
+
+                // Load wallet data
+                val balanceResult = walletRepository.getWalletBalance()
+                val transactionsResult = walletRepository.getTransactionHistory()
+
+                balanceResult.onSuccess { balance ->
+                    transactionsResult.onSuccess { transactions ->
+                        updateState {
+                            copy(
+                                balance = balance,
+                                recentTransactions = transactions,
+                                isLoading = false,
+                                isAuthenticated = true,
+                                needsAuthentication = false,
+                                error = null
+                            )
+                        }
+                    }.onFailure { error ->
+                        updateState {
+                            copy(
+                                isLoading = false,
+                                error = "Failed to load transactions: ${error.message}"
+                            )
+                        }
+                    }
+                }.onFailure { error ->
+                    updateState {
+                        copy(
+                            isLoading = false,
+                            error = "Failed to load balance: ${error.message}"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                updateState {
+                    copy(
+                        isLoading = false,
+                        error = "Unexpected error: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun refreshBalance() {
+        launchViewModelScope {
+            updateState { copy(isLoading = true) }
+
+            walletRepository.getWalletBalance()
+                .onSuccess { balance ->
+                    updateState {
+                        copy(
+                            balance = balance,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    updateState {
+                        copy(
+                            isLoading = false,
+                            error = "Failed to refresh balance: ${error.message}"
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun authenticate() {
+        launchViewModelScope {
+            updateState { copy(isLoading = true) }
+
+            authRepository.authenticateWithBiometric()
+                .onSuccess { session ->
+                    updateState {
+                        copy(
+                            isAuthenticated = true,
+                            needsAuthentication = false,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                    // After successful auth, load wallet data
+                    loadWallet()
+                }
+                .onFailure { error ->
+                    updateState {
+                        copy(
+                            isLoading = false,
+                            error = "Authentication failed: ${error.message}"
+                        )
+                    }
+                }
+        }
+    }
+
+    private fun clearError() {
+        updateState { copy(error = null) }
+    }
+}
