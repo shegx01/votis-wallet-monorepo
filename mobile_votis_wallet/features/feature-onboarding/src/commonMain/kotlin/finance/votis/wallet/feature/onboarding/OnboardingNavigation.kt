@@ -3,9 +3,13 @@ package finance.votis.wallet.feature.onboarding
 /**
  * Represents the different screens in the onboarding flow
  */
-sealed class OnboardingRoute(val path: String) {
+sealed class OnboardingRoute(
+    val path: String,
+) {
     data object Landing : OnboardingRoute("onboarding_landing")
+
     data object AccountSelection : OnboardingRoute("onboarding_account_selection")
+
     data object UsernameChooser : OnboardingRoute("onboarding_username_chooser")
 }
 
@@ -40,7 +44,7 @@ data class UserInfo(
 
 enum class AuthProvider {
     GOOGLE,
-    APPLE
+    APPLE,
 }
 
 /**
@@ -48,11 +52,22 @@ enum class AuthProvider {
  */
 sealed class OnboardingAction {
     data object NavigateToAccountSelection : OnboardingAction()
+
     data object NavigateToUsernameChooser : OnboardingAction()
+
     data object NavigateToHome : OnboardingAction()
-    data class CompleteOAuth(val result: OAuthResult) : OnboardingAction()
-    data class SetUsername(val username: String) : OnboardingAction()
+
+    data class CompleteOAuth(
+        val result: OAuthResult,
+    ) : OnboardingAction()
+
+    data class SetUsername(
+        val username: String,
+    ) : OnboardingAction()
+
     data object SkipUsernameSelection : OnboardingAction()
+
     data object NavigateBack : OnboardingAction()
+
     data object RetryAuthentication : OnboardingAction()
 }

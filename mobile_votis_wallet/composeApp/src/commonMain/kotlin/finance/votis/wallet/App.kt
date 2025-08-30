@@ -9,25 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import finance.votis.wallet.feature.onboarding.AccountSelectionScreen
-import finance.votis.wallet.feature.wallet.WalletScreen
+import finance.votis.wallet.feature.onboarding.OnboardingFlow
 import finance.votis.wallet.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
-
-sealed class Route(
-    val path: String,
-) {
-    data object Onboarding : Route("onboarding")
-
-    data object WalletHome : Route("wallet_home")
-}
 
 @Composable
 @Preview
@@ -47,15 +34,14 @@ fun App() {
                 LoadingScreen()
             }
             is AppState.Unauthenticated -> {
-                // Temporarily show AccountSelectionScreen directly without Navigation
-                AccountSelectionScreen(
-                    onGoogleSignIn = {
-                        // TODO: Handle Google Sign-In
-                        println("Google Sign-In clicked - would navigate to wallet")
-                    },
-                    onAppleSignIn = {
-                        // TODO: Handle Apple Sign-In
-                        println("Apple Sign-In clicked - would navigate to wallet")
+                // Show full onboarding flow starting with LandingScreen
+                OnboardingFlow(
+                    onComplete = { oauthResult, username ->
+                        // TODO: Handle completion of onboarding
+                        // For now, just simulate navigation to authenticated state
+                        println("Onboarding completed with provider: ${oauthResult.provider}, username: $username")
+                        // Simulate authentication state change
+                        // appViewModel.handleIntent(AppIntent.MockAuthentication(oauthResult.userInfo.email))
                     },
                 )
             }
@@ -100,37 +86,5 @@ private fun ErrorScreen(message: String) {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.error,
         )
-    }
-}
-
-@Composable
-private fun AppNavHost(startDestination: String) {
-    val navController = rememberNavController()
-
-    key(startDestination) {
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-        ) {
-            composable(Route.Onboarding.path) {
-                AccountSelectionScreen(
-                    onGoogleSignIn = {
-                        navController.navigate(Route.WalletHome.path) {
-                            popUpTo(Route.Onboarding.path) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
-                    onAppleSignIn = {
-                        navController.navigate(Route.WalletHome.path) {
-                            popUpTo(Route.Onboarding.path) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
-                )
-            }
-            composable(Route.WalletHome.path) {
-                WalletScreen()
-            }
-        }
     }
 }

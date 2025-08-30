@@ -11,9 +11,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
 @Composable
-fun LandingScreen(
-    onAnimationComplete: () -> Unit = {},
-) {
+fun LandingScreen(onAnimationComplete: () -> Unit = {}) {
     // Auto-navigate after delay
     LaunchedEffect(Unit) {
         delay(2000)
@@ -33,9 +31,9 @@ fun LandingScreen(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             CircularProgressIndicator()
         }
     }

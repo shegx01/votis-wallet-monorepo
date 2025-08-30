@@ -16,7 +16,7 @@ fun OnboardingFlow(
         mutableStateOf(
             OnboardingState(
                 currentRoute = OnboardingRoute.Landing,
-            )
+            ),
         )
     }
 
@@ -25,66 +25,73 @@ fun OnboardingFlow(
             LandingScreen(
                 onAnimationComplete = {
                     state = state.copy(currentRoute = OnboardingRoute.AccountSelection)
-                }
+                },
             )
         }
-        
+
         OnboardingRoute.AccountSelection -> {
             AccountSelectionScreen(
                 onGoogleSignIn = {
                     // TODO: Implement Google Sign-In integration
                     // For now, simulate successful authentication
-                    val mockOAuthResult = OAuthResult(
-                        provider = AuthProvider.GOOGLE,
-                        accessToken = "mock_google_token",
-                        userInfo = UserInfo(
-                            id = "google_123",
-                            email = "user@gmail.com",
-                            name = "John Doe",
-                            profilePictureUrl = null,
-                        ),
-                        isNewUser = true,
-                    )
-                    
-                    state = state.copy(
-                        oauthResult = mockOAuthResult,
-                        hasCompletedAuth = true,
-                        currentRoute = OnboardingRoute.UsernameChooser,
-                    )
+                    val mockOAuthResult =
+                        OAuthResult(
+                            provider = AuthProvider.GOOGLE,
+                            accessToken = "mock_google_token",
+                            userInfo =
+                                UserInfo(
+                                    id = "google_123",
+                                    email = "user@gmail.com",
+                                    name = "John Doe",
+                                    profilePictureUrl = null,
+                                ),
+                            isNewUser = true,
+                        )
+
+                    state =
+                        state.copy(
+                            oauthResult = mockOAuthResult,
+                            hasCompletedAuth = true,
+                            currentRoute = OnboardingRoute.UsernameChooser,
+                        )
                 },
                 onAppleSignIn = {
                     // TODO: Implement Apple Sign-In integration
                     // For now, simulate successful authentication
-                    val mockOAuthResult = OAuthResult(
-                        provider = AuthProvider.APPLE,
-                        accessToken = "mock_apple_token",
-                        userInfo = UserInfo(
-                            id = "apple_456",
-                            email = "user@privaterelay.appleid.com",
-                            name = "Jane Smith",
-                            profilePictureUrl = null,
-                        ),
-                        isNewUser = true,
-                    )
-                    
-                    state = state.copy(
-                        oauthResult = mockOAuthResult,
-                        hasCompletedAuth = true,
-                        currentRoute = OnboardingRoute.UsernameChooser,
-                    )
+                    val mockOAuthResult =
+                        OAuthResult(
+                            provider = AuthProvider.APPLE,
+                            accessToken = "mock_apple_token",
+                            userInfo =
+                                UserInfo(
+                                    id = "apple_456",
+                                    email = "user@privaterelay.appleid.com",
+                                    name = "Jane Smith",
+                                    profilePictureUrl = null,
+                                ),
+                            isNewUser = true,
+                        )
+
+                    state =
+                        state.copy(
+                            oauthResult = mockOAuthResult,
+                            hasCompletedAuth = true,
+                            currentRoute = OnboardingRoute.UsernameChooser,
+                        )
                 },
             )
         }
-        
+
         OnboardingRoute.UsernameChooser -> {
             UsernameChooserScreen(
                 userInfo = state.oauthResult?.userInfo,
                 onUsernameSelected = { username ->
-                    state = state.copy(
-                        selectedUsername = username,
-                        isCompleted = true,
-                    )
-                    
+                    state =
+                        state.copy(
+                            selectedUsername = username,
+                            isCompleted = true,
+                        )
+
                     // Complete onboarding with the selected username
                     state.oauthResult?.let { oauthResult ->
                         onComplete(oauthResult, username)
@@ -92,16 +99,17 @@ fun OnboardingFlow(
                 },
                 onSkip = {
                     state = state.copy(isCompleted = true)
-                    
+
                     // Complete onboarding without username
                     state.oauthResult?.let { oauthResult ->
                         onComplete(oauthResult, null)
                     }
                 },
                 onBack = {
-                    state = state.copy(
-                        currentRoute = OnboardingRoute.AccountSelection,
-                    )
+                    state =
+                        state.copy(
+                            currentRoute = OnboardingRoute.AccountSelection,
+                        )
                 },
             )
         }
@@ -121,7 +129,7 @@ fun SimpleOnboardingFlow(
         mutableStateOf(
             OnboardingState(
                 currentRoute = OnboardingRoute.AccountSelection,
-            )
+            ),
         )
     }
 
@@ -130,28 +138,31 @@ fun SimpleOnboardingFlow(
             // Skip landing screen in simple flow
             state = state.copy(currentRoute = OnboardingRoute.AccountSelection)
         }
-        
+
         OnboardingRoute.AccountSelection -> {
             AccountSelectionScreen(
                 onGoogleSignIn = {
                     // TODO: Implement Google Sign-In integration
-                    val mockOAuthResult = OAuthResult(
-                        provider = AuthProvider.GOOGLE,
-                        accessToken = "mock_google_token",
-                        userInfo = UserInfo(
-                            id = "google_123",
-                            email = "user@gmail.com",
-                            name = "John Doe",
-                        ),
-                        isNewUser = false, // Existing user - skip username selection
-                    )
-                    
-                    if (mockOAuthResult.isNewUser) {
-                        state = state.copy(
-                            oauthResult = mockOAuthResult,
-                            hasCompletedAuth = true,
-                            currentRoute = OnboardingRoute.UsernameChooser,
+                    val mockOAuthResult =
+                        OAuthResult(
+                            provider = AuthProvider.GOOGLE,
+                            accessToken = "mock_google_token",
+                            userInfo =
+                                UserInfo(
+                                    id = "google_123",
+                                    email = "user@gmail.com",
+                                    name = "John Doe",
+                                ),
+                            isNewUser = false, // Existing user - skip username selection
                         )
+
+                    if (mockOAuthResult.isNewUser) {
+                        state =
+                            state.copy(
+                                oauthResult = mockOAuthResult,
+                                hasCompletedAuth = true,
+                                currentRoute = OnboardingRoute.UsernameChooser,
+                            )
                     } else {
                         // Existing user - complete immediately
                         onComplete(mockOAuthResult, null)
@@ -159,23 +170,26 @@ fun SimpleOnboardingFlow(
                 },
                 onAppleSignIn = {
                     // TODO: Implement Apple Sign-In integration
-                    val mockOAuthResult = OAuthResult(
-                        provider = AuthProvider.APPLE,
-                        accessToken = "mock_apple_token",
-                        userInfo = UserInfo(
-                            id = "apple_456",
-                            email = "user@privaterelay.appleid.com",
-                            name = "Jane Smith",
-                        ),
-                        isNewUser = false, // Existing user - skip username selection
-                    )
-                    
-                    if (mockOAuthResult.isNewUser) {
-                        state = state.copy(
-                            oauthResult = mockOAuthResult,
-                            hasCompletedAuth = true,
-                            currentRoute = OnboardingRoute.UsernameChooser,
+                    val mockOAuthResult =
+                        OAuthResult(
+                            provider = AuthProvider.APPLE,
+                            accessToken = "mock_apple_token",
+                            userInfo =
+                                UserInfo(
+                                    id = "apple_456",
+                                    email = "user@privaterelay.appleid.com",
+                                    name = "Jane Smith",
+                                ),
+                            isNewUser = false, // Existing user - skip username selection
                         )
+
+                    if (mockOAuthResult.isNewUser) {
+                        state =
+                            state.copy(
+                                oauthResult = mockOAuthResult,
+                                hasCompletedAuth = true,
+                                currentRoute = OnboardingRoute.UsernameChooser,
+                            )
                     } else {
                         // Existing user - complete immediately
                         onComplete(mockOAuthResult, null)
@@ -183,31 +197,33 @@ fun SimpleOnboardingFlow(
                 },
             )
         }
-        
+
         OnboardingRoute.UsernameChooser -> {
             UsernameChooserScreen(
                 userInfo = state.oauthResult?.userInfo,
                 onUsernameSelected = { username ->
-                    state = state.copy(
-                        selectedUsername = username,
-                        isCompleted = true,
-                    )
-                    
+                    state =
+                        state.copy(
+                            selectedUsername = username,
+                            isCompleted = true,
+                        )
+
                     state.oauthResult?.let { oauthResult ->
                         onComplete(oauthResult, username)
                     }
                 },
                 onSkip = {
                     state = state.copy(isCompleted = true)
-                    
+
                     state.oauthResult?.let { oauthResult ->
                         onComplete(oauthResult, null)
                     }
                 },
                 onBack = {
-                    state = state.copy(
-                        currentRoute = OnboardingRoute.AccountSelection,
-                    )
+                    state =
+                        state.copy(
+                            currentRoute = OnboardingRoute.AccountSelection,
+                        )
                 },
             )
         }

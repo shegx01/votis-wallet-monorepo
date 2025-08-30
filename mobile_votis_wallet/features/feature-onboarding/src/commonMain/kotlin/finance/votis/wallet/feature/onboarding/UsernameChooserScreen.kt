@@ -17,14 +17,15 @@ fun UsernameChooserScreen(
     onBack: () -> Unit = {},
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(24.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(60.dp))
-        
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -34,16 +35,16 @@ fun UsernameChooserScreen(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 text = "Username selection will be implemented with the final UI design.",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
             )
         }
-        
+
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -53,14 +54,14 @@ fun UsernameChooserScreen(
             ) {
                 Text("Continue with Test Username")
             }
-            
+
             OutlinedButton(
                 onClick = onSkip,
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Skip for now")
             }
-            
+
             TextButton(
                 onClick = onBack,
                 modifier = Modifier.fillMaxWidth(),
