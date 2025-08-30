@@ -1,12 +1,9 @@
 package finance.votis.wallet.feature.onboarding
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,9 +14,30 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import finance.votis.wallet.core.ui.components.SocialSignInButton
+import finance.votis.wallet.core.ui.theme.AppTheme
+import finance.votis.wallet.core.ui.theme.dimensions
+import finance.votis.wallet.core.ui.theme.votisColors
+import finance.votis.wallet.core.ui.utils.PlatformUtils
+import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
+import mobilevotiswallet.features.feature_onboarding.generated.resources.app_name_display
+import mobilevotiswallet.features.feature_onboarding.generated.resources.continue_with_apple
+import mobilevotiswallet.features.feature_onboarding.generated.resources.continue_with_google
+import mobilevotiswallet.features.feature_onboarding.generated.resources.ic_apple
+import mobilevotiswallet.features.feature_onboarding.generated.resources.ic_google
+import mobilevotiswallet.features.feature_onboarding.generated.resources.legal_text_middle
+import mobilevotiswallet.features.feature_onboarding.generated.resources.legal_text_prefix
+import mobilevotiswallet.features.feature_onboarding.generated.resources.privacy_policy_link_text
+import mobilevotiswallet.features.feature_onboarding.generated.resources.privacy_policy_url
+import mobilevotiswallet.features.feature_onboarding.generated.resources.terms_link_text
+import mobilevotiswallet.features.feature_onboarding.generated.resources.terms_url
+import mobilevotiswallet.features.feature_onboarding.generated.resources.votis_landing
+import mobilevotiswallet.features.feature_onboarding.generated.resources.votis_logo_description
+import mobilevotiswallet.features.feature_onboarding.generated.resources.welcome_prefix
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -27,149 +45,105 @@ fun AccountSelectionScreen(
     onGoogleSignIn: () -> Unit = {},
     onAppleSignIn: () -> Unit = {},
 ) {
-    // Votis brand colors (matching the original design)
-    val brandColor = Color(0xFF00B8B0)
-    val greyText = Color(0xFF9E9E9E)
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
-
     val uriHandler = LocalUriHandler.current
 
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(surfaceColor)
-                .padding(horizontal = 24.dp)
+                .background(MaterialTheme.votisColors.surface)
+                .padding(horizontal = MaterialTheme.dimensions.screenHorizontalPadding)
                 .safeContentPadding(),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Top spacer to push content down a bit
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingXXLarge))
 
-        // Logo section - Using a large Votis-branded icon
+        // Logo section
+        Image(
+            painter = painterResource(Res.drawable.votis_landing),
+            contentDescription = stringResource(Res.string.votis_logo_description),
+            modifier = Modifier.size(MaterialTheme.dimensions.logoSize),
+        )
+
+        // Content section
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingXLarge),
         ) {
-            Icon(
-                imageVector = Icons.Default.AccountBox,
-                contentDescription = "Votis Logo",
-                modifier = Modifier.size(240.dp),
-                tint = brandColor,
-            )
-
-            // Welcome text section
+            // Welcome text
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingSmall),
             ) {
                 Text(
-                    text = "Welcome to",
+                    text = stringResource(Res.string.welcome_prefix),
                     style = MaterialTheme.typography.headlineSmall,
-                    color = greyText,
+                    color = MaterialTheme.votisColors.greyText,
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = "Votis Wallet",
+                    text = stringResource(Res.string.app_name_display),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
-                    color = onSurfaceColor,
+                    color = MaterialTheme.votisColors.onSurface,
                     textAlign = TextAlign.Center,
+                )
+            }
+
+            // Buttons section
+            Column(
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingMedium),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                // Only show Apple Sign-In on iOS devices
+                if (PlatformUtils.isIos) {
+                    SocialSignInButton(
+                        text = stringResource(Res.string.continue_with_apple),
+                        icon = painterResource(Res.drawable.ic_apple),
+                        iconSize = 34.dp,
+                        onClick = {
+                            // TODO: Implement Apple Sign-In
+                            println("Apple Sign-In clicked")
+                            onAppleSignIn()
+                        },
+                    )
+                }
+
+                SocialSignInButton(
+                    text = stringResource(Res.string.continue_with_google),
+                    icon = painterResource(Res.drawable.ic_google),
+                    iconTint = Color.Unspecified,
+                    onClick = {
+                        // TODO: Implement Google Sign-In
+                        println("Google Sign-In clicked")
+                        onGoogleSignIn()
+                    },
                 )
             }
         }
 
-        // Buttons section - Styled like social sign-in buttons
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            // Apple Sign-In Button - Show on all platforms for demo, but typically iOS only
-            OutlinedButton(
-                onClick = onAppleSignIn,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                colors =
-                    ButtonDefaults.outlinedButtonColors(
-                        containerColor = surfaceColor,
-                        contentColor = onSurfaceColor,
-                    ),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = "🍎", // Apple icon as emoji
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(end = 12.dp),
-                    )
-                    Text(
-                        text = "Continue with Apple",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
-            }
-
-            // Google Sign-In Button
-            OutlinedButton(
-                onClick = onGoogleSignIn,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                colors =
-                    ButtonDefaults.outlinedButtonColors(
-                        containerColor = surfaceColor,
-                        contentColor = onSurfaceColor,
-                    ),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = "🔍", // Google icon as emoji
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(end = 12.dp),
-                    )
-                    Text(
-                        text = "Continue with Google",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
-            }
-        }
-
-        // Footer with terms and privacy policy - fully clickable
+        // Footer with terms and privacy policy
         val annotatedText =
             buildAnnotatedString {
-                withStyle(SpanStyle(color = greyText)) {
-                    append("By continuing, you agree to our ")
+                withStyle(SpanStyle(color = MaterialTheme.votisColors.greyText)) {
+                    append(stringResource(Res.string.legal_text_prefix))
                 }
-                pushStringAnnotation(tag = "terms", annotation = "https://votis.finance/terms")
-                withStyle(SpanStyle(color = brandColor, textDecoration = TextDecoration.Underline)) {
-                    append("Terms of Service")
+
+                pushStringAnnotation(tag = "terms", annotation = stringResource(Res.string.terms_url))
+                withStyle(SpanStyle(color = MaterialTheme.votisColors.brand)) {
+                    append(stringResource(Res.string.terms_link_text))
                 }
                 pop()
-                withStyle(SpanStyle(color = greyText)) {
-                    append(" and ")
+
+                withStyle(SpanStyle(color = MaterialTheme.votisColors.greyText)) {
+                    append(stringResource(Res.string.legal_text_middle))
                 }
-                pushStringAnnotation(tag = "privacy", annotation = "https://votis.finance/privacy")
-                withStyle(SpanStyle(color = brandColor, textDecoration = TextDecoration.Underline)) {
-                    append("Privacy Policy")
+
+                pushStringAnnotation(tag = "privacy", annotation = stringResource(Res.string.privacy_policy_url))
+                withStyle(SpanStyle(color = MaterialTheme.votisColors.brand)) {
+                    append(stringResource(Res.string.privacy_policy_link_text))
                 }
                 pop()
             }
@@ -184,8 +158,8 @@ fun AccountSelectionScreen(
                 ),
             modifier =
                 Modifier.padding(
-                    horizontal = 16.dp,
-                    vertical = 24.dp,
+                    horizontal = MaterialTheme.dimensions.footerHorizontalPadding,
+                    vertical = MaterialTheme.dimensions.footerVerticalPadding,
                 ),
             onClick = { offset ->
                 annotatedText
@@ -208,7 +182,7 @@ fun AccountSelectionScreen(
 @Preview
 @Composable
 fun AccountSelectionScreenPreview() {
-    MaterialTheme {
+    AppTheme {
         AccountSelectionScreen()
     }
 }
