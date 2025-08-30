@@ -1,7 +1,9 @@
 package finance.votis.wallet.core.auth
 
+import cocoapods.GoogleSignIn.GIDConfiguration
 import cocoapods.GoogleSignIn.GIDSignIn
 import cocoapods.GoogleSignIn.GIDSignInResult
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -11,10 +13,12 @@ import kotlin.coroutines.resume
 /**
  * iOS implementation of GoogleAuthClient using Google Sign-In SDK
  */
+@OptIn(ExperimentalForeignApi::class)
 class IOSGoogleAuthClient : GoogleAuthClient {
     init {
         // Configure Google Sign-In
-        GIDSignIn.sharedInstance.configuration?.clientID = OAuthConfig.getGoogleClientId()
+        val configuration = GIDConfiguration(clientID = OAuthConfig.getGoogleClientId())
+        GIDSignIn.sharedInstance.configuration = configuration
     }
 
     override suspend fun signIn(): AuthResult =
@@ -27,7 +31,7 @@ class IOSGoogleAuthClient : GoogleAuthClient {
                 }
 
                 // Start sign-in flow
-                suspendCancellableCoroutine { continuation ->
+                suspendCancellableCoroutine<AuthResult> { continuation ->
                     val presentingViewController =
                         UIApplication.sharedApplication.keyWindow?.rootViewController
                             ?: run {
@@ -40,26 +44,22 @@ class IOSGoogleAuthClient : GoogleAuthClient {
                     GIDSignIn.sharedInstance.signInWithPresentingViewController(
                         presentingViewController,
                     ) { result: GIDSignInResult?, error ->
-                        when {
-                            error != null -> {
-                                val authResult =
-                                    if (error.code == -5L) { // User cancelled
-                                        AuthResult.Cancelled
-                                    } else {
-                                        AuthResult.Error(
-                                            message = "Google Sign-In failed: ${error.localizedDescription}",
-                                        )
-                                    }
-                                continuation.resume(authResult)
-                            }
-                            result?.user != null -> {
-                                continuation.resume(AuthResult.Success(result.user.toAuthUser()))
-                            }
-                            else -> {
-                                continuation.resume(
-                                    AuthResult.Error(message = "Unknown error occurred during sign-in"),
-                                )
-                            }
+                        if (error != null) {
+                            val authResult =
+                                if (error.code == -5L) { // User cancelled
+                                    AuthResult.Cancelled
+                                } else {
+                                    AuthResult.Error(
+                                        message = "Google Sign-In failed: ${error.localizedDescription}",
+                                    )
+                                }
+                            continuation.resume(authResult)
+                        } else if (result?.user != null) {
+                            continuation.resume(AuthResult.Success(result.user.toAuthUser()))
+                        } else {
+                            continuation.resume(
+                                AuthResult.Error(message = "Unknown error occurred during sign-in"),
+                            )
                         }
                     }
                 }
