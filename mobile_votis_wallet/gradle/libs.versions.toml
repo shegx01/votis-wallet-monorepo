@@ -7,11 +7,11 @@ androidx-activity = "1.10.1"  # Staying on stable; 1.12 is alpha
 androidx-appcompat = "1.7.1"
 androidx-core = "1.16.0"
 androidx-espresso = "3.6.1"
-androidx-lifecycle = "2.9.3"  # Safe update
+androidx-lifecycle = "2.8.2"  # Compatible with Compose 1.8.2
 androidx-testExt = "1.2.1"
-composeMultiplatform = "1.8.2"  # Staying on stable; 1.9.0 is RC
+composeMultiplatform = "1.8.1"  # Updated for better stability
 junit = "4.13.2"
-kotlin = "2.2.0"  # Staying on stable; 2.2.20 is RC
+kotlin = "2.1.0"  # Compatible with Compose 1.8.1
 ktlint = "1.7.1"  # Safe update
 ktlint-gradle = "12.1.1"  # Staying on current; 13.x needs testing
 detekt = "1.23.8"  # Safe update
@@ -21,7 +21,7 @@ ktor = "3.0.3"
 kotlinx-coroutines = "1.9.0"
 kotlinx-serialization = "1.8.0"
 kotlinx-datetime = "0.6.1"
-compose-navigation = "2.8.0-alpha10"
+compose-navigation = "2.8.0-alpha10"  # Last known working alpha version
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

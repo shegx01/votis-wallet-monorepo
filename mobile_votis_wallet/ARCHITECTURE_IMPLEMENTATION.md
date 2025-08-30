@@ -52,9 +52,13 @@ mobile_votis_wallet/
 ### Implementation Priority:
 
 #### Phase 1: Core Infrastructure
-- [ ] Fix build issues and validate compilation
+- [x] Fix build issues and validate compilation
+- [x] Set up Koin DI modules
+- [x] Implement SecureStorage expect/actual (Android: EncryptedSharedPreferences, iOS: Keychain Services)
+- [x] Implement AuthRepository with session persistence
+- [x] Add dynamic login state management with App-level ViewModel
+- [x] Create comprehensive iOS-specific tests for Keychain implementation
 - [ ] Implement `BiometricAuthenticator` expect/actual
-- [ ] Set up Koin DI modules
 - [ ] Configure Ktor HTTP client
 
 #### Phase 2: Backend Integration
@@ -98,8 +102,15 @@ mobile_votis_wallet/
 ### **Backend Integration**
 - ✅ **Provider Agnostic**: No direct wallet provider dependencies
 - ✅ **Single API**: Only communicates with Votis Phoenix backend
-- ✅ **Session Management**: Structured auth flow
+- ✅ **Session Management**: Structured auth flow with JWT persistence
 - ✅ **Request Signing**: Client-side authentication support
+
+### **Authentication Flow**
+- ✅ **SecureStorage**: Cross-platform abstraction (Android: EncryptedSharedPreferences, iOS: Keychain Services)
+- ✅ **Session Persistence**: AuthSessionDataSource handles JWT storage with JSON serialization
+- ✅ **Dynamic Navigation**: App.kt checks authentication state on launch
+- ✅ **Session Validation**: Time-based expiry checking with Clock abstraction
+- ✅ **State Management**: MVI pattern for app-level authentication state
 
 ## 🎯 Key Design Decisions
 

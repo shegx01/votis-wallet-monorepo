@@ -5,3 +5,6 @@ PRODUCT_BUNDLE_IDENTIFIER=finance.votis.wallet.mobileVotisWallet$(TEAM_ID)
 
 CURRENT_PROJECT_VERSION=1
 MARKETING_VERSION=1.0
+
+// Framework search paths for ComposeApp
+FRAMEWORK_SEARCH_PATHS=$(inherited) $(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)

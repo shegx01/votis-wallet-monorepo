@@ -39,8 +39,23 @@ kotlin {
             implementation(libs.kotlinx.datetime)
         }
 
+        androidMain.dependencies {
+            implementation("androidx.security:security-crypto:1.1.0-alpha06")
+        }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation("io.mockative:mockative:2.2.2")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+        }
+
+        androidInstrumentedTest.dependencies {
+            implementation("androidx.test.ext:junit:1.2.1")
+            implementation("androidx.test:core:1.6.1")
+            implementation("androidx.test:runner:1.6.2")
+            implementation("androidx.test.espresso:espresso-core:3.6.1")
+            implementation(libs.kotlin.test)
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
         }
     }
 }

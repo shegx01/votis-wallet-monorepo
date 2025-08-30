@@ -1,0 +1,436 @@
+package finance.votis.wallet.core.data.storage
+
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+
+/**
+ * Integration tests for SecureStorage that simulate real-world usage patterns.
+ * These tests use the InMemorySecureStorage for cross-platform testing.
+ */
+class SecureStorageIntegrationTest {
+    private val storage = InMemorySecureStorage()
+
+    @Test
+    fun testCompleteAuthenticationFlow() =
+        runTest {
+            // Clear storage first
+            storage.clear()
+
+            // === Phase 1: Initial Login ===
+            val loginData =
+                mapOf(
+                    "access_token" to
+                        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiamRvZSIsImlhdCI6MTYzMDUwMDAwMCwiZXhwIjoxNjMwNTAzNjAwfQ.signature",
+                    "refresh_token" to "refresh_abc123xyz789",
+                    "user_id" to "user_12345",
+                    "expires_at" to "1630503600000",
+                    "token_type" to "Bearer",
+                    "scope" to "read write",
+                )
+
+            // Save login session
+            loginData.forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // Verify login data is stored
+            loginData.forEach { (key, expectedValue) ->
+                val actualValue = storage.read(key)
+                assertEquals(expectedValue, actualValue, "Login data verification failed for: $key")
+            }
+
+            // === Phase 2: Token Refresh ===
+            val newAccessToken = "new_token_after_refresh"
+            val newExpiresAt = "1630507200000"
+
+            // Update tokens
+            storage.save("access_token", newAccessToken)
+            storage.save("expires_at", newExpiresAt)
+
+            // Verify token refresh kept other data intact
+            assertEquals(newAccessToken, storage.read("access_token"))
+            assertEquals(newExpiresAt, storage.read("expires_at"))
+            assertEquals(loginData["refresh_token"], storage.read("refresh_token"))
+            assertEquals(loginData["user_id"], storage.read("user_id"))
+
+            // === Phase 3: User Settings Update ===
+            val userPreferences =
+                mapOf(
+                    "pref_theme" to "dark",
+                    "pref_language" to "en",
+                    "pref_currency" to "USD",
+                    "pref_notifications_enabled" to "true",
+                    "pref_biometric_enabled" to "false",
+                )
+
+            // Save user preferences
+            userPreferences.forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // Verify preferences don't affect auth data
+            assertEquals(newAccessToken, storage.read("access_token"))
+            assertEquals(loginData["user_id"], storage.read("user_id"))
+
+            // === Phase 4: Partial Logout (Clear tokens, keep preferences) ===
+            val authKeysToDelete = listOf("access_token", "refresh_token", "expires_at", "token_type", "scope")
+            authKeysToDelete.forEach { key ->
+                storage.delete(key)
+            }
+
+            // Verify auth data is cleared
+            authKeysToDelete.forEach { key ->
+                assertNull(storage.read(key), "Auth key should be deleted: $key")
+            }
+
+            // Verify user data persists
+            assertEquals(loginData["user_id"], storage.read("user_id"))
+            userPreferences.forEach { (key, expectedValue) ->
+                assertEquals(expectedValue, storage.read(key), "Preference should persist: $key")
+            }
+
+            // === Phase 5: Complete Logout ===
+            storage.clear()
+
+            // Verify everything is cleared
+            (loginData.keys + userPreferences.keys).forEach { key ->
+                assertNull(storage.read(key), "All data should be cleared: $key")
+            }
+        }
+
+    @Test
+    fun testMultiUserSessionManagement() =
+        runTest {
+            storage.clear()
+
+            // === User 1 Session ===
+            val user1Data =
+                mapOf(
+                    "user1_access_token" to "user1_token_abc",
+                    "user1_refresh_token" to "user1_refresh_123",
+                    "user1_user_id" to "user_001",
+                    "user1_last_activity" to "1630500000000",
+                )
+
+            // === User 2 Session ===
+            val user2Data =
+                mapOf(
+                    "user2_access_token" to "user2_token_xyz",
+                    "user2_refresh_token" to "user2_refresh_456",
+                    "user2_user_id" to "user_002",
+                    "user2_last_activity" to "1630500100000",
+                )
+
+            // Save both user sessions
+            (user1Data + user2Data).forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // Verify both sessions exist
+            (user1Data + user2Data).forEach { (key, expectedValue) ->
+                assertEquals(expectedValue, storage.read(key))
+            }
+
+            // === Switch to User 1 (clear User 2) ===
+            user2Data.keys.forEach { key ->
+                storage.delete(key)
+            }
+
+            // Verify User 1 data persists, User 2 is cleared
+            user1Data.forEach { (key, expectedValue) ->
+                assertEquals(expectedValue, storage.read(key), "User 1 data should persist: $key")
+            }
+
+            user2Data.keys.forEach { key ->
+                assertNull(storage.read(key), "User 2 data should be cleared: $key")
+            }
+
+            // === Update User 1 activity ===
+            storage.save("user1_last_activity", "1630500200000")
+            assertEquals("1630500200000", storage.read("user1_last_activity"))
+
+            // Verify other User 1 data unchanged
+            assertEquals(user1Data["user1_access_token"], storage.read("user1_access_token"))
+            assertEquals(user1Data["user1_user_id"], storage.read("user1_user_id"))
+        }
+
+    @Test
+    fun testWalletConfigurationPersistence() =
+        runTest {
+            storage.clear()
+
+            // === Initial Wallet Setup ===
+            val walletConfig =
+                mapOf(
+                    "wallet_primary_address" to "0x742d35cc6688c02532d6B56b94e17D0f8e4b7d84",
+                    "wallet_network" to "ethereum-mainnet",
+                    "wallet_name" to "My Primary Wallet",
+                    "wallet_created_at" to "1630500000000",
+                    "wallet_backup_completed" to "true",
+                )
+
+            // Save wallet configuration
+            walletConfig.forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // === Add Network Configurations ===
+            val networkConfigs =
+                mapOf(
+                    "network_ethereum_rpc" to "https://mainnet.infura.io/v3/abc123",
+                    "network_polygon_rpc" to "https://polygon-mainnet.infura.io/v3/def456",
+                    "network_arbitrum_rpc" to "https://arbitrum-mainnet.infura.io/v3/ghi789",
+                )
+
+            networkConfigs.forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // === Verify All Configuration Data ===
+            (walletConfig + networkConfigs).forEach { (key, expectedValue) ->
+                assertEquals(expectedValue, storage.read(key), "Config verification failed for: $key")
+            }
+
+            // === Update Network (switch to testnet) ===
+            storage.save("wallet_network", "ethereum-goerli")
+            storage.save("network_ethereum_rpc", "https://goerli.infura.io/v3/test123")
+
+            // Verify network update
+            assertEquals("ethereum-goerli", storage.read("wallet_network"))
+            assertEquals("https://goerli.infura.io/v3/test123", storage.read("network_ethereum_rpc"))
+
+            // Verify other configs unchanged
+            assertEquals(walletConfig["wallet_primary_address"], storage.read("wallet_primary_address"))
+            assertEquals(walletConfig["wallet_name"], storage.read("wallet_name"))
+            assertEquals(networkConfigs["network_polygon_rpc"], storage.read("network_polygon_rpc"))
+
+            // === Backup Recovery Test ===
+            // Simulate app reinstall - clear everything except backup data
+            val backupKeys = listOf("wallet_primary_address", "wallet_created_at", "wallet_backup_completed")
+            val backupData = backupKeys.associateWith { storage.read(it) }
+
+            storage.clear()
+
+            // Restore from backup
+            backupData.forEach { (key, value) ->
+                if (value != null) {
+                    storage.save(key, value)
+                }
+            }
+
+            // Verify backup restoration
+            assertEquals(walletConfig["wallet_primary_address"], storage.read("wallet_primary_address"))
+            assertEquals(walletConfig["wallet_created_at"], storage.read("wallet_created_at"))
+            assertEquals(walletConfig["wallet_backup_completed"], storage.read("wallet_backup_completed"))
+
+            // Verify other data is cleared
+            assertNull(storage.read("wallet_network"))
+            assertNull(storage.read("wallet_name"))
+            assertNull(storage.read("network_ethereum_rpc"))
+        }
+
+    @Test
+    fun testSecuritySettingsManagement() =
+        runTest {
+            storage.clear()
+
+            // === Initial Security Setup ===
+            val securitySettings =
+                mapOf(
+                    "security_biometric_enabled" to "false",
+                    "security_pin_set" to "false",
+                    "security_auto_lock_timeout" to "300000", // 5 minutes
+                    "security_failed_attempts" to "0",
+                    "security_last_unlock" to "1630500000000",
+                    "security_session_timeout" to "1800000", // 30 minutes
+                )
+
+            securitySettings.forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // === Enable Biometric Authentication ===
+            storage.save("security_biometric_enabled", "true")
+            storage.save("security_pin_set", "true")
+
+            assertEquals("true", storage.read("security_biometric_enabled"))
+            assertEquals("true", storage.read("security_pin_set"))
+
+            // === Security Incident - Failed Attempts ===
+            // Simulate multiple failed attempts
+            for (attempts in 1..3) {
+                storage.save("security_failed_attempts", attempts.toString())
+                storage.save("security_last_failed_attempt", "1698765999000")
+            }
+
+            assertEquals("3", storage.read("security_failed_attempts"))
+            assertNotNull(storage.read("security_last_failed_attempt"))
+
+            // === Successful Unlock - Reset Security State ===
+            storage.save("security_failed_attempts", "0")
+            storage.save("security_last_unlock", "1698765999000")
+            storage.delete("security_last_failed_attempt")
+
+            assertEquals("0", storage.read("security_failed_attempts"))
+            assertNull(storage.read("security_last_failed_attempt"))
+            assertNotNull(storage.read("security_last_unlock"))
+
+            // === Update Session Timeout ===
+            storage.save("security_session_timeout", "900000") // 15 minutes
+
+            assertEquals("900000", storage.read("security_session_timeout"))
+
+            // Verify other settings unchanged
+            assertEquals("true", storage.read("security_biometric_enabled"))
+            assertEquals(securitySettings["security_auto_lock_timeout"], storage.read("security_auto_lock_timeout"))
+        }
+
+    @Test
+    fun testApplicationStateManagement() =
+        runTest {
+            storage.clear()
+
+            // === App Installation and First Launch ===
+            val appState =
+                mapOf(
+                    "app_first_launch" to "true",
+                    "app_version" to "1.0.0",
+                    "app_install_date" to "1630500000000",
+                    "app_onboarding_completed" to "false",
+                    "app_terms_accepted" to "false",
+                )
+
+            appState.forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // === Complete Onboarding Process ===
+            val onboardingSteps =
+                mapOf(
+                    "app_onboarding_completed" to "true",
+                    "app_terms_accepted" to "true",
+                    "app_privacy_accepted" to "true",
+                    "app_notifications_permission" to "granted",
+                    "app_biometric_permission" to "denied",
+                )
+
+            onboardingSteps.forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // Verify onboarding completion
+            assertEquals("true", storage.read("app_onboarding_completed"))
+            assertEquals("true", storage.read("app_terms_accepted"))
+            assertEquals("denied", storage.read("app_biometric_permission"))
+
+            // === App Update ===
+            storage.save("app_version", "1.1.0")
+            storage.save("app_last_update", "1630600000000")
+            storage.save("app_first_launch", "false")
+
+            // Verify update
+            assertEquals("1.1.0", storage.read("app_version"))
+            assertEquals("false", storage.read("app_first_launch"))
+
+            // Verify persistent data
+            assertEquals(appState["app_install_date"], storage.read("app_install_date"))
+            assertEquals("true", storage.read("app_onboarding_completed"))
+
+            // === Track Usage Statistics ===
+            val usageStats =
+                mapOf(
+                    "stats_total_launches" to "1",
+                    "stats_last_launch" to "1698765999000",
+                    "stats_total_transactions" to "0",
+                    "stats_last_transaction" to "",
+                )
+
+            usageStats.forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // Simulate app launches
+            for (launch in 2..5) {
+                storage.save("stats_total_launches", launch.toString())
+                storage.save("stats_last_launch", "1698765999000")
+            }
+
+            assertEquals("5", storage.read("stats_total_launches"))
+            assertNotNull(storage.read("stats_last_launch"))
+
+            // Verify app state persists with usage tracking
+            assertEquals("1.1.0", storage.read("app_version"))
+            assertEquals("true", storage.read("app_onboarding_completed"))
+        }
+
+    @Test
+    fun testDataMigrationScenario() =
+        runTest {
+            storage.clear()
+
+            // === Legacy Data Format (v1.0) ===
+            val legacyData =
+                mapOf(
+                    "auth_token" to "legacy_token_123", // old format
+                    "user_preferences" to "{\"theme\":\"dark\",\"lang\":\"en\"}", // JSON string
+                    "wallet_data" to "addr:0x123|network:eth|name:wallet1", // pipe-separated
+                )
+
+            legacyData.forEach { (key, value) ->
+                storage.save(key, value)
+            }
+
+            // === Migration to New Format (v2.0) ===
+            // Read legacy data
+            val legacyToken = storage.read("auth_token")
+            val legacyPrefsJson = storage.read("user_preferences")
+            val legacyWalletData = storage.read("wallet_data")
+
+            // Convert to new format
+            if (legacyToken != null) {
+                storage.save("v2_access_token", legacyToken)
+                storage.save("v2_token_format", "legacy")
+                storage.delete("auth_token") // Remove legacy
+            }
+
+            if (legacyPrefsJson != null) {
+                // Simulate JSON parsing and individual key storage
+                storage.save("pref_theme", "dark")
+                storage.save("pref_language", "en")
+                storage.delete("user_preferences") // Remove legacy
+            }
+
+            if (legacyWalletData != null) {
+                // Simulate pipe-separated parsing
+                storage.save("wallet_address", "0x123")
+                storage.save("wallet_network", "eth")
+                storage.save("wallet_name", "wallet1")
+                storage.delete("wallet_data") // Remove legacy
+            }
+
+            // === Verify Migration ===
+            // Legacy keys should be gone
+            assertNull(storage.read("auth_token"))
+            assertNull(storage.read("user_preferences"))
+            assertNull(storage.read("wallet_data"))
+
+            // New format should exist
+            assertEquals("legacy_token_123", storage.read("v2_access_token"))
+            assertEquals("legacy", storage.read("v2_token_format"))
+            assertEquals("dark", storage.read("pref_theme"))
+            assertEquals("en", storage.read("pref_language"))
+            assertEquals("0x123", storage.read("wallet_address"))
+            assertEquals("eth", storage.read("wallet_network"))
+            assertEquals("wallet1", storage.read("wallet_name"))
+
+            // === Mark Migration Complete ===
+            storage.save("migration_v2_completed", "true")
+            storage.save("migration_v2_date", "1630500000000")
+
+            assertEquals("true", storage.read("migration_v2_completed"))
+            assertNotNull(storage.read("migration_v2_date"))
+        }
+}

@@ -37,6 +37,9 @@ kotlin {
             // Koin dependencies
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
+            
+            // DateTime for Clock dependency injection
+            implementation(libs.kotlinx.datetime)
         }
 
         androidMain.dependencies {

@@ -26,6 +26,18 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            
+            // Export required frameworks
+            export(project(":core:core-domain"))
+            export(project(":core:core-data"))
+            export(project(":core:core-di"))
+            export(project(":core:core-ui"))
+            export(project(":features:feature-wallet"))
+            
+            // Add necessary system frameworks
+            linkerOpts("-framework", "Foundation")
+            linkerOpts("-framework", "UIKit")
+            linkerOpts("-framework", "Security") // For Keychain access
         }
     }
 
@@ -43,9 +55,22 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(compose.materialIconsExtended)
             implementation(libs.compose.navigation)
-            implementation(project(":features:feature-wallet"))
+            
+            // API dependencies for iOS framework export
+            api(project(":features:feature-wallet"))
+            api(project(":core:core-domain"))
+            api(project(":core:core-data"))
+            api(project(":core:core-di"))
+            api(project(":core:core-ui"))
+            
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+        }
+
+        androidMain.dependencies {
+            implementation(libs.koin.android)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -91,6 +116,13 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+}
+
+// Compose Compiler Configuration
+composeCompiler {
+    enableStrongSkippingMode = true
+    reportsDestination = layout.buildDirectory.dir("compose_compiler")
+    stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
 }
 
 // Ktlint configuration
