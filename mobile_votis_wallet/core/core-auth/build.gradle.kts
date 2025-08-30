@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    id("org.jetbrains.kotlin.native.cocoapods")
 }
 
 kotlin {
@@ -22,39 +23,47 @@ kotlin {
         iosSimulatorArm64(),
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "CoreDi"
+            baseName = "CoreAuth"
             isStatic = true
+        }
+    }
+
+    cocoapods {
+        summary = "Core Auth Module for Google Sign-In"
+        homepage = "https://github.com/votis/wallet"
+        version = "1.0"
+        ios.deploymentTarget = "13.0"
+
+        framework {
+            baseName = "CoreAuth"
+            isStatic = true
+        }
+
+        pod("GoogleSignIn") {
+            version = "~> 7.0"
         }
     }
 
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core.coreCommon)
-            implementation(projects.core.coreDomain)
-            implementation(projects.core.coreData)
-            implementation(projects.core.coreNetwork)
-            implementation(projects.core.coreAuth)
-
-            // Koin dependencies
-            implementation(libs.koin.core)
-            implementation(libs.koin.compose)
-
-            // DateTime for Clock dependency injection
-            implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.coroutines.core)
         }
-
+        
         androidMain.dependencies {
-            implementation(libs.koin.android)
+            implementation("com.google.android.gms:play-services-auth:20.7.0")
+            implementation(libs.androidx.activity.compose)
         }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }
 
 android {
-    namespace = "finance.votis.wallet.core.di"
+    namespace = "finance.votis.wallet.core.auth"
     compileSdk =
         libs.versions.android.compileSdk
             .get()

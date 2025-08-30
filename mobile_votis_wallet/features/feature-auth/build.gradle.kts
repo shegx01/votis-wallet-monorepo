@@ -35,6 +35,7 @@ kotlin {
             implementation(projects.core.coreUi)
             implementation(projects.core.coreDomain)
             implementation(projects.core.coreCommon)
+            implementation(projects.core.coreAuth)
 
             // Compose dependencies
             implementation(compose.runtime)
@@ -59,6 +60,7 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }

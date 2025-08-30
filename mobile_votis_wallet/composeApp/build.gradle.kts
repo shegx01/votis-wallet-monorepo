@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.detekt)
+    id("org.jetbrains.kotlin.native.cocoapods")
 }
 
 kotlin {
@@ -38,6 +39,23 @@ kotlin {
             linkerOpts("-framework", "Foundation")
             linkerOpts("-framework", "UIKit")
             linkerOpts("-framework", "Security") // For Keychain access
+        }
+    }
+
+    cocoapods {
+        summary = "Votis Wallet KMP Framework"
+        homepage = "https://github.com/votis/wallet"
+        version = "1.0"
+        ios.deploymentTarget = "13.0"
+        podfile = project.file("../iosApp/Podfile")
+
+        framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+
+        pod("GoogleSignIn") {
+            version = "~> 7.0"
         }
     }
 
@@ -78,6 +96,7 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.koin.android)
+            implementation("com.google.android.gms:play-services-auth:20.7.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
