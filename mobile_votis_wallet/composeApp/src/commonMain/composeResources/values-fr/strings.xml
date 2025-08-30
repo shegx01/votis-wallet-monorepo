@@ -1,0 +1,24 @@
+<resources>
+    <!-- OnboardingScreen Strings - French -->
+    
+    <!-- Content Descriptions -->
+    <string name="votis_logo_description">Logo Votis</string>
+    
+    <!-- Welcome Section -->
+    <string name="welcome_prefix">Bienvenue sur</string>
+    <string name="app_name_display">Votis</string>
+    
+    <!-- Sign-in Buttons -->
+    <string name="continue_with_apple">Continuer avec Apple</string>
+    <string name="continue_with_google">Continuer avec Google</string>
+    
+    <!-- Legal/Terms Text -->
+    <string name="legal_text_prefix">En utilisant Votis Wallet, vous acceptez les </string>
+    <string name="terms_link_text">conditions</string>
+    <string name="legal_text_middle"> et la </string>
+    <string name="privacy_policy_link_text">politique de confidentialité</string>
+    
+    <!-- URLs -->
+    <string name="terms_url">https://votis.app/terms</string>
+    <string name="privacy_policy_url">https://votis.app/privacy</string>
+</resources>

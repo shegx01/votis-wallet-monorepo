@@ -22,10 +22,22 @@ import finance.votis.wallet.ui.theme.dimensions
 import finance.votis.wallet.ui.theme.votisColors
 import finance.votis.wallet.utils.PlatformUtils
 import mobilevotiswallet.composeapp.generated.resources.Res
+import mobilevotiswallet.composeapp.generated.resources.app_name_display
+import mobilevotiswallet.composeapp.generated.resources.continue_with_apple
+import mobilevotiswallet.composeapp.generated.resources.continue_with_google
 import mobilevotiswallet.composeapp.generated.resources.ic_apple
 import mobilevotiswallet.composeapp.generated.resources.ic_google
+import mobilevotiswallet.composeapp.generated.resources.legal_text_middle
+import mobilevotiswallet.composeapp.generated.resources.legal_text_prefix
+import mobilevotiswallet.composeapp.generated.resources.privacy_policy_link_text
+import mobilevotiswallet.composeapp.generated.resources.privacy_policy_url
+import mobilevotiswallet.composeapp.generated.resources.terms_link_text
+import mobilevotiswallet.composeapp.generated.resources.terms_url
 import mobilevotiswallet.composeapp.generated.resources.votis_landing
+import mobilevotiswallet.composeapp.generated.resources.votis_logo_description
+import mobilevotiswallet.composeapp.generated.resources.welcome_prefix
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -48,7 +60,7 @@ fun OnboardingScreen() {
         // Logo section
         Image(
             painter = painterResource(Res.drawable.votis_landing),
-            contentDescription = "Votis Logo",
+            contentDescription = stringResource(Res.string.votis_logo_description),
             modifier = Modifier.size(MaterialTheme.dimensions.logoSize),
         )
 
@@ -63,13 +75,13 @@ fun OnboardingScreen() {
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingSmall),
             ) {
                 Text(
-                    text = "Welcome to",
+                    text = stringResource(Res.string.welcome_prefix),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.votisColors.greyText,
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = "Votis",
+                    text = stringResource(Res.string.app_name_display),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.votisColors.onSurface,
@@ -85,7 +97,7 @@ fun OnboardingScreen() {
                 // Only show Apple Sign-In on iOS devices
                 if (PlatformUtils.isIos) {
                     SocialSignInButton(
-                        text = "Continue with Apple",
+                        text = stringResource(Res.string.continue_with_apple),
                         icon = painterResource(Res.drawable.ic_apple),
                         iconSize = 34.dp,
                         onClick = {
@@ -96,7 +108,7 @@ fun OnboardingScreen() {
                 }
 
                 SocialSignInButton(
-                    text = "Continue with Google",
+                    text = stringResource(Res.string.continue_with_google),
                     icon = painterResource(Res.drawable.ic_google),
                     iconTint = Color.Unspecified,
                     onClick = {
@@ -111,22 +123,22 @@ fun OnboardingScreen() {
         val annotatedText =
             buildAnnotatedString {
                 withStyle(SpanStyle(color = MaterialTheme.votisColors.greyText)) {
-                    append("By using Votis Wallet, you agree to the ")
+                    append(stringResource(Res.string.legal_text_prefix))
                 }
 
-                pushStringAnnotation(tag = "terms", annotation = "https://votis.app/terms")
+                pushStringAnnotation(tag = "terms", annotation = stringResource(Res.string.terms_url))
                 withStyle(SpanStyle(color = MaterialTheme.votisColors.brand)) {
-                    append("terms")
+                    append(stringResource(Res.string.terms_link_text))
                 }
                 pop()
 
                 withStyle(SpanStyle(color = MaterialTheme.votisColors.greyText)) {
-                    append(" and ")
+                    append(stringResource(Res.string.legal_text_middle))
                 }
 
-                pushStringAnnotation(tag = "privacy", annotation = "https://votis.app/privacy")
+                pushStringAnnotation(tag = "privacy", annotation = stringResource(Res.string.privacy_policy_url))
                 withStyle(SpanStyle(color = MaterialTheme.votisColors.brand)) {
-                    append("privacy policy")
+                    append(stringResource(Res.string.privacy_policy_link_text))
                 }
                 pop()
             }
