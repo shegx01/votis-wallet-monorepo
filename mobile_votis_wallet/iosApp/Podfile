@@ -4,6 +4,11 @@
 platform :ios, '13.0'
 use_frameworks!
 
+# Use a custom build directory that works with both Xcode and Android Studio
+install! 'cocoapods',
+  :generate_multiple_pod_projects => true,
+  :incremental_installation => true
+
 target 'iosApp' do
   # Google Sign-In for authentication
   pod 'GoogleSignIn', '~> 7.0'
@@ -20,4 +25,7 @@ post_install do |installer|
       config.build_settings['ENABLE_BITCODE'] = 'NO'
     end
   end
+  
+  puts "\n🔧 Post-install completed. Remember to run the sync-frameworks.sh script after building."
+  puts "   This ensures CocoaPods frameworks are accessible from Android Studio."
 end
