@@ -8,7 +8,9 @@ sealed class AuthResult {
      * Authentication was successful
      * @param user The authenticated user data
      */
-    data class Success(val user: AuthUser) : AuthResult()
+    data class Success(
+        val user: AuthUser,
+    ) : AuthResult()
 
     /**
      * User cancelled the authentication process
@@ -22,7 +24,7 @@ sealed class AuthResult {
      */
     data class Error(
         val exception: Throwable? = null,
-        val message: String = exception?.message ?: "Authentication failed"
+        val message: String = exception?.message ?: "Authentication failed",
     ) : AuthResult()
 }
 
@@ -34,5 +36,5 @@ data class AuthUser(
     val email: String,
     val displayName: String?,
     val photoUrl: String?,
-    val idToken: String
+    val idToken: String,
 )

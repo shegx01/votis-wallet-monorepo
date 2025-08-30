@@ -49,7 +49,7 @@ kotlin {
             implementation(projects.core.coreCommon)
             implementation(libs.kotlinx.coroutines.core)
         }
-        
+
         androidMain.dependencies {
             implementation("com.google.android.gms:play-services-auth:20.7.0")
             implementation(libs.androidx.activity.compose)

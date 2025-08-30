@@ -17,7 +17,5 @@ actual object OAuthConfig {
     /**
      * Gets the Apple Sign-In client ID (primarily for iOS)
      */
-    actual fun getAppleClientId(): String {
-        return "finance.votis.wallet"
-    }
+    actual fun getAppleClientId(): String = "finance.votis.wallet"
 }

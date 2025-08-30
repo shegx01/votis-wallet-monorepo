@@ -13,11 +13,7 @@ import org.koin.dsl.module
 val platformModule =
     module {
         single<SecureStorage> { AndroidSecureStorage(androidContext()) }
-        
-        // Note: AndroidGoogleAuthClient requires ComponentActivity
-        // This will need to be registered where the Activity is available
-        // For now, we'll provide a factory that can be used with the Activity
-        factory<GoogleAuthClient> { (activity: androidx.activity.ComponentActivity) ->
-            AndroidGoogleAuthClient(androidContext(), activity)
-        }
+
+        // Simplified AndroidGoogleAuthClient for testing
+        single<GoogleAuthClient> { AndroidGoogleAuthClient(androidContext()) }
     }

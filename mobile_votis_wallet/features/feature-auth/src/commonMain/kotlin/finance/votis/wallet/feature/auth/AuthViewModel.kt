@@ -15,9 +15,8 @@ import kotlinx.coroutines.launch
  * handles UI state but the backend will determine the authentication provider
  */
 class AuthViewModel(
-    private val googleAuthClient: GoogleAuthClient
+    private val googleAuthClient: GoogleAuthClient,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
@@ -31,33 +30,37 @@ class AuthViewModel(
      */
     fun signInWithGoogle() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isLoading = true,
-                error = null
-            )
+            _uiState.value =
+                _uiState.value.copy(
+                    isLoading = true,
+                    error = null,
+                )
 
             when (val result = googleAuthClient.signIn()) {
                 is AuthResult.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        user = result.user,
-                        isSignedIn = true,
-                        error = null
-                    )
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoading = false,
+                            user = result.user,
+                            isSignedIn = true,
+                            error = null,
+                        )
                 }
-                
+
                 is AuthResult.Cancelled -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = null // Don't show error for user cancellation
-                    )
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoading = false,
+                            error = null, // Don't show error for user cancellation
+                        )
                 }
-                
+
                 is AuthResult.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = result.message
-                    )
+                    _uiState.value =
+                        _uiState.value.copy(
+                            isLoading = false,
+                            error = result.message,
+                        )
                 }
             }
         }
@@ -72,9 +75,10 @@ class AuthViewModel(
                 googleAuthClient.signOut()
                 _uiState.value = AuthUiState() // Reset to initial state
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    error = "Sign out failed: ${e.message}"
-                )
+                _uiState.value =
+                    _uiState.value.copy(
+                        error = "Sign out failed: ${e.message}",
+                    )
             }
         }
     }
@@ -93,16 +97,18 @@ class AuthViewModel(
         viewModelScope.launch {
             try {
                 val user = googleAuthClient.getCurrentUser()
-                _uiState.value = _uiState.value.copy(
-                    user = user,
-                    isSignedIn = user != null
-                )
+                _uiState.value =
+                    _uiState.value.copy(
+                        user = user,
+                        isSignedIn = user != null,
+                    )
             } catch (e: Exception) {
                 // Silently fail - user is not signed in
-                _uiState.value = _uiState.value.copy(
-                    user = null,
-                    isSignedIn = false
-                )
+                _uiState.value =
+                    _uiState.value.copy(
+                        user = null,
+                        isSignedIn = false,
+                    )
             }
         }
     }
