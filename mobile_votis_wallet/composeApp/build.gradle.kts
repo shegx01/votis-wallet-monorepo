@@ -33,6 +33,7 @@ kotlin {
             export(project(":core:core-data"))
             export(project(":core:core-di"))
             export(project(":core:core-ui"))
+            export(project(":features:feature-onboarding"))
             export(project(":features:feature-wallet"))
 
             // Add necessary system frameworks
@@ -81,6 +82,7 @@ kotlin {
             implementation(libs.compose.navigation)
 
             // API dependencies for iOS framework export
+            api(project(":features:feature-onboarding"))
             api(project(":features:feature-wallet"))
             api(project(":core:core-domain"))
             api(project(":core:core-data"))

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import finance.votis.wallet.feature.onboarding.OnboardingScreen
 import finance.votis.wallet.feature.wallet.WalletScreen
 import finance.votis.wallet.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
