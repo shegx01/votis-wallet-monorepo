@@ -4,6 +4,4 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 
 @Composable
-fun getAppTypography(): Typography {
-    return Typography()
-}
+fun getAppTypography(): Typography = Typography()

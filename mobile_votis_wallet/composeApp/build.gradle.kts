@@ -28,6 +28,9 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
 
+            // Specify bundle ID explicitly
+            linkerOpts("-Xbinary=bundleId=finance.votis.wallet.ComposeApp")
+
             // Export required frameworks
             export(project(":core:core-domain"))
             export(project(":core:core-data"))
@@ -68,6 +71,12 @@ kotlin {
         all {
             languageSettings {
                 optIn("kotlin.experimental.ExperimentalObjCName")
+            }
+        }
+
+        commonMain {
+            compilerOptions {
+                freeCompilerArgs.add("-Xexpect-actual-classes")
             }
         }
 
@@ -147,9 +156,12 @@ dependencies {
 
 // Compose Compiler Configuration
 composeCompiler {
-    enableStrongSkippingMode = true
     reportsDestination = layout.buildDirectory.dir("compose_compiler")
-    stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
+    stabilityConfigurationFiles.set(
+        listOf(
+            rootProject.layout.projectDirectory.file("stability_config.conf"),
+        ),
+    )
 }
 
 // Ktlint configuration

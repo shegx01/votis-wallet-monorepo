@@ -11,8 +11,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import finance.votis.wallet.feature.onboarding.OnboardingFlow
 import finance.votis.wallet.core.ui.theme.AppTheme
+import finance.votis.wallet.feature.onboarding.OnboardingFlow
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 

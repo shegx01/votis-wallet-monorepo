@@ -45,6 +45,18 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings {
+                optIn("kotlin.experimental.ExperimentalObjCName")
+            }
+        }
+
+        commonMain {
+            compilerOptions {
+                freeCompilerArgs.add("-Xexpect-actual-classes")
+            }
+        }
+
         commonMain.dependencies {
             implementation(projects.core.coreCommon)
             implementation(libs.kotlinx.coroutines.core)
