@@ -5,6 +5,11 @@
 xcuserdata
 !src/**/build/
 local.properties
+
+# OAuth and API Keys - Security
+**/OAuthConfig.kt
+**/generated/
+
 .idea
 .DS_Store
 captures

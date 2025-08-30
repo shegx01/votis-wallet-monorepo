@@ -18,7 +18,7 @@ fun initializeKoin() {
     } catch (e: Exception) {
         // No existing Koin instance, continue
     }
-    
+
     startKoin {
         modules(
             platformModule,

@@ -26,14 +26,14 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
-            
+
             // Export required frameworks
             export(project(":core:core-domain"))
             export(project(":core:core-data"))
             export(project(":core:core-di"))
             export(project(":core:core-ui"))
             export(project(":features:feature-wallet"))
-            
+
             // Add necessary system frameworks
             linkerOpts("-framework", "Foundation")
             linkerOpts("-framework", "UIKit")
@@ -46,6 +46,13 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
         }
+
+        all {
+            languageSettings {
+                optIn("kotlin.experimental.ExperimentalObjCName")
+            }
+        }
+
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -55,14 +62,14 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(compose.materialIconsExtended)
             implementation(libs.compose.navigation)
-            
+
             // API dependencies for iOS framework export
             api(project(":features:feature-wallet"))
             api(project(":core:core-domain"))
             api(project(":core:core-data"))
             api(project(":core:core-di"))
             api(project(":core:core-ui"))
-            
+
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.koin.core)

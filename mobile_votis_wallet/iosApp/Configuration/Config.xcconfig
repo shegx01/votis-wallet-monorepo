@@ -1,7 +1,7 @@
 TEAM_ID=
 
-PRODUCT_NAME=mobileVotisWallet
-PRODUCT_BUNDLE_IDENTIFIER=finance.votis.wallet.mobileVotisWallet$(TEAM_ID)
+PRODUCT_NAME=VotisWallet
+PRODUCT_BUNDLE_IDENTIFIER=finance.votis.wallet
 
 CURRENT_PROJECT_VERSION=1
 MARKETING_VERSION=1.0

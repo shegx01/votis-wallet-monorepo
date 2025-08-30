@@ -8,10 +8,11 @@ import org.koin.dsl.module
 /**
  * Core DI module with common dependencies.
  */
-val coreModule = module {
-    // Data layer
-    single { AuthSessionDataSource(get()) }
-    
-    // Repository layer
-    single<AuthRepository> { AuthRepositoryImpl(get()) }
-}
+val coreModule =
+    module {
+        // Data layer
+        single { AuthSessionDataSource(get()) }
+
+        // Repository layer
+        single<AuthRepository> { AuthRepositoryImpl(get()) }
+    }

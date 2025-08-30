@@ -8,6 +8,7 @@ import org.koin.dsl.module
 /**
  * Android-specific DI module.
  */
-val platformModule = module {
-    single<SecureStorage> { AndroidSecureStorage(androidContext()) }
-}
+val platformModule =
+    module {
+        single<SecureStorage> { AndroidSecureStorage(androidContext()) }
+    }

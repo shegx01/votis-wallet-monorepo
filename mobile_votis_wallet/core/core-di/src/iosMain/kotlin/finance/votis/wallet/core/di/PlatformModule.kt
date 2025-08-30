@@ -7,6 +7,7 @@ import org.koin.dsl.module
 /**
  * iOS-specific DI module.
  */
-val platformModule = module {
-    single<SecureStorage> { IosSecureStorage() }
-}
+val platformModule =
+    module {
+        single<SecureStorage> { IosSecureStorage() }
+    }

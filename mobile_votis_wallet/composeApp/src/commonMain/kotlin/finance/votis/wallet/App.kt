@@ -51,7 +51,7 @@ fun App() {
                     onContinue = {
                         // TODO: Handle navigation without NavHost
                         println("Continue clicked - would navigate to wallet")
-                    }
+                    },
                 )
             }
             is AppState.Authenticated -> {
