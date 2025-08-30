@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import finance.votis.wallet.feature.onboarding.OnboardingScreen
+import finance.votis.wallet.feature.onboarding.AccountSelectionScreen
 import finance.votis.wallet.feature.wallet.WalletScreen
 import finance.votis.wallet.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -47,11 +47,15 @@ fun App() {
                 LoadingScreen()
             }
             is AppState.Unauthenticated -> {
-                // Temporarily show OnboardingScreen directly without Navigation
-                OnboardingScreen(
-                    onContinue = {
-                        // TODO: Handle navigation without NavHost
-                        println("Continue clicked - would navigate to wallet")
+                // Temporarily show AccountSelectionScreen directly without Navigation
+                AccountSelectionScreen(
+                    onGoogleSignIn = {
+                        // TODO: Handle Google Sign-In
+                        println("Google Sign-In clicked - would navigate to wallet")
+                    },
+                    onAppleSignIn = {
+                        // TODO: Handle Apple Sign-In
+                        println("Apple Sign-In clicked - would navigate to wallet")
                     },
                 )
             }
@@ -109,8 +113,14 @@ private fun AppNavHost(startDestination: String) {
             startDestination = startDestination,
         ) {
             composable(Route.Onboarding.path) {
-                OnboardingScreen(
-                    onContinue = {
+                AccountSelectionScreen(
+                    onGoogleSignIn = {
+                        navController.navigate(Route.WalletHome.path) {
+                            popUpTo(Route.Onboarding.path) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    onAppleSignIn = {
                         navController.navigate(Route.WalletHome.path) {
                             popUpTo(Route.Onboarding.path) { inclusive = true }
                             launchSingleTop = true
