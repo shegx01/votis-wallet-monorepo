@@ -106,6 +106,7 @@
 				B9DA97AE2DC1472C00A4DA20 /* Frameworks */,
 				B9DA97AF2DC1472C00A4DA20 /* Resources */,
 				F7087748EAD2AD3D14B44ABB /* [CP] Embed Pods Frameworks */,
+				B34B23C014945A056E3B1002 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -164,6 +165,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		B34B23C014945A056E3B1002 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-iosApp/Pods-iosApp-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		B3A11DFBCB246BC18B5919D7 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -362,6 +380,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
 				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_PREVIEWS = YES;
@@ -383,10 +402,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.votiswallet.iosapp;
 				PRODUCT_NAME = iosApp;
-				CURRENT_PROJECT_VERSION = 1;
-				MARKETING_VERSION = 1.0;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -401,6 +419,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
 				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_PREVIEWS = YES;
@@ -422,10 +441,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.votiswallet.iosapp;
 				PRODUCT_NAME = iosApp;
-				CURRENT_PROJECT_VERSION = 1;
-				MARKETING_VERSION = 1.0;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
