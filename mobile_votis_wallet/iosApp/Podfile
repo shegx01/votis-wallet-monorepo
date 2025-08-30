@@ -1,6 +1,8 @@
 # Podfile for Votis Wallet iOS App
 # Generated for Kotlin Multiplatform Mobile project
 
+source 'https://cdn.cocoapods.org'
+
 platform :ios, '13.0'
 use_frameworks!
 
@@ -13,8 +15,8 @@ target 'iosApp' do
   # Google Sign-In for authentication
   pod 'GoogleSignIn', '~> 7.0'
   
-  # The Kotlin Multiplatform framework will be added automatically
-  # via the Kotlin CocoaPods Gradle plugin
+  # Kotlin Multiplatform framework
+  pod 'composeApp', :path => '../composeApp'
 end
 
 # Configure post_install to fix common issues

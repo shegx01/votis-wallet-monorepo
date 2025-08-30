@@ -1,0 +1,73 @@
+package finance.votis.wallet.feature.onboarding
+
+/**
+ * Represents the different screens in the onboarding flow
+ */
+sealed class OnboardingRoute(
+    val path: String,
+) {
+    data object Landing : OnboardingRoute("onboarding_landing")
+
+    data object AccountSelection : OnboardingRoute("onboarding_account_selection")
+
+    data object UsernameChooser : OnboardingRoute("onboarding_username_chooser")
+}
+
+/**
+ * Represents the state of the onboarding flow
+ */
+data class OnboardingState(
+    val currentRoute: OnboardingRoute = OnboardingRoute.Landing,
+    val isLoading: Boolean = false,
+    val oauthResult: OAuthResult? = null,
+    val selectedUsername: String? = null,
+    val hasCompletedAuth: Boolean = false,
+    val isCompleted: Boolean = false,
+)
+
+/**
+ * OAuth authentication result from Google/Apple
+ */
+data class OAuthResult(
+    val provider: AuthProvider,
+    val accessToken: String,
+    val userInfo: UserInfo,
+    val isNewUser: Boolean = false,
+)
+
+data class UserInfo(
+    val id: String,
+    val email: String,
+    val name: String,
+    val profilePictureUrl: String? = null,
+)
+
+enum class AuthProvider {
+    GOOGLE,
+    APPLE,
+}
+
+/**
+ * Actions that can be performed during onboarding
+ */
+sealed class OnboardingAction {
+    data object NavigateToAccountSelection : OnboardingAction()
+
+    data object NavigateToUsernameChooser : OnboardingAction()
+
+    data object NavigateToHome : OnboardingAction()
+
+    data class CompleteOAuth(
+        val result: OAuthResult,
+    ) : OnboardingAction()
+
+    data class SetUsername(
+        val username: String,
+    ) : OnboardingAction()
+
+    data object SkipUsernameSelection : OnboardingAction()
+
+    data object NavigateBack : OnboardingAction()
+
+    data object RetryAuthentication : OnboardingAction()
+}

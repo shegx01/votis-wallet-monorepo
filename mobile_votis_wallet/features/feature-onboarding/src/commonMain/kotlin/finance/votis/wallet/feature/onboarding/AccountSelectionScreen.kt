@@ -1,4 +1,4 @@
-package finance.votis.wallet
+package finance.votis.wallet.feature.onboarding
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,32 +16,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import finance.votis.wallet.ui.components.SocialSignInButton
-import finance.votis.wallet.ui.theme.AppTheme
-import finance.votis.wallet.ui.theme.dimensions
-import finance.votis.wallet.ui.theme.votisColors
-import finance.votis.wallet.utils.PlatformUtils
-import mobilevotiswallet.composeapp.generated.resources.Res
-import mobilevotiswallet.composeapp.generated.resources.app_name_display
-import mobilevotiswallet.composeapp.generated.resources.continue_with_apple
-import mobilevotiswallet.composeapp.generated.resources.continue_with_google
-import mobilevotiswallet.composeapp.generated.resources.ic_apple
-import mobilevotiswallet.composeapp.generated.resources.ic_google
-import mobilevotiswallet.composeapp.generated.resources.legal_text_middle
-import mobilevotiswallet.composeapp.generated.resources.legal_text_prefix
-import mobilevotiswallet.composeapp.generated.resources.privacy_policy_link_text
-import mobilevotiswallet.composeapp.generated.resources.privacy_policy_url
-import mobilevotiswallet.composeapp.generated.resources.terms_link_text
-import mobilevotiswallet.composeapp.generated.resources.terms_url
-import mobilevotiswallet.composeapp.generated.resources.votis_landing
-import mobilevotiswallet.composeapp.generated.resources.votis_logo_description
-import mobilevotiswallet.composeapp.generated.resources.welcome_prefix
+import finance.votis.wallet.core.ui.components.SocialSignInButton
+import finance.votis.wallet.core.ui.theme.AppTheme
+import finance.votis.wallet.core.ui.theme.dimensions
+import finance.votis.wallet.core.ui.theme.votisColors
+import finance.votis.wallet.core.ui.utils.PlatformUtils
+import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
+import mobilevotiswallet.features.feature_onboarding.generated.resources.app_name_display
+import mobilevotiswallet.features.feature_onboarding.generated.resources.continue_with_apple
+import mobilevotiswallet.features.feature_onboarding.generated.resources.continue_with_google
+import mobilevotiswallet.features.feature_onboarding.generated.resources.ic_apple
+import mobilevotiswallet.features.feature_onboarding.generated.resources.ic_google
+import mobilevotiswallet.features.feature_onboarding.generated.resources.legal_text_middle
+import mobilevotiswallet.features.feature_onboarding.generated.resources.legal_text_prefix
+import mobilevotiswallet.features.feature_onboarding.generated.resources.privacy_policy_link_text
+import mobilevotiswallet.features.feature_onboarding.generated.resources.privacy_policy_url
+import mobilevotiswallet.features.feature_onboarding.generated.resources.terms_link_text
+import mobilevotiswallet.features.feature_onboarding.generated.resources.terms_url
+import mobilevotiswallet.features.feature_onboarding.generated.resources.votis_landing
+import mobilevotiswallet.features.feature_onboarding.generated.resources.votis_logo_description
+import mobilevotiswallet.features.feature_onboarding.generated.resources.welcome_prefix
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-fun OnboardingScreen(onContinue: () -> Unit = {}) {
+fun AccountSelectionScreen(
+    onGoogleSignIn: () -> Unit = {},
+    onAppleSignIn: () -> Unit = {},
+) {
     val uriHandler = LocalUriHandler.current
 
     Column(
@@ -103,7 +106,7 @@ fun OnboardingScreen(onContinue: () -> Unit = {}) {
                         onClick = {
                             // TODO: Implement Apple Sign-In
                             println("Apple Sign-In clicked")
-                            onContinue()
+                            onAppleSignIn()
                         },
                     )
                 }
@@ -115,7 +118,7 @@ fun OnboardingScreen(onContinue: () -> Unit = {}) {
                     onClick = {
                         // TODO: Implement Google Sign-In
                         println("Google Sign-In clicked")
-                        onContinue()
+                        onGoogleSignIn()
                     },
                 )
             }
@@ -178,8 +181,8 @@ fun OnboardingScreen(onContinue: () -> Unit = {}) {
 
 @Preview
 @Composable
-fun OnboardingScreenPreview() {
+fun AccountSelectionScreenPreview() {
     AppTheme {
-        OnboardingScreen()
+        AccountSelectionScreen()
     }
 }
