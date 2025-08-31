@@ -1,30 +1,24 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+    
+    <!-- VOTIS logo adapted for adaptive icon foreground -->
+    <!-- Main V logo section -->
+    <path android:pathData="M20,30h68v20h-68z" android:fillColor="#0C2B2A"/>
+    <path android:pathData="M26.5,35h-2.8h-1.7h-0.06c-0.8,0 -1.45,0.65 -1.45,1.45c0,0.8 0,1.35 0,2.1l0,0.17c0,0.65 0.5,1.15 1.15,1.15h5c0.65,0 0.8,0.65 0.8,0.9v5.2l0,0.22c0,0.45 0.35,0.8 0.8,0.8h0.72c1.05,0 2.1,-1.55 2.6,-2.55c1.2,-2.6 2.9,-4.5 4.6,-4.5h2.2h0.22c0.72,0 1.33,-0.61 1.33,-1.33v-1.88c0,-1.55 -1.44,-1.55 -1.44,-1.55c-0.55,0 -2.38,0 -2.38,0c-1.44,0 -2.27,0.22 -3.1,1.27c-1.38,1.77 -3.71,4.87 -4.65,4.87c-0.72,0 -0.66,-0.39 -0.66,-1.99v-3.05c0,-0.66 -0.55,-1.21 -1.21,-1.21h-0.44z" android:fillColor="#00B8B0"/>
+    <path android:pathData="M51,42h5.5v3.6c0,1.3 -1.1,2.4 -2.4,2.4h-3.1v-6z" android:fillColor="#CCEBEA"/>
+    
+    <!-- VOTIS text -->
+    <path android:pathData="M26,54l2.5,8h1.8l2.5,-8h-1.8l-1.6,5.5l-1.6,-5.5h-1.8z" android:fillColor="#CCEBEA"/>
+    <path android:pathData="M34,54h3.5c1.5,0 2.7,1.2 2.7,2.7s-1.2,2.7 -2.7,2.7h-2v1.6h-1.5v-7z" android:fillColor="#CCEBEA"/>
+    <path android:pathData="M42,54h5v1.5h-1.75v5.5h-1.5v-5.5h-1.75v-1.5z" android:fillColor="#CCEBEA"/>
+    <path android:pathData="M48.5,54h1.5v7h-1.5v-7z" android:fillColor="#CCEBEA"/>
+    <path android:pathData="M51.5,54h3c1.2,0 2.2,1 2.2,2.2s-1,2.2 -2.2,2.2h-1.5v1.6h-1.5v-6z" android:fillColor="#CCEBEA"/>
+    
+    <!-- Second V section -->
+    <path android:pathData="M20,64h68v24h-68z" android:fillColor="#0C2B2A"/>
+    <path android:pathData="M55,72h-3.3h-2h-0.09c-1,0 -1.8,0.8 -1.8,1.8c0,1.2 0,1.7 0,2.65l0,0.28c0,1 0.8,1.8 1.8,1.8h7.7c0.94,0 1.05,1 1.05,1.2v8.2l0,0.33c0,0.66 0.55,1.21 1.21,1.21h1.1c1.76,0 3.2,-2.3 3.75,-3.85c1.87,-4 4.35,-6.85 6.4,-6.85h3.3h0.33c1.1,0 1.98,-0.88 1.98,-1.98v-2.86c0,-2.31 -2.2,-2.31 -2.2,-2.31h-3.52c-2.2,0 -3.41,0.33 -4.73,1.98c-2.09,2.7 -5.61,7.37 -7.04,7.37c-1.1,0 -1.05,-0.61 -1.05,-3.03v-4.62c0,-0.99 -0.82,-1.81 -1.81,-1.81h-0.66z" android:fillColor="#00B8B0"/>
+    <path android:pathData="M77,82h4.2v2.75c0,1 -0.77,1.76 -1.76,1.76h-2.44v-4.51z" android:fillColor="#CCEBEA"/>
 </vector>
