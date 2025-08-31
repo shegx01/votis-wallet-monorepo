@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base Application Theme -->
+    <style name="Theme.VotisWallet" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Customize your theme here. -->
+    </style>
+
+    <!-- Splash Screen Theme -->
+    <style name="Theme.VotisWallet.SplashScreen" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background, animated icon, and animation duration -->
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <!-- Use the splash logo as the center icon -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <!-- Optional: Set animation duration -->
+        <item name="windowSplashScreenAnimationDuration">500</item>
+        <!-- Post splash screen theme -->
+        <item name="postSplashScreenTheme">@style/Theme.VotisWallet</item>
+    </style>
+</resources>
