@@ -10,7 +10,7 @@
         <!-- Set the splash screen background, animated icon, and animation duration -->
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <!-- Use the splash logo as the center icon -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo_vector</item>
         <!-- Optional: Set animation duration -->
         <item name="windowSplashScreenAnimationDuration">500</item>
         <!-- Post splash screen theme -->

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark mode splash screen drawable that prevents cropping by using layer-list -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Transparent background layer to prevent masking -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+    <!-- Logo layer centered - references dark mode drawable -->
+    <item android:gravity="center">
+        <bitmap android:src="@drawable/splash_logo" 
+                android:gravity="center" />
+    </item>
+</layer-list>
