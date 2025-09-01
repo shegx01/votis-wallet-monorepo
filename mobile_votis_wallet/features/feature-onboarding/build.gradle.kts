@@ -55,6 +55,9 @@ kotlin {
 
         androidMain.dependencies {
             implementation(compose.preview)
+
+            // Lottie animations (Android only for now)
+            implementation(libs.lottie.compose)
         }
 
         commonTest.dependencies {

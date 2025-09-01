@@ -97,27 +97,12 @@ fun OnboardingCarousel(
                                     MaterialTheme.dimensions.spacingXLarge,
                                 ),
                         ) {
-                            // Placeholder for Lottie animation
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .size(180.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.1f)),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                val emoji =
-                                    when (targetPage.animationAsset) {
-                                        "WALLET.json" -> "💰" // Wallet icon
-                                        "ONCHAIN1.json" -> "⛓️" // Chain icon
-                                        "SWAP1.json" -> "🔄" // Swap/exchange icon
-                                        else -> "🎬" // Default animation icon
-                                    }
-                                Text(
-                                    text = emoji,
-                                    style = MaterialTheme.typography.displayLarge,
-                                )
-                            }
+                            // Lottie animation
+                            LottieAnimationView(
+                                animationAsset = targetPage.animationAsset,
+                                modifier = Modifier.size(180.dp),
+                                size = 180.dp,
+                            )
 
                             // Text content
                             Column(
