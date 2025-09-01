@@ -6,8 +6,6 @@ package finance.votis.wallet.feature.onboarding
 sealed class OnboardingRoute(
     val path: String,
 ) {
-    data object Landing : OnboardingRoute("onboarding_landing")
-
     data object AccountSelection : OnboardingRoute("onboarding_account_selection")
 
     data object UsernameChooser : OnboardingRoute("onboarding_username_chooser")
@@ -17,7 +15,7 @@ sealed class OnboardingRoute(
  * Represents the state of the onboarding flow
  */
 data class OnboardingState(
-    val currentRoute: OnboardingRoute = OnboardingRoute.Landing,
+    val currentRoute: OnboardingRoute = OnboardingRoute.AccountSelection,
     val isLoading: Boolean = false,
     val oauthResult: OAuthResult? = null,
     val selectedUsername: String? = null,

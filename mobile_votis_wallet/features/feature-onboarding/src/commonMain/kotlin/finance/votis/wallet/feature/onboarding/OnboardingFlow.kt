@@ -15,19 +15,12 @@ fun OnboardingFlow(
     var state by remember {
         mutableStateOf(
             OnboardingState(
-                currentRoute = OnboardingRoute.Landing,
+                currentRoute = OnboardingRoute.AccountSelection,
             ),
         )
     }
 
     when (state.currentRoute) {
-        OnboardingRoute.Landing -> {
-            LandingScreen(
-                onAnimationComplete = {
-                    state = state.copy(currentRoute = OnboardingRoute.AccountSelection)
-                },
-            )
-        }
 
         OnboardingRoute.AccountSelection -> {
             AccountSelectionScreen(
@@ -134,11 +127,6 @@ fun SimpleOnboardingFlow(
     }
 
     when (state.currentRoute) {
-        OnboardingRoute.Landing -> {
-            // Skip landing screen in simple flow
-            state = state.copy(currentRoute = OnboardingRoute.AccountSelection)
-        }
-
         OnboardingRoute.AccountSelection -> {
             AccountSelectionScreen(
                 onGoogleSignIn = {
