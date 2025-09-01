@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 
 /**
  * Main onboarding flow coordinator that manages the entire onboarding process
- * from landing screen through account selection and username setup.
+ * from animated onboarding carousel through account selection and username setup.
  */
 @Composable
 fun OnboardingFlow(
@@ -21,7 +21,6 @@ fun OnboardingFlow(
     }
 
     when (state.currentRoute) {
-
         OnboardingRoute.AccountSelection -> {
             AccountSelectionScreen(
                 onGoogleSignIn = {

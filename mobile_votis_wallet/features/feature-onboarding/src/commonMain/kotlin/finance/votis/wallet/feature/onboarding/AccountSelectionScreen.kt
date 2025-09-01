@@ -1,6 +1,5 @@
 package finance.votis.wallet.feature.onboarding
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
@@ -12,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -22,7 +20,6 @@ import finance.votis.wallet.core.ui.theme.dimensions
 import finance.votis.wallet.core.ui.theme.votisColors
 import finance.votis.wallet.core.ui.utils.PlatformUtils
 import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
-import mobilevotiswallet.features.feature_onboarding.generated.resources.app_name_display
 import mobilevotiswallet.features.feature_onboarding.generated.resources.continue_with_apple
 import mobilevotiswallet.features.feature_onboarding.generated.resources.continue_with_google
 import mobilevotiswallet.features.feature_onboarding.generated.resources.ic_apple
@@ -33,9 +30,6 @@ import mobilevotiswallet.features.feature_onboarding.generated.resources.privacy
 import mobilevotiswallet.features.feature_onboarding.generated.resources.privacy_policy_url
 import mobilevotiswallet.features.feature_onboarding.generated.resources.terms_link_text
 import mobilevotiswallet.features.feature_onboarding.generated.resources.terms_url
-import mobilevotiswallet.features.feature_onboarding.generated.resources.votis_landing
-import mobilevotiswallet.features.feature_onboarding.generated.resources.votis_logo_description
-import mobilevotiswallet.features.feature_onboarding.generated.resources.welcome_prefix
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -45,7 +39,19 @@ fun AccountSelectionScreen(
     onGoogleSignIn: () -> Unit = {},
     onAppleSignIn: () -> Unit = {},
 ) {
+    OnboardingScreen(
+        onGoogleSignIn = onGoogleSignIn,
+        onAppleSignIn = onAppleSignIn,
+    )
+}
+
+@Composable
+fun OnboardingScreen(
+    onGoogleSignIn: () -> Unit = {},
+    onAppleSignIn: () -> Unit = {},
+) {
     val uriHandler = LocalUriHandler.current
+    val onboardingPages = OnboardingPages.getPages()
 
     Column(
         modifier =
@@ -57,42 +63,21 @@ fun AccountSelectionScreen(
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Top spacer to push content down a bit
-        Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingXXLarge))
+        // Top spacer
+        Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingLarge))
 
-        // Logo section
-        Image(
-            painter = painterResource(Res.drawable.votis_landing),
-            contentDescription = stringResource(Res.string.votis_logo_description),
-            modifier = Modifier.size(MaterialTheme.dimensions.logoSize),
+        // Animated onboarding carousel
+        OnboardingCarousel(
+            pages = onboardingPages,
+            modifier = Modifier.weight(1f),
         )
 
-        // Content section
+        // Fixed buttons and footer section
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingXLarge),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingLarge),
         ) {
-            // Welcome text
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingSmall),
-            ) {
-                Text(
-                    text = stringResource(Res.string.welcome_prefix),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.votisColors.greyText,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = stringResource(Res.string.app_name_display),
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.votisColors.onSurface,
-                    textAlign = TextAlign.Center,
-                )
-            }
-
-            // Buttons section
+            // Sign-in buttons
             Column(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingMedium),
                 modifier = Modifier.fillMaxWidth(),
@@ -122,60 +107,60 @@ fun AccountSelectionScreen(
                     },
                 )
             }
+
+            // Footer with terms and privacy policy
+            val annotatedText =
+                buildAnnotatedString {
+                    withStyle(SpanStyle(color = MaterialTheme.votisColors.greyText)) {
+                        append(stringResource(Res.string.legal_text_prefix))
+                    }
+
+                    pushStringAnnotation(tag = "terms", annotation = stringResource(Res.string.terms_url))
+                    withStyle(SpanStyle(color = MaterialTheme.votisColors.brand)) {
+                        append(stringResource(Res.string.terms_link_text))
+                    }
+                    pop()
+
+                    withStyle(SpanStyle(color = MaterialTheme.votisColors.greyText)) {
+                        append(stringResource(Res.string.legal_text_middle))
+                    }
+
+                    pushStringAnnotation(tag = "privacy", annotation = stringResource(Res.string.privacy_policy_url))
+                    withStyle(SpanStyle(color = MaterialTheme.votisColors.brand)) {
+                        append(stringResource(Res.string.privacy_policy_link_text))
+                    }
+                    pop()
+                }
+
+            @Suppress("DEPRECATION")
+            ClickableText(
+                text = annotatedText,
+                style =
+                    MaterialTheme.typography.bodySmall.copy(
+                        textAlign = TextAlign.Center,
+                        lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
+                    ),
+                modifier =
+                    Modifier.padding(
+                        horizontal = MaterialTheme.dimensions.footerHorizontalPadding,
+                        vertical = MaterialTheme.dimensions.footerVerticalPadding,
+                    ),
+                onClick = { offset ->
+                    annotatedText
+                        .getStringAnnotations(tag = "terms", start = offset, end = offset)
+                        .firstOrNull()
+                        ?.let { annotation ->
+                            uriHandler.openUri(annotation.item)
+                        }
+                    annotatedText
+                        .getStringAnnotations(tag = "privacy", start = offset, end = offset)
+                        .firstOrNull()
+                        ?.let { annotation ->
+                            uriHandler.openUri(annotation.item)
+                        }
+                },
+            )
         }
-
-        // Footer with terms and privacy policy
-        val annotatedText =
-            buildAnnotatedString {
-                withStyle(SpanStyle(color = MaterialTheme.votisColors.greyText)) {
-                    append(stringResource(Res.string.legal_text_prefix))
-                }
-
-                pushStringAnnotation(tag = "terms", annotation = stringResource(Res.string.terms_url))
-                withStyle(SpanStyle(color = MaterialTheme.votisColors.brand)) {
-                    append(stringResource(Res.string.terms_link_text))
-                }
-                pop()
-
-                withStyle(SpanStyle(color = MaterialTheme.votisColors.greyText)) {
-                    append(stringResource(Res.string.legal_text_middle))
-                }
-
-                pushStringAnnotation(tag = "privacy", annotation = stringResource(Res.string.privacy_policy_url))
-                withStyle(SpanStyle(color = MaterialTheme.votisColors.brand)) {
-                    append(stringResource(Res.string.privacy_policy_link_text))
-                }
-                pop()
-            }
-
-        @Suppress("DEPRECATION")
-        ClickableText(
-            text = annotatedText,
-            style =
-                MaterialTheme.typography.bodySmall.copy(
-                    textAlign = TextAlign.Center,
-                    lineHeight = MaterialTheme.typography.bodySmall.lineHeight,
-                ),
-            modifier =
-                Modifier.padding(
-                    horizontal = MaterialTheme.dimensions.footerHorizontalPadding,
-                    vertical = MaterialTheme.dimensions.footerVerticalPadding,
-                ),
-            onClick = { offset ->
-                annotatedText
-                    .getStringAnnotations(tag = "terms", start = offset, end = offset)
-                    .firstOrNull()
-                    ?.let { annotation ->
-                        uriHandler.openUri(annotation.item)
-                    }
-                annotatedText
-                    .getStringAnnotations(tag = "privacy", start = offset, end = offset)
-                    .firstOrNull()
-                    ?.let { annotation ->
-                        uriHandler.openUri(annotation.item)
-                    }
-            },
-        )
     }
 }
 
