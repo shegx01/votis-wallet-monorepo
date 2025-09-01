@@ -57,7 +57,7 @@ fun OnboardingScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.votisColors.surface)
+                .background(MaterialTheme.colorScheme.background) // Use background color for clean design
                 .padding(horizontal = MaterialTheme.dimensions.screenHorizontalPadding)
                 .safeContentPadding(),
         verticalArrangement = Arrangement.SpaceBetween,
@@ -66,9 +66,8 @@ fun OnboardingScreen(
         // Top spacer
         Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingLarge))
 
-        // Animated onboarding carousel
-        OnboardingCarousel(
-            pages = onboardingPages,
+        // Clean single onboarding page
+        SingleOnboardingPage(
             modifier = Modifier.weight(1f),
         )
 

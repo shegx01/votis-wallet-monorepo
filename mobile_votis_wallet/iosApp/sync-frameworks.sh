@@ -20,7 +20,7 @@ XCODE_BUILD_DIR="/Users/$USER/Library/Developer/Xcode/DerivedData"
 AS_BUILD_DIR="/Users/$USER/Library/Caches/Google/AndroidStudio*/DerivedData"
 
 # Framework names to sync
-FRAMEWORKS=("AppAuth" "GTMAppAuth" "GTMSessionFetcher" "GoogleSignIn" "Pods_iosApp.framework")
+FRAMEWORKS=("AppAuth" "GTMAppAuth" "GTMSessionFetcher" "GoogleSignIn" "lottie-ios" "Pods_iosApp.framework")
 
 # Find the actual Xcode derived data directory for this project
 XCODE_PROJECT_DIR=$(find "$XCODE_BUILD_DIR" -name "iosApp-*" -type d 2>/dev/null | head -1)

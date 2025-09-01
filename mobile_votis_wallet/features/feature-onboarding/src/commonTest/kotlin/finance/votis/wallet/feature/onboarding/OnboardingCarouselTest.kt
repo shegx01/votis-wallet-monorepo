@@ -31,31 +31,30 @@ class OnboardingCarouselTest {
     fun `OnboardingPages contains expected content`() {
         val pages = OnboardingPages.getPages()
 
-        // First page - Digital Wallet
-        assertEquals("Your Digital Wallet", pages[0].headline)
-        assertTrue(pages[0].subtitle.contains("digital assets"))
+        // First page - Wallet Management
+        assertEquals("Own, control and manage", pages[0].headline)
+        assertEquals("your asset securely", pages[0].subtitle)
         assertEquals("WALLET.json", pages[0].animationAsset)
 
         // Second page - On-Chain Operations
-        assertEquals("On-Chain Operations", pages[1].headline)
-        assertTrue(pages[1].subtitle.contains("blockchain"))
+        assertEquals("Execute transactions", pages[1].headline)
+        assertEquals("directly on-chain with full control", pages[1].subtitle)
         assertEquals("ONCHAIN1.json", pages[1].animationAsset)
 
-        // Third page - Seamless Swaps
-        assertEquals("Seamless Swaps", pages[2].headline)
-        assertTrue(pages[2].subtitle.contains("Exchange"))
+        // Third page - Asset Swaps
+        assertEquals("Swap assets instantly", pages[2].headline)
+        assertEquals("with the best rates available", pages[2].subtitle)
         assertEquals("SWAP1.json", pages[2].animationAsset)
     }
 
     @Test
-    fun `OnboardingPages have different background colors`() {
+    fun `OnboardingPages use consistent transparent backgrounds`() {
         val pages = OnboardingPages.getPages()
 
-        // All pages should have unique background colors
-        val colors = pages.map { it.backgroundColor }
-        val uniqueColors = colors.distinct()
-
-        assertEquals(colors.size, uniqueColors.size, "All pages should have unique background colors")
+        // All pages should use transparent background for clean theme-based design
+        pages.forEach { page ->
+            assertEquals(Color.Transparent, page.backgroundColor, "All pages should use transparent background")
+        }
     }
 
     @Test

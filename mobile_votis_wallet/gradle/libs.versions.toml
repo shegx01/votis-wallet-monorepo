@@ -22,7 +22,8 @@ kotlinx-coroutines = "1.9.0"  # Stable version compatible with Kotlin 2.1.21
 kotlinx-serialization = "1.8.0"  # Latest stable version
 kotlinx-datetime = "0.6.1"  # Already compatible
 compose-navigation = "2.8.0-alpha10"  # Last known working alpha version
-lottie-compose = "6.4.1"  # Lottie for Compose Multiplatform
+lottie-compose = "6.4.1"  # Lottie for Android Compose
+compottie = "2.0.0-beta02"  # Compottie - Lottie for Compose Multiplatform
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -53,6 +54,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 compose-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "compose-navigation" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie-compose" }
+compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

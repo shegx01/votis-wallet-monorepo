@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,12 +43,12 @@ fun OnboardingCarousel(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Carousel area with pages
+        // Carousel area with pages - clean design template
         Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .height(320.dp),
+                    .weight(1f), // Take available space
             contentAlignment = Alignment.Center,
         ) {
             HorizontalPager(
@@ -58,7 +57,7 @@ fun OnboardingCarousel(
             ) { pageIndex ->
                 val page = pages[pageIndex]
 
-                // Animated page content
+                // Animated page content with clean design
                 AnimatedContent(
                     targetState = page,
                     transitionSpec = {
@@ -80,57 +79,54 @@ fun OnboardingCarousel(
                     },
                     label = "page_content_animation",
                 ) { targetPage ->
-                    Box(
+                    // Clean design layout matching the provided template
+                    Column(
                         modifier =
                             Modifier
                                 .fillMaxSize()
-                                .background(
-                                    color = targetPage.backgroundColor,
-                                    shape = MaterialTheme.shapes.large,
-                                ).padding(MaterialTheme.dimensions.spacingLarge),
-                        contentAlignment = Alignment.Center,
+                                .padding(
+                                    horizontal = MaterialTheme.dimensions.spacingXLarge,
+                                    vertical = MaterialTheme.dimensions.spacingLarge,
+                                ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
                     ) {
+                        // Large animation area - matching the clean design
+                        LottieAnimationView(
+                            animationAsset = targetPage.animationAsset,
+                            modifier = Modifier.size(280.dp), // Larger size to match design
+                            size = 280.dp,
+                        )
+
+                        Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingXLarge))
+
+                        // Clean text layout
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement =
                                 Arrangement.spacedBy(
-                                    MaterialTheme.dimensions.spacingXLarge,
+                                    MaterialTheme.dimensions.spacingSmall,
                                 ),
                         ) {
-                            // Lottie animation
-                            LottieAnimationView(
-                                animationAsset = targetPage.animationAsset,
-                                modifier = Modifier.size(180.dp),
-                                size = 180.dp,
+                            // Main headline - bold and prominent
+                            Text(
+                                text = targetPage.headline,
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.votisColors.onSurface,
+                                textAlign = TextAlign.Center,
+                                lineHeight = MaterialTheme.typography.headlineLarge.lineHeight,
                             )
 
-                            // Text content
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement =
-                                    Arrangement.spacedBy(
-                                        MaterialTheme.dimensions.spacingMedium,
-                                    ),
-                            ) {
-                                Text(
-                                    text = targetPage.headline,
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    textAlign = TextAlign.Center,
-                                )
-
-                                Text(
-                                    text = targetPage.subtitle,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = Color.White.copy(alpha = 0.9f),
-                                    textAlign = TextAlign.Center,
-                                    modifier =
-                                        Modifier.padding(
-                                            horizontal = MaterialTheme.dimensions.spacingMedium,
-                                        ),
-                                )
-                            }
+                            // Subtitle - lighter weight and color
+                            Text(
+                                text = targetPage.subtitle,
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.votisColors.greyText,
+                                textAlign = TextAlign.Center,
+                                lineHeight = MaterialTheme.typography.headlineLarge.lineHeight,
+                            )
                         }
                     }
                 }

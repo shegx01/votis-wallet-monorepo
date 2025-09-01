@@ -1,0 +1,18 @@
+language = Objective-C
+headers = Lottie.h
+
+---
+
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+
+@interface LottieAnimationView : UIView
+- (instancetype)initWithFilePath:(NSString *)filePath;
+- (instancetype)initWithName:(NSString *)name bundle:(NSBundle *)bundle;
+- (void)play;
+- (void)pause;
+- (void)stop;
+- (void)setLoopMode:(NSInteger)loopMode;
+- (void)setContentMode:(UIViewContentMode)contentMode;
+@property (nonatomic, assign) BOOL loopAnimation;
+@end

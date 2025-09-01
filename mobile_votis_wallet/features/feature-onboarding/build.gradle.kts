@@ -51,13 +51,13 @@ kotlin {
             // DI
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
+
+            // Lottie animations - Compottie for multiplatform
+            implementation(libs.compottie)
         }
 
         androidMain.dependencies {
             implementation(compose.preview)
-
-            // Lottie animations (Android only for now)
-            implementation(libs.lottie.compose)
         }
 
         commonTest.dependencies {
@@ -78,6 +78,12 @@ android {
             libs.versions.android.minSdk
                 .get()
                 .toInt()
+    }
+
+    sourceSets {
+        getByName("main") {
+            assets.srcDirs("src/androidMain/assets")
+        }
     }
 
     compileOptions {

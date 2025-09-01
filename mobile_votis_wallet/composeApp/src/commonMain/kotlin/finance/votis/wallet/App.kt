@@ -36,7 +36,7 @@ fun App() {
             is AppState.Unauthenticated -> {
                 // Show full onboarding flow starting with LandingScreen
                 OnboardingFlow(
-                    onComplete = { oauthResult, username ->
+                    onComplete = { oauthResult: finance.votis.wallet.feature.onboarding.OAuthResult, username: String? ->
                         // TODO: Handle completion of onboarding
                         // For now, just simulate navigation to authenticated state
                         println("Onboarding completed with provider: ${oauthResult.provider}, username: $username")

@@ -21,4 +21,17 @@
     <!-- URLs -->
     <string name="terms_url">https://votis.app/terms</string>
     <string name="privacy_policy_url">https://votis.app/privacy</string>
+    
+    <!-- Onboarding Content -->
+    <!-- Page 1: Wallet Management -->
+    <string name="onboarding_page1_headline">Your home</string>
+    <string name="onboarding_page1_subtitle">for ease and convenience</string>
+    
+    <!-- Page 2: Username-based Transactions -->
+    <string name="onboarding_page2_headline">Send assets with just</string>
+    <string name="onboarding_page2_subtitle">your username</string>
+    
+    <!-- Page 3: Asset Control -->
+    <string name="onboarding_page3_headline">Own, control and manage</string>
+    <string name="onboarding_page3_subtitle">your asset securely</string>
 </resources>

@@ -1,9 +1,10 @@
 package finance.votis.wallet.feature.onboarding
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import finance.votis.wallet.core.ui.theme.VotisBrand
-import finance.votis.wallet.core.ui.theme.VotisBrandDark
-import finance.votis.wallet.core.ui.theme.primaryLight
+import org.jetbrains.compose.resources.stringResource
+import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
+import mobilevotiswallet.features.feature_onboarding.generated.resources.*
 
 /**
  * Represents a single page in the onboarding carousel
@@ -20,24 +21,25 @@ data class OnboardingPage(
  * Based on WALLET.json, ONCHAIN1.json, and SWAP1.json animations
  */
 object OnboardingPages {
+    @Composable
     fun getPages(): List<OnboardingPage> =
         listOf(
             OnboardingPage(
-                headline = "Your Digital Wallet",
-                subtitle = "Store, manage and secure your digital assets with enterprise-grade protection",
-                backgroundColor = VotisBrand,
+                headline = stringResource(Res.string.onboarding_page1_headline),
+                subtitle = stringResource(Res.string.onboarding_page1_subtitle),
+                backgroundColor = Color.Transparent, // Use theme background
                 animationAsset = "WALLET.json",
             ),
             OnboardingPage(
-                headline = "On-Chain Operations",
-                subtitle = "Execute transactions directly on the blockchain with full transparency and control",
-                backgroundColor = VotisBrandDark,
+                headline = stringResource(Res.string.onboarding_page2_headline),
+                subtitle = stringResource(Res.string.onboarding_page2_subtitle),
+                backgroundColor = Color.Transparent, // Use theme background
                 animationAsset = "ONCHAIN1.json",
             ),
             OnboardingPage(
-                headline = "Seamless Swaps",
-                subtitle = "Exchange digital assets instantly with the best rates and minimal fees",
-                backgroundColor = primaryLight,
+                headline = stringResource(Res.string.onboarding_page3_headline),
+                subtitle = stringResource(Res.string.onboarding_page3_subtitle),
+                backgroundColor = Color.Transparent, // Use theme background
                 animationAsset = "SWAP1.json",
             ),
         )
