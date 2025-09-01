@@ -1,6 +1,9 @@
 package finance.votis.wallet.feature.onboarding
 
 import androidx.compose.ui.graphics.Color
+import finance.votis.wallet.core.ui.theme.VotisBrand
+import finance.votis.wallet.core.ui.theme.VotisBrandDark
+import finance.votis.wallet.core.ui.theme.primaryLight
 
 /**
  * Represents a single page in the onboarding carousel
@@ -9,28 +12,33 @@ data class OnboardingPage(
     val headline: String,
     val subtitle: String,
     val backgroundColor: Color,
+    val animationAsset: String, // Lottie animation file name
 )
 
 /**
  * Default onboarding pages for the animated carousel
+ * Based on WALLET.json, ONCHAIN1.json, and SWAP1.json animations
  */
 object OnboardingPages {
     fun getPages(): List<OnboardingPage> =
         listOf(
             OnboardingPage(
-                headline = "Welcome to Votis",
-                subtitle = "Your secure digital wallet for the future of finance",
-                backgroundColor = Color(0xFF6366F1), // Indigo-500
+                headline = "Your Digital Wallet",
+                subtitle = "Store, manage and secure your digital assets with enterprise-grade protection",
+                backgroundColor = VotisBrand,
+                animationAsset = "WALLET.json",
             ),
             OnboardingPage(
-                headline = "Safe & Secure",
-                subtitle = "Bank-level security with biometric authentication and encrypted storage",
-                backgroundColor = Color(0xFF8B5CF6), // Violet-500
+                headline = "On-Chain Operations",
+                subtitle = "Execute transactions directly on the blockchain with full transparency and control",
+                backgroundColor = VotisBrandDark,
+                animationAsset = "ONCHAIN1.json",
             ),
             OnboardingPage(
-                headline = "Easy to Use",
-                subtitle = "Send, receive, and manage your digital assets with just a few taps",
-                backgroundColor = Color(0xFF06B6D4), // Cyan-500
+                headline = "Seamless Swaps",
+                subtitle = "Exchange digital assets instantly with the best rates and minimal fees",
+                backgroundColor = primaryLight,
+                animationAsset = "SWAP1.json",
             ),
         )
 }

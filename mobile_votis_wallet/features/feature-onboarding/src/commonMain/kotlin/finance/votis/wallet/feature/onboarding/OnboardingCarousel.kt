@@ -94,29 +94,42 @@ fun OnboardingCarousel(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement =
                                 Arrangement.spacedBy(
-                                    MaterialTheme.dimensions.spacingMedium,
+                                    MaterialTheme.dimensions.spacingXLarge,
                                 ),
                         ) {
-                            // Placeholder for illustration/icon
+                            // Placeholder for Lottie animation
                             Box(
                                 modifier =
                                     Modifier
-                                        .size(120.dp)
+                                        .size(180.dp)
                                         .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.2f)),
-                            )
+                                        .background(Color.White.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                val emoji =
+                                    when (targetPage.animationAsset) {
+                                        "WALLET.json" -> "💰" // Wallet icon
+                                        "ONCHAIN1.json" -> "⛓️" // Chain icon
+                                        "SWAP1.json" -> "🔄" // Swap/exchange icon
+                                        else -> "🎬" // Default animation icon
+                                    }
+                                Text(
+                                    text = emoji,
+                                    style = MaterialTheme.typography.displayLarge,
+                                )
+                            }
 
-                            // Page content
+                            // Text content
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement =
                                     Arrangement.spacedBy(
-                                        MaterialTheme.dimensions.spacingSmall,
+                                        MaterialTheme.dimensions.spacingMedium,
                                     ),
                             ) {
                                 Text(
                                     text = targetPage.headline,
-                                    style = MaterialTheme.typography.headlineMedium,
+                                    style = MaterialTheme.typography.headlineLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White,
                                     textAlign = TextAlign.Center,
