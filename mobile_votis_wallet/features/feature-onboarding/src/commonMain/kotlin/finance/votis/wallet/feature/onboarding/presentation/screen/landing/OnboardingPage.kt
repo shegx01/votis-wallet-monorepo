@@ -1,4 +1,4 @@
-package finance.votis.wallet.feature.onboarding
+package finance.votis.wallet.feature.onboarding.presentation.screen.landing
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color

@@ -1,4 +1,4 @@
-package finance.votis.wallet.feature.onboarding
+package finance.votis.wallet.feature.onboarding.presentation.screen.account
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -33,6 +33,8 @@ import mobilevotiswallet.features.feature_onboarding.generated.resources.terms_u
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import finance.votis.wallet.feature.onboarding.presentation.screen.landing.SingleOnboardingPage
+import finance.votis.wallet.feature.onboarding.presentation.screen.landing.OnboardingPages
 
 @Composable
 fun AccountSelectionScreen(

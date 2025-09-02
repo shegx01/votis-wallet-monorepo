@@ -1,4 +1,4 @@
-package finance.votis.wallet.feature.onboarding
+package finance.votis.wallet.feature.onboarding.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable

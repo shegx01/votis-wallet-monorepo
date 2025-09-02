@@ -1,4 +1,4 @@
-package finance.votis.wallet.feature.onboarding
+package finance.votis.wallet.feature.onboarding.presentation.navigation
 
 /**
  * Represents the different screens in the onboarding flow

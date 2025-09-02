@@ -1,7 +1,10 @@
-package finance.votis.wallet.feature.onboarding
+package finance.votis.wallet.feature.onboarding.presentation
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import finance.votis.wallet.feature.onboarding.presentation.navigation.*
+import finance.votis.wallet.feature.onboarding.presentation.screen.account.AccountSelectionScreen
+import finance.votis.wallet.feature.onboarding.presentation.screen.username.UsernameChooserScreen
 
 /**
  * Main onboarding flow coordinator that manages the entire onboarding process

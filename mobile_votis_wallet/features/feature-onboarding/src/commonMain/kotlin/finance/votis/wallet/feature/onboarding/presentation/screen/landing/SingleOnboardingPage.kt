@@ -1,4 +1,4 @@
-package finance.votis.wallet.feature.onboarding
+package finance.votis.wallet.feature.onboarding.presentation.screen.landing
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -21,6 +21,7 @@ import kotlinx.coroutines.delay
 import mobilevotiswallet.features.feature_onboarding.generated.resources.*
 import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
 import org.jetbrains.compose.resources.stringResource
+import finance.votis.wallet.feature.onboarding.ui.components.LottieAnimationView
 
 /**
  * Single clean onboarding page that matches the exact design spec
