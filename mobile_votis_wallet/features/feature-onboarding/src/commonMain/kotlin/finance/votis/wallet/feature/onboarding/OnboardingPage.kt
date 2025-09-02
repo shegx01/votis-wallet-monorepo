@@ -2,9 +2,9 @@ package finance.votis.wallet.feature.onboarding
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import org.jetbrains.compose.resources.stringResource
-import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
 import mobilevotiswallet.features.feature_onboarding.generated.resources.*
+import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Represents a single page in the onboarding carousel

@@ -33,13 +33,14 @@ actual fun LottieAnimationView(
             val bundle = NSBundle.mainBundle
             val fileName = animationAsset.removeSuffix(".json")
             val filePath = bundle.pathForResource(fileName, "json")
-            
+
             if (filePath != null) {
-                val jsonString = NSString.stringWithContentsOfFile(
-                    filePath, 
-                    NSUTF8StringEncoding, 
-                    null
-                )
+                val jsonString =
+                    NSString.stringWithContentsOfFile(
+                        filePath,
+                        NSUTF8StringEncoding,
+                        null,
+                    )
                 if (jsonString != null) {
                     LottieCompositionSpec.JsonString(jsonString as String)
                 } else {
@@ -47,7 +48,7 @@ actual fun LottieAnimationView(
                     LottieCompositionSpec.JsonString("{}")
                 }
             } else {
-                // Return empty JSON as fallback to avoid null  
+                // Return empty JSON as fallback to avoid null
                 LottieCompositionSpec.JsonString("{}")
             }
         } catch (e: Exception) {
@@ -59,16 +60,17 @@ actual fun LottieAnimationView(
 
     if (composition != null) {
         // Create painter with infinite loop animation
-        val painter = rememberLottiePainter(
-            composition = composition,
-            iterations = Compottie.IterateForever
-        )
+        val painter =
+            rememberLottiePainter(
+                composition = composition,
+                iterations = Compottie.IterateForever,
+            )
 
         // Render the Lottie animation as an Image
         Image(
             painter = painter,
             contentDescription = "Animation: $animationAsset",
-            modifier = modifier
+            modifier = modifier,
         )
     } else {
         // Fallback to placeholder while loading or if file not found

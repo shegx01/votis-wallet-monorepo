@@ -23,12 +23,16 @@ actual fun LottieAnimationView(
 ) {
     // Get Android context for asset access
     val context = LocalContext.current
-    
-    // Create composition from Android assets  
+
+    // Create composition from Android assets
     val composition by rememberLottieComposition {
         try {
             // Read JSON content from Android assets
-            val jsonString = context.assets.open(animationAsset).bufferedReader().use { it.readText() }
+            val jsonString =
+                context.assets
+                    .open(animationAsset)
+                    .bufferedReader()
+                    .use { it.readText() }
             LottieCompositionSpec.JsonString(jsonString)
         } catch (e: Exception) {
             println("Failed to load Lottie animation from assets: $animationAsset - ${e.message}")
@@ -39,16 +43,17 @@ actual fun LottieAnimationView(
 
     if (composition != null) {
         // Create painter with infinite loop animation
-        val painter = rememberLottiePainter(
-            composition = composition,
-            iterations = Compottie.IterateForever
-        )
+        val painter =
+            rememberLottiePainter(
+                composition = composition,
+                iterations = Compottie.IterateForever,
+            )
 
         // Render the Lottie animation as an Image
         Image(
             painter = painter,
             contentDescription = "Animation: $animationAsset",
-            modifier = modifier
+            modifier = modifier,
         )
     } else {
         // Fallback to placeholder while loading or if file not found
