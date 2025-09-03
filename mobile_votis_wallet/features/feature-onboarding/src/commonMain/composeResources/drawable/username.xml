@@ -1,34 +1,25 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="146dp"
-    android:height="234dp"
-    android:viewportWidth="146"
-    android:viewportHeight="234">
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
     
-    <!-- Top geometric shape (Purple) -->
+    <!-- Simplified geometric shapes representing username concept -->
+    <!-- Large teal circle -->
     <path
-        android:pathData="M41.7497 89.6857C62.9071 78.1352 95.7063 97.4376 115.009 132.799C126.74 154.29 131.228 175.585 127.962 192.196C127.049 196.839 123.484 200.363 119.112 202.172C118.847 202.282 118.573 202.367 118.292 202.428L117.781 202.538C116.597 202.793 115.378 202.286 114.725 201.266L110.821 195.168L34.6742 101.143C33.5559 99.7623 33.2521 98.0091 33.6709 96.4352C34.0023 95.1901 34.786 94.0571 35.9766 93.3097L39.0075 91.4071C39.8816 90.7812 40.7956 90.2065 41.7497 89.6857Z"
+        android:pathData="M60,20 C80,20 100,40 100,60 C100,80 80,100 60,100 C40,100 20,80 20,60 C20,40 40,20 60,20 Z"
+        android:fillColor="#00B8B0"/>
+    
+    <!-- Smaller overlapping purple circle -->
+    <path
+        android:pathData="M75,35 C90,35 105,50 105,65 C105,80 90,95 75,95 C60,95 45,80 45,65 C45,50 60,35 75,35 Z"
         android:fillColor="#A66CFF"
-        android:strokeColor="#100F11"
-        android:strokeWidth="0.5"/>
-
-    <!-- Bottom geometric shape (Green) -->
-    <path
-        android:pathData="M108.04 137.157C88.7375 101.795 55.9384 82.4931 34.7809 94.0436C21.0198 101.556 15.5729 120.27 18.7574 142.166C19.3337 146.128 21.8503 149.5 25.3175 151.502L112.974 202.114C115.819 203.757 119.466 202.44 120.184 199.234C124.004 182.187 120.048 159.156 108.04 137.157Z"
-        android:fillColor="#D0F500"
-        android:strokeColor="#100F11"
-        android:strokeWidth="0.5"/>
-
-    <!-- Small top shape (Purple) -->
-    <path
-        android:pathData="M89.3579 33.5215C99.4638 52.0351 98.6763 71.9456 87.5991 77.993L80.4979 82.0931L79.1274 79.6949C68.9797 78.9341 57.0197 69.6666 49.2436 55.4211C41.8907 41.9509 40.3046 27.7412 44.2527 18.6697L42.6435 15.8539L50.2599 11.3853C50.502 11.233 50.7496 11.0877 51.0025 10.9496C62.0797 4.90221 79.2521 15.008 89.3579 33.5215Z"
-        android:fillColor="#A66CFF"
-        android:strokeColor="#100F11"
-        android:strokeWidth="0.5"/>
-
-    <!-- Small bottom shape (Green) -->
-    <path
-        android:pathData="M82.0923 37.7276C92.1982 56.2411 91.4107 76.1517 80.3334 82.1991C69.2562 88.2465 52.0838 78.1407 41.978 59.6272C31.8721 41.1137 32.6596 21.2031 43.7369 15.1557C54.8141 9.10826 71.9864 19.2141 82.0923 37.7276Z"
-        android:fillColor="#D0F500"
-        android:strokeColor="#100F11"
-        android:strokeWidth="0.5"/>
+        android:fillAlpha="0.8"/>
+        
+    <!-- Small accent dot -->
+    <circle
+        android:cx="40"
+        android:cy="45"
+        android:radius="8"
+        android:fillColor="#D0F500"/>
 </vector>
