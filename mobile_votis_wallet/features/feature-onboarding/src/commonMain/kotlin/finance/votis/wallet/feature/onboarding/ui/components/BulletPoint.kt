@@ -5,9 +5,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.graphics.Color
 import finance.votis.wallet.core.ui.theme.dimensions
-import finance.votis.wallet.core.ui.theme.votisColors
 import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
 import mobilevotiswallet.features.feature_onboarding.generated.resources.ic_check
 import mobilevotiswallet.features.feature_onboarding.generated.resources.username_check_icon_description
@@ -25,12 +24,12 @@ fun BulletPoint(
             modifier
                 .fillMaxWidth(),
         verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingMedium),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingXSmall),
     ) {
         Icon(
             painter = painterResource(Res.drawable.ic_check),
             contentDescription = stringResource(Res.string.username_check_icon_description),
-            tint = MaterialTheme.votisColors.brand,
+            tint = Color.Unspecified, // Preserve original colors from SVG
             modifier = Modifier.size(MaterialTheme.dimensions.iconSize),
         )
 

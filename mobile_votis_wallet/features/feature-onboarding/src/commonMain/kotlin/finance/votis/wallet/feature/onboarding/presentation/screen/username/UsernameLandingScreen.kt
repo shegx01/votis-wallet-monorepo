@@ -1,15 +1,19 @@
 package finance.votis.wallet.feature.onboarding.presentation.screen.username
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import finance.votis.wallet.core.ui.components.PrimaryButton
 import finance.votis.wallet.core.ui.theme.AppTheme
 import finance.votis.wallet.core.ui.theme.dimensions
@@ -49,15 +53,15 @@ fun UsernameLandingScreen(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingXLarge))
+            Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingLarge))
 
             UsernameLandingImage(
-                modifier = Modifier.padding(bottom = MaterialTheme.dimensions.spacingLarge),
+                modifier = Modifier.padding(bottom = MaterialTheme.dimensions.spacingMedium),
             )
 
             Text(
                 text = stringResource(Res.string.username_landing_headline),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -69,12 +73,23 @@ fun UsernameLandingScreen(
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.votisColors.greyText,
-                modifier = Modifier.padding(bottom = MaterialTheme.dimensions.spacingXLarge),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = MaterialTheme.dimensions.spacingLarge),
             )
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingLarge),
-                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.dimensions.spacingMedium),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(16.dp),
+                        ).padding(MaterialTheme.dimensions.spacingMedium),
             ) {
                 BulletPoint(text = stringResource(Res.string.username_bullet1))
                 BulletPoint(text = stringResource(Res.string.username_bullet2))

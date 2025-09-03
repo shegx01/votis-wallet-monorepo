@@ -13,7 +13,7 @@ object AppDimensions {
 
     // Component sizes
     val buttonHeight = 56.dp
-    val buttonCornerRadius = 28.dp
+    val buttonCornerRadius = 6.dp
     val iconSize = 24.dp
     val logoSize = 240.dp
 

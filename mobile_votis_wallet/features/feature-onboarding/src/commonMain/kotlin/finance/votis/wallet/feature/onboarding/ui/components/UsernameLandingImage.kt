@@ -21,13 +21,13 @@ fun UsernameLandingImage(modifier: Modifier = Modifier) {
         modifier =
             modifier
                 .fillMaxWidth()
-                .height(180.dp),
+                .height(240.dp),
         contentAlignment = Alignment.Center,
     ) {
         Image(
             painter = painterResource(Res.drawable.username),
             contentDescription = stringResource(Res.string.username_landing_image_description),
-            modifier = Modifier.size(120.dp),
+            modifier = Modifier.size(160.dp),
         )
     }
 }
