@@ -83,7 +83,7 @@ fun OnboardingFlow(
                 onCreateUsername = {
                     // TODO: Navigate to actual username creation flow
                     // For now, simulate username creation
-                    val username = "user_${System.currentTimeMillis()}"
+                    val username = "user_generated"
                     state =
                         state.copy(
                             selectedUsername = username,
@@ -191,7 +191,7 @@ fun SimpleOnboardingFlow(
                 onCreateUsername = {
                     // TODO: Navigate to actual username creation flow
                     // For now, simulate username creation
-                    val username = "user_${System.currentTimeMillis()}"
+                    val username = "user_generated"
                     state =
                         state.copy(
                             selectedUsername = username,
