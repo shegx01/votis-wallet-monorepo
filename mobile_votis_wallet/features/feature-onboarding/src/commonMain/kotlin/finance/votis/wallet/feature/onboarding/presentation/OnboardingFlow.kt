@@ -4,7 +4,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import finance.votis.wallet.feature.onboarding.presentation.navigation.*
 import finance.votis.wallet.feature.onboarding.presentation.screen.account.AccountSelectionScreen
-import finance.votis.wallet.feature.onboarding.presentation.screen.username.UsernameChooserScreen
+import finance.votis.wallet.feature.onboarding.presentation.screen.username.UsernameLandingScreen
 
 /**
  * Main onboarding flow coordinator that manages the entire onboarding process
@@ -47,7 +47,7 @@ fun OnboardingFlow(
                         state.copy(
                             oauthResult = mockOAuthResult,
                             hasCompletedAuth = true,
-                            currentRoute = OnboardingRoute.UsernameChooser,
+                            currentRoute = OnboardingRoute.UsernameLanding,
                         )
                 },
                 onAppleSignIn = {
@@ -71,23 +71,26 @@ fun OnboardingFlow(
                         state.copy(
                             oauthResult = mockOAuthResult,
                             hasCompletedAuth = true,
-                            currentRoute = OnboardingRoute.UsernameChooser,
+                            currentRoute = OnboardingRoute.UsernameLanding,
                         )
                 },
             )
         }
 
-        OnboardingRoute.UsernameChooser -> {
-            UsernameChooserScreen(
+        OnboardingRoute.UsernameLanding -> {
+            UsernameLandingScreen(
                 userInfo = state.oauthResult?.userInfo,
-                onUsernameSelected = { username ->
+                onCreateUsername = {
+                    // TODO: Navigate to actual username creation flow
+                    // For now, simulate username creation
+                    val username = "user_${System.currentTimeMillis()}"
                     state =
                         state.copy(
                             selectedUsername = username,
                             isCompleted = true,
                         )
 
-                    // Complete onboarding with the selected username
+                    // Complete onboarding with the created username
                     state.oauthResult?.let { oauthResult ->
                         onComplete(oauthResult, username)
                     }
@@ -99,12 +102,6 @@ fun OnboardingFlow(
                     state.oauthResult?.let { oauthResult ->
                         onComplete(oauthResult, null)
                     }
-                },
-                onBack = {
-                    state =
-                        state.copy(
-                            currentRoute = OnboardingRoute.AccountSelection,
-                        )
                 },
             )
         }
@@ -151,7 +148,7 @@ fun SimpleOnboardingFlow(
                             state.copy(
                                 oauthResult = mockOAuthResult,
                                 hasCompletedAuth = true,
-                                currentRoute = OnboardingRoute.UsernameChooser,
+                                currentRoute = OnboardingRoute.UsernameLanding,
                             )
                     } else {
                         // Existing user - complete immediately
@@ -178,7 +175,7 @@ fun SimpleOnboardingFlow(
                             state.copy(
                                 oauthResult = mockOAuthResult,
                                 hasCompletedAuth = true,
-                                currentRoute = OnboardingRoute.UsernameChooser,
+                                currentRoute = OnboardingRoute.UsernameLanding,
                             )
                     } else {
                         // Existing user - complete immediately
@@ -188,10 +185,13 @@ fun SimpleOnboardingFlow(
             )
         }
 
-        OnboardingRoute.UsernameChooser -> {
-            UsernameChooserScreen(
+        OnboardingRoute.UsernameLanding -> {
+            UsernameLandingScreen(
                 userInfo = state.oauthResult?.userInfo,
-                onUsernameSelected = { username ->
+                onCreateUsername = {
+                    // TODO: Navigate to actual username creation flow
+                    // For now, simulate username creation
+                    val username = "user_${System.currentTimeMillis()}"
                     state =
                         state.copy(
                             selectedUsername = username,
@@ -208,12 +208,6 @@ fun SimpleOnboardingFlow(
                     state.oauthResult?.let { oauthResult ->
                         onComplete(oauthResult, null)
                     }
-                },
-                onBack = {
-                    state =
-                        state.copy(
-                            currentRoute = OnboardingRoute.AccountSelection,
-                        )
                 },
             )
         }

@@ -32,7 +32,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun UsernameLandingScreen(
     userInfo: UserInfo? = null,
     onCreateUsername: () -> Unit = {},
-    onBack: () -> Unit = {},
+    onSkip: () -> Unit = {},
 ) {
     Column(
         modifier =
@@ -89,21 +89,6 @@ fun UsernameLandingScreen(
             modifier = Modifier.padding(vertical = MaterialTheme.dimensions.spacingLarge),
         )
     }
-}
-
-// Keep old function for backward compatibility during transition
-@Composable
-fun UsernameChooserScreen(
-    userInfo: UserInfo? = null,
-    onUsernameSelected: (String) -> Unit = {},
-    onSkip: () -> Unit = {},
-    onBack: () -> Unit = {},
-) {
-    UsernameLandingScreen(
-        userInfo = userInfo,
-        onCreateUsername = { onUsernameSelected("username") },
-        onBack = onBack,
-    )
 }
 
 @Preview

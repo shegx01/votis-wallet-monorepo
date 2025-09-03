@@ -8,7 +8,7 @@ sealed class OnboardingRoute(
 ) {
     data object AccountSelection : OnboardingRoute("onboarding_account_selection")
 
-    data object UsernameChooser : OnboardingRoute("onboarding_username_chooser")
+    data object UsernameLanding : OnboardingRoute("onboarding_username_landing")
 }
 
 /**
@@ -51,7 +51,7 @@ enum class AuthProvider {
 sealed class OnboardingAction {
     data object NavigateToAccountSelection : OnboardingAction()
 
-    data object NavigateToUsernameChooser : OnboardingAction()
+    data object NavigateToUsernameLanding : OnboardingAction()
 
     data object NavigateToHome : OnboardingAction()
 
