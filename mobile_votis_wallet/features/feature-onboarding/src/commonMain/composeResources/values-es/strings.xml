@@ -34,4 +34,15 @@
     <!-- Page 3: Asset Control -->
     <string name="onboarding_page3_headline">Posee, controla y administra</string>
     <string name="onboarding_page3_subtitle">tus activos de forma segura</string>
+    
+    <!-- Username Landing Screen -->
+    <string name="username_landing_headline">Crea tu @nombre de usuario único</string>
+    <string name="username_landing_subtitle">No más direcciones de billetera largas. Envía y recibe criptomonedas en múltiples redes con solo un nombre.</string>
+    <string name="username_bullet1">Usa tu @nombre de usuario en lugar de direcciones de billetera largas.</string>
+    <string name="username_bullet2">Solo di "Envíalo a @joseph".</string>
+    <string name="username_bullet3">Tu @nombre de usuario se convierte en tu marca en billeteras, aplicaciones y comunidades.</string>
+    <string name="username_bullet4">Desbloquea un perfil personalizado y futuras herramientas sociales de billetera vinculadas a tu @identificador</string>
+    <string name="username_create_button">Crear nombre de usuario</string>
+    <string name="username_landing_image_description">Ilustración geométrica de página de nombre de usuario</string>
+    <string name="username_check_icon_description">Marca de verificación de característica</string>
 </resources>

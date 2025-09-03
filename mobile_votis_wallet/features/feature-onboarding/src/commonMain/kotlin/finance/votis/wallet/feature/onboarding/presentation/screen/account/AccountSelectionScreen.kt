@@ -1,5 +1,10 @@
 package finance.votis.wallet.feature.onboarding.presentation.screen.account
-
+// From the response from apple signin, if the account already exists, we'll
+// navigate to home screen. If the account doesn't exist, we'll navigate to usernameLandingScreen page
+// From there, the user can continue the flow of adding username to their account
+// or skipping it altogether.
+// NEXT STEP Let's update our username folder, delete the existing UsernameChooserScreen
+// and implement UsernameLandingScreen.
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
@@ -19,6 +24,8 @@ import finance.votis.wallet.core.ui.theme.AppTheme
 import finance.votis.wallet.core.ui.theme.dimensions
 import finance.votis.wallet.core.ui.theme.votisColors
 import finance.votis.wallet.core.ui.utils.PlatformUtils
+import finance.votis.wallet.feature.onboarding.presentation.screen.landing.OnboardingPages
+import finance.votis.wallet.feature.onboarding.presentation.screen.landing.SingleOnboardingPage
 import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
 import mobilevotiswallet.features.feature_onboarding.generated.resources.continue_with_apple
 import mobilevotiswallet.features.feature_onboarding.generated.resources.continue_with_google
@@ -33,8 +40,6 @@ import mobilevotiswallet.features.feature_onboarding.generated.resources.terms_u
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import finance.votis.wallet.feature.onboarding.presentation.screen.landing.SingleOnboardingPage
-import finance.votis.wallet.feature.onboarding.presentation.screen.landing.OnboardingPages
 
 @Composable
 fun AccountSelectionScreen(

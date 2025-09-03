@@ -17,11 +17,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import finance.votis.wallet.core.ui.theme.dimensions
 import finance.votis.wallet.core.ui.theme.votisColors
+import finance.votis.wallet.feature.onboarding.ui.components.LottieAnimationView
 import kotlinx.coroutines.delay
 import mobilevotiswallet.features.feature_onboarding.generated.resources.*
 import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
 import org.jetbrains.compose.resources.stringResource
-import finance.votis.wallet.feature.onboarding.ui.components.LottieAnimationView
 
 /**
  * Single clean onboarding page that matches the exact design spec
