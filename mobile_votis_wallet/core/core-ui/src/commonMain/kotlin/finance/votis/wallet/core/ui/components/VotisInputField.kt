@@ -1,5 +1,11 @@
 package finance.votis.wallet.core.ui.components
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -11,18 +17,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import finance.votis.wallet.core.ui.theme.AppTheme
 import finance.votis.wallet.core.ui.theme.dimensions
 import finance.votis.wallet.core.ui.theme.votisColors
-import org.jetbrains.compose.ui.tooling.preview.Preview
+
+/**
+ * Validation states for input fields
+ */
+enum class ValidationState {
+    IDLE,
+    VALIDATING,
+    VALID,
+    ERROR,
+}
 
 /**
  * A reusable input field component with Votis branding and theme support.
@@ -36,6 +53,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
  * @param error Optional error message to display
  * @param enabled Whether the field is enabled
  * @param isLoading Whether to show loading state
+ * @param validationState Current validation state
+ * @param statusMessage Optional status message to display
+ * @param validatingIcon Optional icon for validating state
+ * @param validIcon Optional icon for valid state
+ * @param errorIcon Optional icon for error state
  * @param singleLine Whether this is a single line field
  * @param keyboardType Type of keyboard to show
  * @param imeAction IME action for the keyboard
@@ -54,6 +76,11 @@ fun VotisInputField(
     error: String? = null,
     enabled: Boolean = true,
     isLoading: Boolean = false,
+    validationState: ValidationState = ValidationState.IDLE,
+    statusMessage: String? = null,
+    validatingIcon: Painter? = null,
+    validIcon: Painter? = null,
+    errorIcon: Painter? = null,
     singleLine: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Default,
@@ -156,111 +183,91 @@ fun VotisInputField(
                 }
             }
 
-            // Loading indicator
-            if (isLoading) {
-                CircularProgressIndicator(
-                    color = MaterialTheme.votisColors.brand,
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.size(16.dp),
-                )
+            // No validation indicator inside the input field
+            // Icons will be shown below with status messages
+        }
+
+        // Status message or error message with icons below the input field
+        when {
+            hasError -> {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = MaterialTheme.dimensions.spacingSmall),
+                ) {
+                    if (errorIcon != null) {
+                        Icon(
+                            painter = errorIcon,
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
-        }
+            statusMessage != null -> {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = MaterialTheme.dimensions.spacingSmall),
+                ) {
+                    val icon =
+                        when (validationState) {
+                            ValidationState.VALIDATING -> validatingIcon
+                            ValidationState.VALID -> validIcon
+                            else -> null
+                        }
 
-        // Error message
-        if (hasError) {
-            Text(
-                text = error!!,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = MaterialTheme.dimensions.spacingSmall),
-            )
-        }
-    }
-}
+                    if (icon != null) {
+                        // Rotation animation for loading state
+                        val infiniteTransition = rememberInfiniteTransition(label = "loadingRotation")
+                        val rotation by infiniteTransition.animateFloat(
+                            initialValue = 0f,
+                            targetValue = 360f,
+                            animationSpec =
+                                infiniteRepeatable(
+                                    animation = tween(1000, easing = LinearEasing),
+                                    repeatMode = RepeatMode.Restart,
+                                ),
+                            label = "rotation",
+                        )
 
-@Preview
-@Composable
-fun VotisInputFieldPreview() {
-    AppTheme {
-        Column(
-            modifier =
-                Modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            VotisInputField(
-                value = "",
-                onValueChange = {},
-                label = "Username",
-                placeholder = "Enter your username",
-                leadingText = "@",
-            )
-
-            VotisInputField(
-                value = "john_doe",
-                onValueChange = {},
-                label = "Username",
-                placeholder = "Enter your username",
-                leadingText = "@",
-            )
-
-            VotisInputField(
-                value = "john_doe",
-                onValueChange = {},
-                label = "Username",
-                placeholder = "Enter your username",
-                leadingText = "@",
-                error = "This username is already taken",
-            )
-
-            VotisInputField(
-                value = "checking",
-                onValueChange = {},
-                label = "Username",
-                placeholder = "Enter your username",
-                leadingText = "@",
-                isLoading = true,
-            )
-        }
-    }
-
-    @Preview
-    @Composable
-    fun VotisInputFieldDarkPreview() {
-        AppTheme(darkTheme = true) {
-            Column(
-                modifier =
-                    Modifier
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                VotisInputField(
-                    value = "",
-                    onValueChange = {},
-                    label = "Username",
-                    placeholder = "Enter your username",
-                    leadingText = "@",
-                )
-
-                VotisInputField(
-                    value = "john_doe",
-                    onValueChange = {},
-                    label = "Username",
-                    placeholder = "Enter your username",
-                    leadingText = "@",
-                )
-
-                VotisInputField(
-                    value = "john_doe",
-                    onValueChange = {},
-                    label = "Username",
-                    placeholder = "Enter your username",
-                    leadingText = "@",
-                    error = "This username is already taken",
-                )
+                        Icon(
+                            painter = icon,
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier =
+                                Modifier
+                                    .size(16.dp)
+                                    .then(
+                                        if (validationState == ValidationState.VALIDATING) {
+                                            Modifier.rotate(rotation)
+                                        } else {
+                                            Modifier
+                                        },
+                                    ),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Text(
+                        text = statusMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color =
+                            when (validationState) {
+                                ValidationState.VALIDATING -> MaterialTheme.votisColors.greyText
+                                ValidationState.VALID -> Color(0xFF34C759) // Green
+                                else -> MaterialTheme.votisColors.greyText
+                            },
+                    )
+                }
             }
         }
     }
 }
+
+// Preview functions removed to avoid theme dependency issues
+// Will be added back in the feature module where AppTheme is available

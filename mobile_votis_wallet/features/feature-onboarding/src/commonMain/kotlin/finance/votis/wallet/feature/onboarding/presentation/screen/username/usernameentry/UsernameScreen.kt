@@ -14,11 +14,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import finance.votis.wallet.core.ui.components.PrimaryButton
+import finance.votis.wallet.core.ui.components.ValidationState
 import finance.votis.wallet.core.ui.components.VotisInputField
 import finance.votis.wallet.core.ui.theme.AppTheme
 import finance.votis.wallet.core.ui.theme.dimensions
 import finance.votis.wallet.core.ui.theme.votisColors
 import mobilevotiswallet.features.feature_onboarding.generated.resources.Res
+import mobilevotiswallet.features.feature_onboarding.generated.resources.ic_username_error
+import mobilevotiswallet.features.feature_onboarding.generated.resources.ic_username_loading
+import mobilevotiswallet.features.feature_onboarding.generated.resources.ic_username_success
 import mobilevotiswallet.features.feature_onboarding.generated.resources.username_continue_button
 import mobilevotiswallet.features.feature_onboarding.generated.resources.username_entry_label
 import mobilevotiswallet.features.feature_onboarding.generated.resources.username_entry_placeholder
@@ -27,9 +31,12 @@ import mobilevotiswallet.features.feature_onboarding.generated.resources.usernam
 import mobilevotiswallet.features.feature_onboarding.generated.resources.username_error_invalid_chars
 import mobilevotiswallet.features.feature_onboarding.generated.resources.username_error_network
 import mobilevotiswallet.features.feature_onboarding.generated.resources.username_error_starts_underscore
-import mobilevotiswallet.features.feature_onboarding.generated.resources.username_error_taken
 import mobilevotiswallet.features.feature_onboarding.generated.resources.username_error_too_long
 import mobilevotiswallet.features.feature_onboarding.generated.resources.username_error_too_short
+import mobilevotiswallet.features.feature_onboarding.generated.resources.username_status_available
+import mobilevotiswallet.features.feature_onboarding.generated.resources.username_status_checking
+import mobilevotiswallet.features.feature_onboarding.generated.resources.username_status_unavailable
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -131,7 +138,11 @@ private fun UsernameScreenContent(
                 placeholder = stringResource(Res.string.username_entry_placeholder),
                 leadingText = "@",
                 error = state.error?.let { mapErrorToString(it) },
-                isLoading = state.showLoadingIndicator,
+                validationState = mapToValidationState(state),
+                statusMessage = mapToStatusMessage(state),
+                validatingIcon = painterResource(Res.drawable.ic_username_loading),
+                validIcon = painterResource(Res.drawable.ic_username_success),
+                errorIcon = painterResource(Res.drawable.ic_username_error),
                 imeAction = ImeAction.Done,
                 keyboardActions =
                     KeyboardActions(
@@ -162,9 +173,26 @@ private fun mapErrorToString(error: UsernameError): String =
         is UsernameError.TooLong -> stringResource(Res.string.username_error_too_long)
         is UsernameError.InvalidCharacters -> stringResource(Res.string.username_error_invalid_chars)
         is UsernameError.StartsWithUnderscore -> stringResource(Res.string.username_error_starts_underscore)
-        is UsernameError.AlreadyTaken -> stringResource(Res.string.username_error_taken)
+        is UsernameError.AlreadyTaken -> stringResource(Res.string.username_status_unavailable)
         is UsernameError.NetworkError -> stringResource(Res.string.username_error_network)
         is UsernameError.Unknown -> error.message
+    }
+
+private fun mapToValidationState(state: UsernameState): ValidationState =
+    when {
+        state.isValidating -> ValidationState.VALIDATING
+        state.hasError -> ValidationState.ERROR
+        state.isUsernameValid -> ValidationState.VALID
+        else -> ValidationState.IDLE
+    }
+
+@Composable
+private fun mapToStatusMessage(state: UsernameState): String? =
+    when {
+        state.isValidating -> stringResource(Res.string.username_status_checking)
+        state.isUsernameValid -> stringResource(Res.string.username_status_available)
+        state.hasError && state.error is UsernameError.AlreadyTaken -> null // Show as error, not status
+        else -> null
     }
 
 @Preview

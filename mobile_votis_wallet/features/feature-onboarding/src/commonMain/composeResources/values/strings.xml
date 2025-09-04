@@ -60,4 +60,9 @@
     <string name="username_error_starts_underscore">Username cannot start with an underscore</string>
     <string name="username_error_taken">This username is already taken</string>
     <string name="username_error_network">Unable to check username availability. Please try again.</string>
+    
+    <!-- Username Status Messages -->
+    <string name="username_status_checking">Checking whether this username is available...</string>
+    <string name="username_status_unavailable">Username unavailable</string>
+    <string name="username_status_available">Username available</string>
 </resources>

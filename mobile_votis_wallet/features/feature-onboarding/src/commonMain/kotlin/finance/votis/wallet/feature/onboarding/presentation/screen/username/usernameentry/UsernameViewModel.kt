@@ -40,6 +40,7 @@ class UsernameViewModel(
                 error = null,
                 isUsernameValid = false,
                 canContinue = false,
+                isValidating = username.isNotBlank(), // Start loading immediately if username is not empty
             )
         }
 
@@ -51,6 +52,11 @@ class UsernameViewModel(
                     delay(500) // Wait for user to stop typing
                     validateUsername(username)
                 }
+        } else {
+            // Clear loading state if username is empty
+            updateState {
+                copy(isValidating = false)
+            }
         }
     }
 

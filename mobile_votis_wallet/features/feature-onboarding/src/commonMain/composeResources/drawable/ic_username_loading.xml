@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="16"
+    android:viewportHeight="16">
+    <!-- Outer circle background -->
+    <path
+        android:fillColor="#E5E5E5"
+        android:pathData="M8,1C11.866,1 15,4.134 15,8C15,11.866 11.866,15 8,15C4.134,15 1,11.866 1,8C1,4.134 4.134,1 8,1ZM8,2.5C4.962,2.5 2.5,4.962 2.5,8C2.5,11.038 4.962,13.5 8,13.5C11.038,13.5 13.5,11.038 13.5,8C13.5,4.962 11.038,2.5 8,2.5Z" />
+    <!-- Progress arc -->
+    <path
+        android:fillColor="#007AFF"
+        android:pathData="M8,1A7,7 0 0,1 14.124,4.124L13.006,5.242A5.5,5.5 0 0,0 8,2.5V1Z" />
+</vector>
