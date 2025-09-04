@@ -45,4 +45,19 @@
     <string name="username_create_button">Create username</string>
     <string name="username_landing_image_description">Username landing geometric illustration</string>
     <string name="username_check_icon_description">Feature checkmark</string>
+    
+    <!-- Username Entry Screen -->
+    <string name="username_entry_title">Create your unique @username</string>
+    <string name="username_entry_subtitle">Your unique name for your Votis account</string>
+    <string name="username_entry_label">Enter a username</string>
+    <string name="username_entry_placeholder">Enter your username</string>
+    <string name="username_continue_button">Continue</string>
+    
+    <!-- Username Validation Errors -->
+    <string name="username_error_too_short">Username must be at least 3 characters</string>
+    <string name="username_error_too_long">Username must be 20 characters or less</string>
+    <string name="username_error_invalid_chars">Username can only contain letters, numbers, and underscores</string>
+    <string name="username_error_starts_underscore">Username cannot start with an underscore</string>
+    <string name="username_error_taken">This username is already taken</string>
+    <string name="username_error_network">Unable to check username availability. Please try again.</string>
 </resources>

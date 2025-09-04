@@ -2,9 +2,12 @@ package finance.votis.wallet.feature.onboarding.presentation
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import finance.votis.wallet.core.domain.usecase.ValidateUsernameUseCase
 import finance.votis.wallet.feature.onboarding.presentation.navigation.*
 import finance.votis.wallet.feature.onboarding.presentation.screen.account.AccountSelectionScreen
 import finance.votis.wallet.feature.onboarding.presentation.screen.username.UsernameLandingScreen
+import finance.votis.wallet.feature.onboarding.presentation.screen.username.usernameentry.UsernameScreen
+import finance.votis.wallet.feature.onboarding.presentation.screen.username.usernameentry.UsernameViewModel
 
 /**
  * Main onboarding flow coordinator that manages the entire onboarding process
@@ -81,9 +84,24 @@ fun OnboardingFlow(
             UsernameLandingScreen(
                 userInfo = state.oauthResult?.userInfo,
                 onCreateUsername = {
-                    // TODO: Navigate to actual username creation flow
-                    // For now, simulate username creation
-                    val username = "user_generated"
+                    state = state.copy(currentRoute = OnboardingRoute.UsernameEntry)
+                },
+                onSkip = {
+                    state = state.copy(isCompleted = true)
+
+                    // Complete onboarding without username
+                    state.oauthResult?.let { oauthResult ->
+                        onComplete(oauthResult, null)
+                    }
+                },
+            )
+        }
+
+        OnboardingRoute.UsernameEntry -> {
+            val viewModel = remember { UsernameViewModel(ValidateUsernameUseCase()) }
+            UsernameScreen(
+                viewModel = viewModel,
+                onNavigateNext = { username ->
                     state =
                         state.copy(
                             selectedUsername = username,
@@ -95,13 +113,8 @@ fun OnboardingFlow(
                         onComplete(oauthResult, username)
                     }
                 },
-                onSkip = {
-                    state = state.copy(isCompleted = true)
-
-                    // Complete onboarding without username
-                    state.oauthResult?.let { oauthResult ->
-                        onComplete(oauthResult, null)
-                    }
+                onNavigateBack = {
+                    state = state.copy(currentRoute = OnboardingRoute.UsernameLanding)
                 },
             )
         }
@@ -189,9 +202,23 @@ fun SimpleOnboardingFlow(
             UsernameLandingScreen(
                 userInfo = state.oauthResult?.userInfo,
                 onCreateUsername = {
-                    // TODO: Navigate to actual username creation flow
-                    // For now, simulate username creation
-                    val username = "user_generated"
+                    state = state.copy(currentRoute = OnboardingRoute.UsernameEntry)
+                },
+                onSkip = {
+                    state = state.copy(isCompleted = true)
+
+                    state.oauthResult?.let { oauthResult ->
+                        onComplete(oauthResult, null)
+                    }
+                },
+            )
+        }
+
+        OnboardingRoute.UsernameEntry -> {
+            val viewModel = remember { UsernameViewModel(ValidateUsernameUseCase()) }
+            UsernameScreen(
+                viewModel = viewModel,
+                onNavigateNext = { username ->
                     state =
                         state.copy(
                             selectedUsername = username,
@@ -202,12 +229,8 @@ fun SimpleOnboardingFlow(
                         onComplete(oauthResult, username)
                     }
                 },
-                onSkip = {
-                    state = state.copy(isCompleted = true)
-
-                    state.oauthResult?.let { oauthResult ->
-                        onComplete(oauthResult, null)
-                    }
+                onNavigateBack = {
+                    state = state.copy(currentRoute = OnboardingRoute.UsernameLanding)
                 },
             )
         }

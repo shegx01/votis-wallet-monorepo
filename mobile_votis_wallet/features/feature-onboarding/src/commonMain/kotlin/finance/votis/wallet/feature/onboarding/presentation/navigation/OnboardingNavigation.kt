@@ -9,6 +9,8 @@ sealed class OnboardingRoute(
     data object AccountSelection : OnboardingRoute("onboarding_account_selection")
 
     data object UsernameLanding : OnboardingRoute("onboarding_username_landing")
+
+    data object UsernameEntry : OnboardingRoute("onboarding_username_entry")
 }
 
 /**
@@ -52,6 +54,8 @@ sealed class OnboardingAction {
     data object NavigateToAccountSelection : OnboardingAction()
 
     data object NavigateToUsernameLanding : OnboardingAction()
+
+    data object NavigateToUsernameEntry : OnboardingAction()
 
     data object NavigateToHome : OnboardingAction()
 
