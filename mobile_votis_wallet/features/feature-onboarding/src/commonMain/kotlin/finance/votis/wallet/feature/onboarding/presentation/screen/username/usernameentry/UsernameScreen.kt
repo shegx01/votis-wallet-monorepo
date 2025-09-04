@@ -93,63 +93,64 @@ private fun UsernameScreenContent(
                 .padding(horizontal = MaterialTheme.dimensions.screenHorizontalPadding)
                 .safeContentPadding()
                 .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingLarge))
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingLarge))
 
-        // Title and subtitle
-        Text(
-            text = stringResource(Res.string.username_entry_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = MaterialTheme.dimensions.spacingSmall),
-        )
+            // Title and subtitle
+            Text(
+                text = stringResource(Res.string.username_entry_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(bottom = MaterialTheme.dimensions.spacingMedium),
+            )
 
-        Text(
-            text = stringResource(Res.string.username_entry_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.votisColors.greyText,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = MaterialTheme.dimensions.spacingXLarge),
-        )
+            Text(
+                text = stringResource(Res.string.username_entry_subtitle),
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.votisColors.greyText,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = MaterialTheme.dimensions.spacingLarge),
+            )
 
-        // Username input field
-        VotisInputField(
-            value = state.username,
-            onValueChange = onUsernameChanged,
-            label = stringResource(Res.string.username_entry_label),
-            placeholder = stringResource(Res.string.username_entry_placeholder),
-            leadingText = "@",
-            error = state.error?.let { mapErrorToString(it) },
-            isLoading = state.showLoadingIndicator,
-            imeAction = ImeAction.Done,
-            keyboardActions =
-                KeyboardActions(
-                    onDone = {
-                        if (state.canContinue) {
-                            onContinueClicked()
-                        }
-                    },
-                ),
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
+            // Username input field
+            VotisInputField(
+                value = state.username,
+                onValueChange = onUsernameChanged,
+                label = stringResource(Res.string.username_entry_label),
+                placeholder = stringResource(Res.string.username_entry_placeholder),
+                leadingText = "@",
+                error = state.error?.let { mapErrorToString(it) },
+                isLoading = state.showLoadingIndicator,
+                imeAction = ImeAction.Done,
+                keyboardActions =
+                    KeyboardActions(
+                        onDone = {
+                            if (state.canContinue) {
+                                onContinueClicked()
+                            }
+                        },
+                    ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
 
         // Continue button
         PrimaryButton(
             text = stringResource(Res.string.username_continue_button),
             onClick = onContinueClicked,
             enabled = state.canContinue && !state.showLoadingIndicator,
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = MaterialTheme.dimensions.spacingLarge),
+            modifier = Modifier.padding(vertical = MaterialTheme.dimensions.spacingLarge),
         )
     }
 }
