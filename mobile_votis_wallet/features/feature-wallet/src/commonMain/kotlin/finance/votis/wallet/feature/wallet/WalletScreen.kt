@@ -122,7 +122,7 @@ private fun WalletContent(username: String?) {
                     selectedTimePeriod = it
                     isDropdownExpanded = false
                 },
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 80.dp),
             )
         }
 
@@ -265,57 +265,64 @@ private fun BalanceDisplaySection(
 
         // Price change and time period in a row
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Price change amount
-            Text(
-                text = priceChangeText,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color =
-                    if (isPriceChangePositive) {
-                        androidx.compose.ui.graphics
-                            .Color(0xFF00C851) // Green color like in design
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    },
-            )
+            // Center the content within the row
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Price change amount
+                Text(
+                    text = priceChangeText,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color =
+                        if (isPriceChangePositive) {
+                            androidx.compose.ui.graphics
+                                .Color(0xFF00C851) // Green color like in design
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        },
+                )
 
-            // Price change percentage with light green background
-            Text(
-                text = priceChangePercent,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color =
-                    if (isPriceChangePositive) {
-                        androidx.compose.ui.graphics
-                            .Color(0xFF00C851) // Green color like in design
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    },
-                modifier =
-                    Modifier
-                        .background(
-                            color =
-                                if (isPriceChangePositive) {
-                                    androidx.compose.ui.graphics
-                                        .Color(0xFF00C851)
-                                        .copy(alpha = 0.1f)
-                                } else {
-                                    MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
-                                },
-                            shape = RoundedCornerShape(8.dp),
-                        ).padding(horizontal = 8.dp, vertical = 4.dp),
-            )
+                // Price change percentage with light green background
+                Text(
+                    text = priceChangePercent,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color =
+                        if (isPriceChangePositive) {
+                            androidx.compose.ui.graphics
+                                .Color(0xFF00C851) // Green color like in design
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        },
+                    modifier =
+                        Modifier
+                            .background(
+                                color =
+                                    if (isPriceChangePositive) {
+                                        androidx.compose.ui.graphics
+                                            .Color(0xFF00C851)
+                                            .copy(alpha = 0.1f)
+                                    } else {
+                                        MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                                    },
+                                shape = RoundedCornerShape(8.dp),
+                            ).padding(horizontal = 8.dp, vertical = 4.dp),
+                )
 
-            // Time period dropdown
-            TimeDropdown(
-                selectedPeriod = selectedTimePeriod,
-                isExpanded = isDropdownExpanded,
-                onToggle = onToggleDropdown,
-                onPeriodSelected = onTimePeriodSelected,
-            )
+                // Time period dropdown
+                TimeDropdown(
+                    selectedPeriod = selectedTimePeriod,
+                    isExpanded = isDropdownExpanded,
+                    onToggle = onToggleDropdown,
+                    onPeriodSelected = onTimePeriodSelected,
+                )
+            }
         }
     }
 }
