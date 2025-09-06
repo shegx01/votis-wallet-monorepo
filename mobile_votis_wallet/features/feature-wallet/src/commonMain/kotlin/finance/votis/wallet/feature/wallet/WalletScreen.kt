@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,9 +29,11 @@ import finance.votis.wallet.core.domain.model.ContactUser
 import finance.votis.wallet.core.domain.model.TimePeriod
 import finance.votis.wallet.feature.wallet.presentation.components.ActionButtonRow
 import finance.votis.wallet.feature.wallet.presentation.components.AssetTabs
+import finance.votis.wallet.feature.wallet.presentation.components.BottomNavTab
 import finance.votis.wallet.feature.wallet.presentation.components.FrequentSendCarousel
 import finance.votis.wallet.feature.wallet.presentation.components.TimeDropdown
 import finance.votis.wallet.feature.wallet.presentation.components.TokenList
+import finance.votis.wallet.feature.wallet.presentation.components.WalletBottomNavigation
 import finance.votis.wallet.feature.wallet.presentation.components.WalletHeader
 import finance.votis.wallet.feature.wallet.presentation.components.getMockTokenBalances
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
@@ -38,7 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Main wallet home screen showing balance, actions, and transactions.
- * This is a simplified version for initial navigation testing.
+ * Features complete bottom navigation with 5 tabs: Home, Exchange, Transactions, Browser, Settings.
  * TODO: Integrate with full MVI architecture and ViewModel.
  */
 @Composable
@@ -46,13 +50,36 @@ fun WalletScreen(
     username: String? = null,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-    ) {
-        WalletContent(username = username)
+    // Bottom navigation state
+    var selectedBottomNavTab by remember { mutableStateOf(BottomNavTab.HOME) }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        bottomBar = {
+            WalletBottomNavigation(
+                selectedTab = selectedBottomNavTab,
+                onTabSelected = { tab ->
+                    selectedBottomNavTab = tab
+                    // TODO: Handle navigation based on selected tab
+                },
+            )
+        },
+    ) { paddingValues ->
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(paddingValues),
+        ) {
+            when (selectedBottomNavTab) {
+                BottomNavTab.HOME -> WalletContent(username = username)
+                BottomNavTab.EXCHANGE -> PlaceholderScreen("Exchange", "Exchange features coming soon")
+                BottomNavTab.TRANSACTIONS -> PlaceholderScreen("Transactions", "Transaction history coming soon")
+                BottomNavTab.BROWSER -> PlaceholderScreen("Browser", "DApp browser coming soon")
+                BottomNavTab.SETTINGS -> PlaceholderScreen("Settings", "Settings panel coming soon")
+            }
+        }
     }
 }
 
@@ -232,7 +259,7 @@ private fun BalanceDisplaySection(
                     },
             )
 
-            // Price change percentage
+            // Price change percentage with light green background
             Text(
                 text = priceChangePercent,
                 fontSize = 16.sp,
@@ -244,6 +271,19 @@ private fun BalanceDisplaySection(
                     } else {
                         MaterialTheme.colorScheme.error
                     },
+                modifier =
+                    Modifier
+                        .background(
+                            color =
+                                if (isPriceChangePositive) {
+                                    androidx.compose.ui.graphics
+                                        .Color(0xFF00C851)
+                                        .copy(alpha = 0.1f)
+                                } else {
+                                    MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                                },
+                            shape = RoundedCornerShape(8.dp),
+                        ).padding(horizontal = 8.dp, vertical = 4.dp),
             )
 
             // Time period dropdown
@@ -254,5 +294,39 @@ private fun BalanceDisplaySection(
                 onPeriodSelected = onTimePeriodSelected,
             )
         }
+    }
+}
+
+/**
+ * Placeholder screen for tabs that are not yet implemented
+ */
+@Composable
+private fun PlaceholderScreen(
+    title: String,
+    message: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = title,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = message,
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

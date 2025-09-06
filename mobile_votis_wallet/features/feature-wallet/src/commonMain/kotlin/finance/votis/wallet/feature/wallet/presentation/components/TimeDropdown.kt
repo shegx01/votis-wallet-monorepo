@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -64,24 +63,27 @@ fun TimeDropdown(
                     ).clip(RoundedCornerShape(12.dp)),
         ) {
             TimePeriod.values().forEach { period ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = stringResource(getTimePeriodStringResource(period)),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color =
-                                if (period == selectedPeriod) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface
-                                },
-                        )
-                    },
-                    onClick = {
-                        onPeriodSelected(period)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null, // Remove material ripple
+                                onClick = { onPeriodSelected(period) },
+                            ).padding(horizontal = 16.dp, vertical = 12.dp),
+                ) {
+                    Text(
+                        text = stringResource(getTimePeriodStringResource(period)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color =
+                            if (period == selectedPeriod) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
+                    )
+                }
             }
         }
     }
