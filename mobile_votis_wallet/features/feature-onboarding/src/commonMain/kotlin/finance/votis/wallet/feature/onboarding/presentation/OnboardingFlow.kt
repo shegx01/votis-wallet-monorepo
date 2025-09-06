@@ -8,6 +8,7 @@ import finance.votis.wallet.feature.onboarding.presentation.screen.account.Accou
 import finance.votis.wallet.feature.onboarding.presentation.screen.username.UsernameLandingScreen
 import finance.votis.wallet.feature.onboarding.presentation.screen.username.usernameentry.UsernameScreen
 import finance.votis.wallet.feature.onboarding.presentation.screen.username.usernameentry.UsernameViewModel
+import finance.votis.wallet.feature.wallet.WalletScreen
 
 /**
  * Main onboarding flow coordinator that manages the entire onboarding process
@@ -105,17 +106,18 @@ fun OnboardingFlow(
                     state =
                         state.copy(
                             selectedUsername = username,
-                            isCompleted = true,
+                            currentRoute = OnboardingRoute.WalletHome,
                         )
-
-                    // Complete onboarding with the created username
-                    state.oauthResult?.let { oauthResult ->
-                        onComplete(oauthResult, username)
-                    }
                 },
                 onNavigateBack = {
                     state = state.copy(currentRoute = OnboardingRoute.UsernameLanding)
                 },
+            )
+        }
+
+        OnboardingRoute.WalletHome -> {
+            WalletScreen(
+                username = state.selectedUsername,
             )
         }
     }
@@ -222,16 +224,18 @@ fun SimpleOnboardingFlow(
                     state =
                         state.copy(
                             selectedUsername = username,
-                            isCompleted = true,
+                            currentRoute = OnboardingRoute.WalletHome,
                         )
-
-                    state.oauthResult?.let { oauthResult ->
-                        onComplete(oauthResult, username)
-                    }
                 },
                 onNavigateBack = {
                     state = state.copy(currentRoute = OnboardingRoute.UsernameLanding)
                 },
+            )
+        }
+
+        OnboardingRoute.WalletHome -> {
+            WalletScreen(
+                username = state.selectedUsername,
             )
         }
     }

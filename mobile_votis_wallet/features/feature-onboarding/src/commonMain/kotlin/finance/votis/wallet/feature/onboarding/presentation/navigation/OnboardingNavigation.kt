@@ -11,6 +11,8 @@ sealed class OnboardingRoute(
     data object UsernameLanding : OnboardingRoute("onboarding_username_landing")
 
     data object UsernameEntry : OnboardingRoute("onboarding_username_entry")
+
+    data object WalletHome : OnboardingRoute("wallet_home")
 }
 
 /**

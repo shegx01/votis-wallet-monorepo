@@ -1,0 +1,81 @@
+<resources>
+    <!-- Home Screen Title -->
+    <string name="home_screen_title">Wallet Home</string>
+    
+    <!-- User Info -->
+    <string name="user_handle_prefix">@%1$s</string>
+    
+    <!-- Balance Section -->
+    <string name="total_balance_label">Total Balance</string>
+    <string name="balance_amount">$%1$s</string>
+    <string name="balance_change_positive">+$%1$s +%2$s%%</string>
+    <string name="balance_change_negative">-$%1$s -%2$s%%</string>
+    <string name="balance_change_neutral">$%1$s %2$s%%</string>
+    
+    <!-- Time Period Options -->
+    <string name="time_period_1h">1H</string>
+    <string name="time_period_24h">24H</string>
+    <string name="time_period_7d">7D</string>
+    <string name="time_period_30d">30D</string>
+    <string name="time_period_1y">1Y</string>
+    
+    <!-- Action Buttons -->
+    <string name="action_receive">Receive</string>
+    <string name="action_send">Send</string>
+    <string name="action_swap">Swap</string>
+    <string name="action_buy_sell">Buy/Sell</string>
+    
+    <!-- Frequent Send Section -->
+    <string name="frequent_send_title">Frequent send</string>
+    <string name="frequent_contacts_empty">No frequent contacts yet</string>
+    
+    <!-- Asset Tabs -->
+    <string name="tab_tokens">Tokens</string>
+    <string name="tab_nfts">NFTs</string>
+    <string name="tab_approvals">Approvals</string>
+    <string name="tab_tokens_count">Tokens (%1$d)</string>
+    <string name="tab_nfts_count">NFTs (%1$d)</string>
+    <string name="tab_approvals_count">Approvals (%1$d)</string>
+    
+    <!-- Asset List -->
+    <string name="total_assets_label">Total assets</string>
+    <string name="total_assets_amount">$%1$s</string>
+    <string name="asset_balance_amount">%1$s %2$s</string>
+    <string name="asset_usd_value">$%1$s</string>
+    <string name="asset_price_change">%1$s%%</string>
+    
+    <!-- Contact Display -->
+    <string name="contact_username_format">@%1$s</string>
+    <string name="contact_display_name">%1$s</string>
+    
+    <!-- Empty States -->
+    <string name="no_tokens_message">No tokens yet</string>
+    <string name="no_nfts_message">No NFTs yet</string>
+    <string name="no_approvals_message">No approvals yet</string>
+    <string name="empty_state_subtitle">Your %1$s will appear here</string>
+    
+    <!-- Content Descriptions -->
+    <string name="balance_dropdown_description">Time period selector</string>
+    <string name="contact_avatar_description">Contact avatar</string>
+    <string name="token_logo_description">%1$s token logo</string>
+    <string name="action_button_description">%1$s action</string>
+    <string name="asset_filter_description">Filter by %1$s</string>
+    
+    <!-- Error Messages -->
+    <string name="balance_load_error">Failed to load balance</string>
+    <string name="transactions_load_error">Failed to load transactions</string>
+    <string name="contacts_load_error">Failed to load contacts</string>
+    <string name="retry_button">Retry</string>
+    
+    <!-- Loading States -->
+    <string name="loading_balance">Loading balance...</string>
+    <string name="loading_transactions">Loading transactions...</string>
+    <string name="loading_contacts">Loading contacts...</string>
+    
+    <!-- Navigation -->
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_exchange">Exchange</string>
+    <string name="bottom_nav_transactions">Transactions</string>
+    <string name="bottom_nav_browser">Browser</string>
+    <string name="bottom_nav_settings">Settings</string>
+</resources>

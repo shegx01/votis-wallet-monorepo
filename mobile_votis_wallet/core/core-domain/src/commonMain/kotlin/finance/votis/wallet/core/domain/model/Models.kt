@@ -110,3 +110,57 @@ data class AuthSession(
     val userId: String,
     val walletId: String,
 )
+
+@Serializable
+data class ContactUser(
+    val id: String,
+    val username: String,
+    val walletAddress: String,
+    val avatarUrl: String? = null,
+    val displayName: String? = null,
+    val lastTransactionAt: Instant? = null,
+    val transactionCount: Int = 0,
+)
+
+@Serializable
+enum class TimePeriod(
+    val displayName: String,
+    val value: String,
+) {
+    ONE_HOUR("1H", "1h"),
+    TWENTY_FOUR_HOURS("24H", "24h"),
+    SEVEN_DAYS("7D", "7d"),
+    THIRTY_DAYS("30D", "30d"),
+    ONE_YEAR("1Y", "1y"),
+}
+
+@Serializable
+data class PriceChange(
+    val amount: String,
+    val percentage: String,
+    val isPositive: Boolean,
+    val period: TimePeriod,
+)
+
+@Serializable
+data class WalletOverview(
+    val balance: Balance,
+    val priceChange: PriceChange?,
+    val recentTransactions: List<Transaction>,
+    val frequentContacts: List<ContactUser>,
+)
+
+@Serializable
+data class AssetTab(
+    val type: AssetType,
+    val count: Int,
+)
+
+@Serializable
+enum class AssetType(
+    val displayName: String,
+) {
+    TOKENS("Tokens"),
+    NFTS("NFTs"),
+    APPROVALS("Approvals"),
+}

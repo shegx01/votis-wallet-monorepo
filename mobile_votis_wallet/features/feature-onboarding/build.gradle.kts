@@ -36,6 +36,9 @@ kotlin {
             implementation(projects.core.coreDomain)
             implementation(projects.core.coreCommon)
 
+            // Feature dependencies
+            implementation(projects.features.featureWallet)
+
             // Compose dependencies
             implementation(compose.runtime)
             implementation(compose.foundation)
