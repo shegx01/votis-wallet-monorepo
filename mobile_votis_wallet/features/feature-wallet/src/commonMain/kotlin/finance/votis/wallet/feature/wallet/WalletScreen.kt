@@ -96,7 +96,6 @@ private fun WalletContent(username: String?) {
     val totalBalanceValue = stringResource(Res.string.mock_total_balance)
 
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(0.dp),
         modifier = Modifier,
     ) {
         // Header with user handle and action icons - matching exact design spacing
@@ -123,7 +122,7 @@ private fun WalletContent(username: String?) {
                     selectedTimePeriod = it
                     isDropdownExpanded = false
                 },
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 32.dp),
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             )
         }
 
@@ -262,7 +261,7 @@ private fun BalanceDisplaySection(
             lineHeight = 56.sp,
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Price change and time period in a row
         Row(

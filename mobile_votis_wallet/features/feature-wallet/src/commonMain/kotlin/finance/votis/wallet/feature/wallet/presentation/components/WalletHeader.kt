@@ -54,11 +54,11 @@ fun WalletHeader(
     Column(
         modifier = modifier.fillMaxWidth(),
     ) {
-        // Safe area spacing for status bar
+        // Safe area spacing for status bar with minimal additional padding
         Spacer(
             modifier =
                 Modifier.height(
-                    WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
+                    WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 4.dp,
                 ),
         )
 
@@ -66,7 +66,7 @@ fun WalletHeader(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
