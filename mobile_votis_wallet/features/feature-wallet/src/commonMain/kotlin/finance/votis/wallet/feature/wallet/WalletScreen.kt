@@ -3,24 +3,32 @@ package finance.votis.wallet.feature.wallet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import finance.votis.wallet.core.domain.model.AssetType
 import finance.votis.wallet.core.domain.model.ContactUser
 import finance.votis.wallet.core.domain.model.TimePeriod
 import finance.votis.wallet.feature.wallet.presentation.components.ActionButtonRow
 import finance.votis.wallet.feature.wallet.presentation.components.AssetTabs
-import finance.votis.wallet.feature.wallet.presentation.components.BalanceCard
 import finance.votis.wallet.feature.wallet.presentation.components.FrequentSendCarousel
+import finance.votis.wallet.feature.wallet.presentation.components.TimeDropdown
 import finance.votis.wallet.feature.wallet.presentation.components.TokenList
 import finance.votis.wallet.feature.wallet.presentation.components.WalletHeader
 import finance.votis.wallet.feature.wallet.presentation.components.getMockTokenBalances
@@ -42,8 +50,7 @@ fun WalletScreen(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp),
+                .background(MaterialTheme.colorScheme.background),
     ) {
         WalletContent(username = username)
     }
@@ -62,23 +69,24 @@ private fun WalletContent(username: String?) {
     val totalBalanceValue = stringResource(Res.string.mock_total_balance)
 
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+        modifier = Modifier,
     ) {
-        // Header with user handle and action icons
+        // Header with user handle and action icons - matching exact design spacing
         item {
             WalletHeader(
-                username = username ?: "user",
+                username = username ?: "shegx01",
                 onQrScanClick = { /* TODO: Implement QR scan */ },
                 onSearchClick = { /* TODO: Implement search */ },
             )
         }
 
-        // Balance Card
+        // Balance display - large centered layout like in design
         item {
-            BalanceCard(
-                balanceAmount = totalBalanceValue,
-                priceChangeText = "+$1,234.56 +2.41%",
+            BalanceDisplaySection(
+                balanceAmount = "$17,200",
+                priceChangeText = "+$233",
+                priceChangePercent = "+3%",
                 isPriceChangePositive = true,
                 selectedTimePeriod = selectedTimePeriod,
                 isDropdownExpanded = isDropdownExpanded,
@@ -87,6 +95,7 @@ private fun WalletContent(username: String?) {
                     selectedTimePeriod = it
                     isDropdownExpanded = false
                 },
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 32.dp),
             )
         }
 
@@ -97,6 +106,7 @@ private fun WalletContent(username: String?) {
                 onSendClicked = { /* TODO: Navigate to send */ },
                 onSwapClicked = { /* TODO: Navigate to swap */ },
                 onBuySellClicked = { /* TODO: Navigate to buy/sell */ },
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
             )
         }
 
@@ -107,6 +117,7 @@ private fun WalletContent(username: String?) {
                 onContactClick = { contact ->
                     // TODO: Navigate to send with pre-filled contact
                 },
+                modifier = Modifier.padding(vertical = 16.dp),
             )
         }
 
@@ -118,6 +129,7 @@ private fun WalletContent(username: String?) {
                 tokenCount = mockTokenBalances.size,
                 nftCount = 0, // Mock data
                 approvalsCount = 0, // Mock data
+                modifier = Modifier.padding(vertical = 16.dp),
             )
         }
 
@@ -130,6 +142,7 @@ private fun WalletContent(username: String?) {
                     onTokenClick = { tokenBalance ->
                         // TODO: Navigate to token details
                     },
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
         }
@@ -167,3 +180,78 @@ private fun getMockFrequentContacts(): List<ContactUser> =
             displayName = "Diana",
         ),
     )
+
+/**
+ * Balance display section that matches the exact design from the image.
+ * Shows large centered balance with price change and time period selector.
+ */
+@Composable
+private fun BalanceDisplaySection(
+    balanceAmount: String,
+    priceChangeText: String,
+    priceChangePercent: String,
+    isPriceChangePositive: Boolean,
+    selectedTimePeriod: TimePeriod,
+    isDropdownExpanded: Boolean,
+    onToggleDropdown: () -> Unit,
+    onTimePeriodSelected: (TimePeriod) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // Large balance amount - matching design typography
+        Text(
+            text = balanceAmount,
+            fontSize = 48.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            lineHeight = 56.sp,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Price change and time period in a row
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Price change amount
+            Text(
+                text = priceChangeText,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color =
+                    if (isPriceChangePositive) {
+                        androidx.compose.ui.graphics
+                            .Color(0xFF00C851) // Green color like in design
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+            )
+
+            // Price change percentage
+            Text(
+                text = priceChangePercent,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color =
+                    if (isPriceChangePositive) {
+                        androidx.compose.ui.graphics
+                            .Color(0xFF00C851) // Green color like in design
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+            )
+
+            // Time period dropdown
+            TimeDropdown(
+                selectedPeriod = selectedTimePeriod,
+                isExpanded = isDropdownExpanded,
+                onToggle = onToggleDropdown,
+                onPeriodSelected = onTimePeriodSelected,
+            )
+        }
+    }
+}
