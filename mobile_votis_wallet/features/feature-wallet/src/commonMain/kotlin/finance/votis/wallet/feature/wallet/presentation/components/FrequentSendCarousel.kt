@@ -23,10 +23,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import finance.votis.wallet.core.domain.model.ContactUser
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
-import mobilevotiswallet.features.feature_wallet.generated.resources.contact_angel_lubin
-import mobilevotiswallet.features.feature_wallet.generated.resources.contact_ann_baptista
-import mobilevotiswallet.features.feature_wallet.generated.resources.contact_craig_septimus
-import mobilevotiswallet.features.feature_wallet.generated.resources.contact_makenna_t
 import mobilevotiswallet.features.feature_wallet.generated.resources.frequent_send_title
 import org.jetbrains.compose.resources.stringResource
 
@@ -137,35 +133,3 @@ private fun getContactInitials(name: String): String =
     } catch (e: Exception) {
         "U" // Safe fallback for any conversion issues
     }
-
-/**
- * Creates mock frequent contacts data matching the original design
- */
-@Composable
-fun getMockFrequentContacts(): List<ContactUser> =
-    listOf(
-        ContactUser(
-            id = "1",
-            username = "angel_lubin",
-            walletAddress = "0x1234...5678",
-            displayName = stringResource(Res.string.contact_angel_lubin),
-        ),
-        ContactUser(
-            id = "2",
-            username = "ann_baptista",
-            walletAddress = "0x2345...6789",
-            displayName = stringResource(Res.string.contact_ann_baptista),
-        ),
-        ContactUser(
-            id = "3",
-            username = "makenna_t",
-            walletAddress = "0x3456...7890",
-            displayName = stringResource(Res.string.contact_makenna_t),
-        ),
-        ContactUser(
-            id = "4",
-            username = "craig_septimus",
-            walletAddress = "0x4567...8901",
-            displayName = stringResource(Res.string.contact_craig_septimus),
-        ),
-    )

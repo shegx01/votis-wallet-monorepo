@@ -35,7 +35,6 @@ import mobilevotiswallet.features.feature_wallet.generated.resources.action_sear
 import mobilevotiswallet.features.feature_wallet.generated.resources.ic_copy
 import mobilevotiswallet.features.feature_wallet.generated.resources.ic_qr_scan
 import mobilevotiswallet.features.feature_wallet.generated.resources.ic_search
-import mobilevotiswallet.features.feature_wallet.generated.resources.user_handle_prefix
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -88,7 +87,7 @@ fun WalletHeader(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = stringResource(Res.string.user_handle_prefix, username),
+                        text = "@$username", // Direct string concatenation to avoid resource issues
                         fontSize = 16.sp, // Smaller typography as requested
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onBackground,

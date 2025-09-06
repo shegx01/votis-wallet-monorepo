@@ -74,11 +74,6 @@
     <string name="contact_username_format">@%1$s</string>
     <string name="contact_display_name">%1$s</string>
     
-    <!-- Contact Names (for frequent send) -->
-    <string name="contact_angel_lubin">Angel Lubin</string>
-    <string name="contact_ann_baptista">Ann Baptista</string>
-    <string name="contact_makenna_t">Makenna T</string>
-    <string name="contact_craig_septimus">Craig Septimus</string>
     
     <!-- Empty States -->
     <string name="no_tokens_message">No tokens yet</string>
