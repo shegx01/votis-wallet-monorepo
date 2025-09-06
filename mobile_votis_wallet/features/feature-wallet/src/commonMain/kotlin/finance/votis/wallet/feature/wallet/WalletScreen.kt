@@ -78,6 +78,7 @@ private fun WalletContent(username: String?) {
                 username = username ?: "shegx01",
                 onQrScanClick = { /* TODO: Implement QR scan */ },
                 onSearchClick = { /* TODO: Implement search */ },
+                onCopyUsernameClick = { /* TODO: Implement copy username */ },
             )
         }
 
