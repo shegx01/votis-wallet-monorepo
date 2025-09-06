@@ -19,25 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import finance.votis.wallet.core.domain.model.Token
 import finance.votis.wallet.core.domain.model.TokenBalance
-import mobilevotiswallet.features.feature_wallet.generated.resources.Res
-import mobilevotiswallet.features.feature_wallet.generated.resources.mock_btc_amount
-import mobilevotiswallet.features.feature_wallet.generated.resources.mock_btc_change
-import mobilevotiswallet.features.feature_wallet.generated.resources.mock_btc_value
-import mobilevotiswallet.features.feature_wallet.generated.resources.mock_eth_amount
-import mobilevotiswallet.features.feature_wallet.generated.resources.mock_eth_change
-import mobilevotiswallet.features.feature_wallet.generated.resources.mock_eth_value
-import mobilevotiswallet.features.feature_wallet.generated.resources.mock_sol_amount
-import mobilevotiswallet.features.feature_wallet.generated.resources.mock_sol_change
-import mobilevotiswallet.features.feature_wallet.generated.resources.mock_sol_value
-import mobilevotiswallet.features.feature_wallet.generated.resources.token_bitcoin
-import mobilevotiswallet.features.feature_wallet.generated.resources.token_ethereum
-import mobilevotiswallet.features.feature_wallet.generated.resources.token_solana
-import mobilevotiswallet.features.feature_wallet.generated.resources.token_symbol_btc
-import mobilevotiswallet.features.feature_wallet.generated.resources.token_symbol_eth
-import mobilevotiswallet.features.feature_wallet.generated.resources.token_symbol_sol
-import mobilevotiswallet.features.feature_wallet.generated.resources.total_assets_amount
-import mobilevotiswallet.features.feature_wallet.generated.resources.total_assets_label
-import org.jetbrains.compose.resources.stringResource
 
 /**
  * Component showing the token list with total assets and individual token balances.
@@ -64,14 +45,14 @@ fun TokenList(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(Res.string.total_assets_label),
+                text = "Total assets",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground,
             )
 
             Text(
-                text = stringResource(Res.string.total_assets_amount, totalAssetsValue),
+                text = "\$$totalAssetsValue",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -189,49 +170,48 @@ private fun TokenAvatar(
     }
 }
 
-@Composable
 private fun getMockPriceChange(symbol: String): String =
     when (symbol) {
-        "BTC" -> stringResource(Res.string.mock_btc_change)
-        "ETH" -> stringResource(Res.string.mock_eth_change)
-        "SOL" -> stringResource(Res.string.mock_sol_change)
+        "BTC" -> "+2.35%"
+        "ETH" -> "+1.58%"
+        "SOL" -> "+4.21%"
         else -> "+0.0%"
     }
 
 /**
  * Creates mock token balance data matching the original design
+ * Using hardcoded values to avoid iOS Compose Resources Base64 decoding issues
  */
-@Composable
 fun getMockTokenBalances(): List<TokenBalance> =
     listOf(
         TokenBalance(
             token =
                 Token(
-                    symbol = stringResource(Res.string.token_symbol_btc),
-                    name = stringResource(Res.string.token_bitcoin),
+                    symbol = "BTC",
+                    name = "Bitcoin",
                     decimals = 8,
                 ),
-            amount = stringResource(Res.string.mock_btc_amount),
-            usdValue = stringResource(Res.string.mock_btc_value),
+            amount = "0.32586 BTC",
+            usdValue = "\$21,256.78",
         ),
         TokenBalance(
             token =
                 Token(
-                    symbol = stringResource(Res.string.token_symbol_eth),
-                    name = stringResource(Res.string.token_ethereum),
+                    symbol = "ETH",
+                    name = "Ethereum",
                     decimals = 18,
                 ),
-            amount = stringResource(Res.string.mock_eth_amount),
-            usdValue = stringResource(Res.string.mock_eth_value),
+            amount = "8.25941 ETH",
+            usdValue = "\$18,456.32",
         ),
         TokenBalance(
             token =
                 Token(
-                    symbol = stringResource(Res.string.token_symbol_sol),
-                    name = stringResource(Res.string.token_solana),
+                    symbol = "SOL",
+                    name = "Solana",
                     decimals = 9,
                 ),
-            amount = stringResource(Res.string.mock_sol_amount),
-            usdValue = stringResource(Res.string.mock_sol_value),
+            amount = "154.672 SOL",
+            usdValue = "\$12,847.69",
         ),
     )
