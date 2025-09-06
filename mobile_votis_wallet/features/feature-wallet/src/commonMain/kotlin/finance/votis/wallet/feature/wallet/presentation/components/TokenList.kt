@@ -3,12 +3,17 @@ package finance.votis.wallet.feature.wallet.presentation.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import finance.votis.wallet.core.domain.model.Token
 import finance.votis.wallet.core.domain.model.TokenBalance
+import mobilevotiswallet.features.feature_wallet.generated.resources.Res
+import mobilevotiswallet.features.feature_wallet.generated.resources.ic_tune
+import org.jetbrains.compose.resources.painterResource
 
 /**
  * Component showing the token list with total assets and individual token balances.
@@ -35,32 +43,48 @@ fun TokenList(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Total assets header
+        // Total assets header with filter
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
+                    .padding(horizontal = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "Total assets",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+            Column {
+                Text(
+                    text = "Filter Assets",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
 
-            Text(
-                text = "\$$totalAssetsValue",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
+                Spacer(modifier = Modifier.height(4.dp))
+
+//                Text(
+//                    text = totalAssetsValue,
+//                    style = MaterialTheme.typography.headlineMedium,
+//                    fontWeight = FontWeight.Bold,
+//                    color = MaterialTheme.colorScheme.onBackground,
+//                )
+            }
+
+            IconButton(
+                onClick = { /* TODO: Implement filter */ },
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_tune),
+                    contentDescription = "Filter assets",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
 
         // Token list
-        Column {
+        Column(
+            modifier = Modifier.padding(top = 8.dp),
+        ) {
             tokenBalances.forEach { tokenBalance ->
                 TokenListItem(
                     tokenBalance = tokenBalance,

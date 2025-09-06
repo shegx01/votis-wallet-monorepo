@@ -160,7 +160,7 @@ data class AssetTab(
 enum class AssetType(
     val displayName: String,
 ) {
-    TOKENS("Tokens"),
+    TOKENS("Assets"),
     NFTS("NFTs"),
     APPROVALS("Approvals"),
 }

@@ -68,7 +68,7 @@
     <string name="mock_sol_change">+4.21%</string>
     
     <!-- Total Balance -->
-    <string name="mock_total_balance">$52,560.79</string>
+    <string name="mock_total_balance">$11,200</string>
     
     <!-- Contact Display -->
     <string name="contact_username_format">@%1$s</string>
