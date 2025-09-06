@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,6 +47,7 @@ fun ActionButtonRow(
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         ActionButton(
             icon = painterResource(Res.drawable.ic_qr_code),
@@ -92,19 +93,19 @@ private fun ActionButton(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null, // Remove material ripple
                     onClick = onClick,
-                ).padding(8.dp),
+                ).padding(vertical = 8.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Icon background
+        // Circular icon background - matching the design
         Column(
             modifier =
                 Modifier
-                    .size(56.dp)
+                    .size(64.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(28.dp),
-                    ).clip(RoundedCornerShape(28.dp)),
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = CircleShape,
+                    ).clip(CircleShape),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -112,15 +113,15 @@ private fun ActionButton(
                 painter = icon,
                 contentDescription = label,
                 tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(28.dp),
             )
         }
 
-        // Label
+        // Label with proper typography
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
             maxLines = 1,
         )
