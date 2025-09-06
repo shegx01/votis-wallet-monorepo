@@ -24,22 +24,25 @@ actual fun LottieAnimationView(
     // Get Android context for asset access
     val context = LocalContext.current
 
-    // Create composition from Android assets
-    val composition by rememberLottieComposition {
-        try {
-            // Read JSON content from Android assets
-            val jsonString =
-                context.assets
-                    .open(animationAsset)
-                    .bufferedReader()
-                    .use { it.readText() }
-            LottieCompositionSpec.JsonString(jsonString)
-        } catch (e: Exception) {
-            println("Failed to load Lottie animation from assets: $animationAsset - ${e.message}")
-            // Return empty JSON as fallback to avoid null
-            LottieCompositionSpec.JsonString("{}")
-        }
-    }
+    // Create composition from Android assets - keyed by animationAsset to enable cycling
+    val composition by rememberLottieComposition(
+        key = animationAsset,
+        spec = {
+            try {
+                // Read JSON content from Android assets
+                val jsonString =
+                    context.assets
+                        .open(animationAsset)
+                        .bufferedReader()
+                        .use { it.readText() }
+                LottieCompositionSpec.JsonString(jsonString)
+            } catch (e: Exception) {
+                println("Failed to load Lottie animation from assets: $animationAsset - ${e.message}")
+                // Return empty JSON as fallback to avoid null
+                LottieCompositionSpec.JsonString("{}")
+            }
+        },
+    )
 
     if (composition != null) {
         // Create painter with infinite loop animation

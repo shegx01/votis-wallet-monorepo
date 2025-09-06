@@ -26,37 +26,40 @@ actual fun LottieAnimationView(
     modifier: Modifier,
     size: Dp,
 ) {
-    // Create composition from iOS bundle resources
-    val composition by rememberLottieComposition {
-        try {
-            // Load JSON file from iOS app bundle
-            val bundle = NSBundle.mainBundle
-            val fileName = animationAsset.removeSuffix(".json")
-            val filePath = bundle.pathForResource(fileName, "json")
+    // Create composition from iOS bundle resources - keyed by animationAsset to enable cycling
+    val composition by rememberLottieComposition(
+        key = animationAsset,
+        spec = {
+            try {
+                // Load JSON file from iOS app bundle
+                val bundle = NSBundle.mainBundle
+                val fileName = animationAsset.removeSuffix(".json")
+                val filePath = bundle.pathForResource(fileName, "json")
 
-            if (filePath != null) {
-                val jsonString =
-                    NSString.stringWithContentsOfFile(
-                        filePath,
-                        NSUTF8StringEncoding,
-                        null,
-                    )
-                if (jsonString != null) {
-                    LottieCompositionSpec.JsonString(jsonString as String)
+                if (filePath != null) {
+                    val jsonString =
+                        NSString.stringWithContentsOfFile(
+                            filePath,
+                            NSUTF8StringEncoding,
+                            null,
+                        )
+                    if (jsonString != null) {
+                        LottieCompositionSpec.JsonString(jsonString as String)
+                    } else {
+                        // Return empty JSON as fallback to avoid null
+                        LottieCompositionSpec.JsonString("{}")
+                    }
                 } else {
                     // Return empty JSON as fallback to avoid null
                     LottieCompositionSpec.JsonString("{}")
                 }
-            } else {
+            } catch (e: Exception) {
+                println("Failed to load Lottie animation: $animationAsset - ${e.message}")
                 // Return empty JSON as fallback to avoid null
                 LottieCompositionSpec.JsonString("{}")
             }
-        } catch (e: Exception) {
-            println("Failed to load Lottie animation: $animationAsset - ${e.message}")
-            // Return empty JSON as fallback to avoid null
-            LottieCompositionSpec.JsonString("{}")
-        }
-    }
+        },
+    )
 
     if (composition != null) {
         // Create painter with infinite loop animation
