@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -93,19 +93,19 @@ private fun ActionButton(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null, // Remove material ripple
                     onClick = onClick,
-                ).padding(vertical = 8.dp, horizontal = 4.dp),
+                ).padding(vertical = 8.dp, horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Circular icon background - matching the design
+        // Rounded rectangle icon background - matching the design image
         Column(
             modifier =
                 Modifier
                     .size(64.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = CircleShape,
-                    ).clip(CircleShape),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(16.dp),
+                    ).clip(RoundedCornerShape(16.dp)),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -113,7 +113,7 @@ private fun ActionButton(
                 painter = icon,
                 contentDescription = label,
                 tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(24.dp),
             )
         }
 
