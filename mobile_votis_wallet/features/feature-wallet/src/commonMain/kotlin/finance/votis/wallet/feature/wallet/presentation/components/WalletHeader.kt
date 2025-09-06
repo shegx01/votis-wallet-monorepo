@@ -193,10 +193,22 @@ private fun UserAvatar(
 
 /**
  * Get initials from username for avatar display
+ * Safely handles special characters by filtering to letters only
  */
-private fun getInitials(username: String): String =
-    if (username.isNotEmpty()) {
-        username.take(2).uppercase()
-    } else {
-        "U"
+private fun getInitials(username: String): String {
+    return try {
+        if (username.isEmpty()) return "U"
+
+        // Filter to letters only to avoid issues with special characters
+        val lettersOnly = username.filter { it.isLetter() }
+
+        when {
+            lettersOnly.length >= 2 -> lettersOnly.take(2).uppercase()
+            lettersOnly.length == 1 -> lettersOnly.uppercase()
+            else -> "U" // Default when no letters found
+        }
+    } catch (e: Exception) {
+        // Safe fallback in case of any uppercase conversion issues
+        "SH" // For shegx01 case
     }
+}
