@@ -1,5 +1,6 @@
 package finance.votis.wallet.feature.wallet.presentation.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -60,7 +61,12 @@ fun FrequentSendCarousel(
             ),
         elevation =
             CardDefaults.cardElevation(
-                defaultElevation = 1.dp,
+                defaultElevation = 0.dp,
+            ),
+        border =
+            BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
             ),
         shape = RoundedCornerShape(12.dp),
     ) {
