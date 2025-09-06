@@ -95,82 +95,86 @@ private fun WalletContent(username: String?) {
     val mockTokenBalances = getMockTokenBalances()
     val totalBalanceValue = stringResource(Res.string.mock_total_balance)
 
-    LazyColumn(
-        modifier = Modifier,
+    Column(
+        modifier = Modifier.fillMaxSize(),
     ) {
-        // Header with user handle and action icons - matching exact design spacing
-        item {
-            WalletHeader(
-                username = username ?: "shegx01",
-                onQrScanClick = { /* TODO: Implement QR scan */ },
-                onSearchClick = { /* TODO: Implement search */ },
-                onCopyUsernameClick = { /* TODO: Implement copy username */ },
-            )
-        }
+        // Sticky Header
+        WalletHeader(
+            username = username ?: "shegx01",
+            onQrScanClick = { /* TODO: Implement QR scan */ },
+            onSearchClick = { /* TODO: Implement search */ },
+            onCopyUsernameClick = { /* TODO: Implement copy username */ },
+            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        )
 
-        // Balance display - large centered layout like in design
-        item {
-            BalanceDisplaySection(
-                balanceAmount = "$1,170,200.03",
-                priceChangeText = "+$233",
-                priceChangePercent = "+3%",
-                isPriceChangePositive = true,
-                selectedTimePeriod = selectedTimePeriod,
-                isDropdownExpanded = isDropdownExpanded,
-                onToggleDropdown = { isDropdownExpanded = !isDropdownExpanded },
-                onTimePeriodSelected = {
-                    selectedTimePeriod = it
-                    isDropdownExpanded = false
-                },
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 80.dp),
-            )
-        }
-
-        // Action buttons
-        item {
-            ActionButtonRow(
-                onReceiveClicked = { /* TODO: Navigate to receive */ },
-                onSendClicked = { /* TODO: Navigate to send */ },
-                onSwapClicked = { /* TODO: Navigate to swap */ },
-                onBuySellClicked = { /* TODO: Navigate to buy/sell */ },
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-            )
-        }
-
-        // Frequent Send Carousel - now in card format
-        item {
-            FrequentSendCarousel(
-                contacts = mockContacts,
-                onContactClick = { contact ->
-                    // TODO: Navigate to send with pre-filled contact
-                },
-                modifier = Modifier.padding(vertical = 16.dp),
-            )
-        }
-
-        // Asset Tabs
-        item {
-            AssetTabs(
-                selectedTab = selectedAssetType,
-                onTabSelected = { selectedAssetType = it },
-                tokenCount = mockTokenBalances.size,
-                nftCount = 0, // Mock data
-                approvalsCount = 0, // Mock data
-                modifier = Modifier.padding(vertical = 16.dp),
-            )
-        }
-
-        // Token List (only shown when TOKENS tab is selected)
-        if (selectedAssetType == AssetType.TOKENS) {
+        // Scrollable content
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            // Balance display - large centered layout like in design
             item {
-                TokenList(
-                    tokenBalances = mockTokenBalances,
-                    totalAssetsValue = totalBalanceValue,
-                    onTokenClick = { tokenBalance ->
-                        // TODO: Navigate to token details
+                BalanceDisplaySection(
+                    balanceAmount = "$1,170,200.03",
+                    priceChangeText = "+$233",
+                    priceChangePercent = "+3%",
+                    isPriceChangePositive = true,
+                    selectedTimePeriod = selectedTimePeriod,
+                    isDropdownExpanded = isDropdownExpanded,
+                    onToggleDropdown = { isDropdownExpanded = !isDropdownExpanded },
+                    onTimePeriodSelected = {
+                        selectedTimePeriod = it
+                        isDropdownExpanded = false
                     },
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 64.dp),
                 )
+            }
+
+            // Action buttons
+            item {
+                ActionButtonRow(
+                    onReceiveClicked = { /* TODO: Navigate to receive */ },
+                    onSendClicked = { /* TODO: Navigate to send */ },
+                    onSwapClicked = { /* TODO: Navigate to swap */ },
+                    onBuySellClicked = { /* TODO: Navigate to buy/sell */ },
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                )
+            }
+
+            // Frequent Send Carousel - now in card format
+            item {
+                FrequentSendCarousel(
+                    contacts = mockContacts,
+                    onContactClick = { contact ->
+                        // TODO: Navigate to send with pre-filled contact
+                    },
+                    modifier = Modifier.padding(vertical = 16.dp),
+                )
+            }
+
+            // Asset Tabs
+            item {
+                AssetTabs(
+                    selectedTab = selectedAssetType,
+                    onTabSelected = { selectedAssetType = it },
+                    tokenCount = mockTokenBalances.size,
+                    nftCount = 0, // Mock data
+                    approvalsCount = 0, // Mock data
+                    modifier = Modifier.padding(vertical = 16.dp),
+                )
+            }
+
+            // Token List (only shown when TOKENS tab is selected)
+            if (selectedAssetType == AssetType.TOKENS) {
+                item {
+                    TokenList(
+                        tokenBalances = mockTokenBalances,
+                        totalAssetsValue = totalBalanceValue,
+                        onTokenClick = { tokenBalance ->
+                            // TODO: Navigate to token details
+                        },
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
             }
         }
     }
