@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import finance.votis.wallet.core.domain.model.ContactUser
+import finance.votis.wallet.feature.wallet.presentation.design.WalletDesignSystem
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.frequent_send_title
 import org.jetbrains.compose.resources.stringResource
@@ -57,7 +58,7 @@ fun FrequentSendCarousel(
                 .wrapContentHeight(),
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = WalletDesignSystem.surfaceContainer(),
             ),
         elevation =
             CardDefaults.cardElevation(
@@ -66,7 +67,7 @@ fun FrequentSendCarousel(
         border =
             BorderStroke(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                color = WalletDesignSystem.subtleBorder(),
             ),
         shape = RoundedCornerShape(12.dp),
     ) {

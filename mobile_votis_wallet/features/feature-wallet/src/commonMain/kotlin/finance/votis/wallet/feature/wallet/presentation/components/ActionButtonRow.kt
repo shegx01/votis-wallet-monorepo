@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import finance.votis.wallet.feature.wallet.presentation.design.WalletDesignSystem
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.action_buy_sell
 import mobilevotiswallet.features.feature_wallet.generated.resources.action_receive
@@ -103,7 +104,7 @@ private fun ActionButton(
                 Modifier
                     .size(64.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        color = WalletDesignSystem.surfaceContainer(),
                         shape = RoundedCornerShape(16.dp),
                     ).clip(RoundedCornerShape(16.dp)),
             horizontalAlignment = Alignment.CenterHorizontally,
