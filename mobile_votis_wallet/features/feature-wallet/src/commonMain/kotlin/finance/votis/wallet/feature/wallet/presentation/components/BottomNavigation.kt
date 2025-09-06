@@ -1,17 +1,29 @@
 package finance.votis.wallet.feature.wallet.presentation.components
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import finance.votis.wallet.core.ui.theme.primaryDark
+import finance.votis.wallet.core.ui.theme.primaryLight
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.bottom_nav_browser
 import mobilevotiswallet.features.feature_wallet.generated.resources.bottom_nav_exchange
@@ -38,8 +50,8 @@ enum class BottomNavTab {
 }
 
 /**
- * Bottom navigation bar component matching the original design exactly.
- * Features 5 tabs: Home, Exchange, Transactions, Browser, Settings
+ * Clean bottom navigation bar matching the exact design from the image.
+ * Features 5 tabs with minimal styling: Home, Exchange, Transactions, Browser, Settings
  */
 @Composable
 fun WalletBottomNavigation(
@@ -47,40 +59,89 @@ fun WalletBottomNavigation(
     onTabSelected: (BottomNavTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    NavigationBar(
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp,
+    val isDarkMode = isSystemInDarkTheme()
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 0.dp,
     ) {
-        BottomNavTab.values().forEach { tab ->
-            NavigationBarItem(
-                selected = selectedTab == tab,
-                onClick = { onTabSelected(tab) },
-                icon = {
-                    Icon(
-                        painter = painterResource(getTabIcon(tab)),
-                        contentDescription = stringResource(getTabLabel(tab)),
-                        modifier = Modifier.size(24.dp),
-                    )
-                },
-                label = {
-                    Text(
-                        text = stringResource(getTabLabel(tab)),
-                        fontSize = 10.sp,
-                        fontWeight = if (selectedTab == tab) FontWeight.SemiBold else FontWeight.Normal,
-                        maxLines = 1,
-                    )
-                },
-                colors =
-                    NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
-                    ),
+        Column {
+            // Top border
+            HorizontalDivider(
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
             )
+
+            // Navigation items
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                BottomNavTab.values().forEach { tab ->
+                    BottomNavItem(
+                        tab = tab,
+                        isSelected = selectedTab == tab,
+                        onClick = { onTabSelected(tab) },
+                        isDarkMode = isDarkMode,
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun BottomNavItem(
+    tab: BottomNavTab,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    isDarkMode: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    // Theme-aware colors for light and dark mode using Votis primary colors
+    val selectedColor =
+        if (isDarkMode) {
+            primaryDark // Votis primary color for dark mode
+        } else {
+            primaryLight // Votis primary color for light mode
+        }
+
+    val unselectedColor =
+        if (isDarkMode) {
+            Color(0xFF8E8E93) // Same gray works in both modes
+        } else {
+            Color(0xFF8E8E93) // Light gray for light mode
+        }
+
+    Column(
+        modifier =
+            modifier
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick,
+                ).padding(vertical = 8.dp, horizontal = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Icon(
+            painter = painterResource(getTabIcon(tab)),
+            contentDescription = stringResource(getTabLabel(tab)),
+            modifier = Modifier.size(22.dp), // Slightly larger for better visibility
+            tint = if (isSelected) selectedColor else unselectedColor,
+        )
+
+        Text(
+            text = stringResource(getTabLabel(tab)),
+            fontSize = 10.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+            color = if (isSelected) selectedColor else unselectedColor,
+            maxLines = 1,
+        )
     }
 }
 
