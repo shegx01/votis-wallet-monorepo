@@ -124,12 +124,19 @@ private fun ContactAvatar(
 }
 
 private fun getContactInitials(name: String): String =
-    name
-        .split(" ")
-        .take(2)
-        .map { it.firstOrNull()?.uppercaseChar() ?: "" }
-        .joinToString("")
-        .take(2)
+    try {
+        name
+            .split(" ")
+            .take(2)
+            .mapNotNull { word ->
+                // Find the first letter in each word, ignoring special characters
+                word.firstOrNull { it.isLetter() }?.uppercaseChar()
+            }.joinToString("")
+            .take(2)
+            .ifEmpty { "U" } // Default fallback
+    } catch (e: Exception) {
+        "U" // Safe fallback for any conversion issues
+    }
 
 /**
  * Creates mock frequent contacts data matching the original design

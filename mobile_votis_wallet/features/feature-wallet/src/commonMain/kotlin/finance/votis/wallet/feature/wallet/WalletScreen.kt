@@ -64,7 +64,7 @@ private fun WalletContent(username: String?) {
     var selectedAssetType by remember { mutableStateOf(AssetType.TOKENS) }
 
     // Mock data for development
-    val mockContacts = getMockFrequentContacts()
+    val mockContacts = getMockFrequentContactsLocal() // Use local function without underscores
     val mockTokenBalances = getMockTokenBalances()
     val totalBalanceValue = stringResource(Res.string.mock_total_balance)
 
@@ -151,10 +151,10 @@ private fun WalletContent(username: String?) {
 }
 
 /**
- * Creates mock frequent contact data for UI development
+ * Creates mock frequent contact data for UI development without underscores
  */
 @Composable
-private fun getMockFrequentContacts(): List<ContactUser> =
+private fun getMockFrequentContactsLocal(): List<ContactUser> =
     listOf(
         ContactUser(
             id = "1",
