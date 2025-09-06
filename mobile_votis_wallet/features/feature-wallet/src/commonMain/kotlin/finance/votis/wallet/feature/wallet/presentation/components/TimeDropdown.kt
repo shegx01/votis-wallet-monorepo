@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import finance.votis.wallet.core.domain.model.TimePeriod
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
@@ -62,7 +63,7 @@ fun TimeDropdown(
                         shape = RoundedCornerShape(12.dp),
                     ).clip(RoundedCornerShape(12.dp)),
         ) {
-            TimePeriod.values().forEach { period ->
+            TimePeriod.entries.forEach { period ->
                 Box(
                     modifier =
                         Modifier
@@ -104,8 +105,7 @@ private fun TimePeriodButton(
                     indication = null, // Remove material ripple
                     onClick = onClick,
                 ).background(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(20.dp),
+                    color = Color.Unspecified,
                 ).padding(horizontal = 12.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,

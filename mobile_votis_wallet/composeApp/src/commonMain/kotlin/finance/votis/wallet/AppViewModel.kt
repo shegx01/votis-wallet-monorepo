@@ -28,8 +28,12 @@ class AppViewModel(
                     authRepository.initialize()
                 }
 
-                val isAuthenticated = authRepository.isAuthenticated()
+                // For development: bypass authentication and default to authenticated state
+                // TODO: Remove this when authentication flow is fully implemented
+                updateState { AppState.Authenticated }
 
+                /* Original authentication check - commented out for development
+                val isAuthenticated = authRepository.isAuthenticated()
                 updateState {
                     if (isAuthenticated) {
                         AppState.Authenticated
@@ -37,6 +41,7 @@ class AppViewModel(
                         AppState.Unauthenticated
                     }
                 }
+                 */
             } catch (e: Exception) {
                 updateState { AppState.Error(e.message ?: "Unknown error occurred") }
             }

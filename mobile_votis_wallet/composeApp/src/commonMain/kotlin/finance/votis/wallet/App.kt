@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import finance.votis.wallet.core.ui.theme.AppTheme
 import finance.votis.wallet.feature.onboarding.presentation.OnboardingFlow
+import finance.votis.wallet.feature.wallet.WalletScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
@@ -49,17 +50,8 @@ fun App() {
                 )
             }
             is AppState.Authenticated -> {
-                // Temporarily show success message
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "Authenticated - Wallet would show here",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
+                // Show the main wallet screen
+                WalletScreen(username = "shegx01")
             }
             is AppState.Error -> {
                 ErrorScreen(message = (appState as AppState.Error).message)

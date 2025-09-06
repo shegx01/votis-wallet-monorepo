@@ -111,7 +111,7 @@ private fun WalletContent(username: String?) {
         // Balance display - large centered layout like in design
         item {
             BalanceDisplaySection(
-                balanceAmount = "$17,200",
+                balanceAmount = "$1,170,200.03",
                 priceChangeText = "+$233",
                 priceChangePercent = "+3%",
                 isPriceChangePositive = true,
@@ -258,7 +258,7 @@ private fun BalanceDisplaySection(
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
-            lineHeight = 56.sp,
+            lineHeight = 50.sp,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
