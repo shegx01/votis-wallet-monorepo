@@ -34,8 +34,8 @@ import mobilevotiswallet.features.feature_wallet.generated.resources.frequent_se
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Card-based frequent send carousel with pagination showing 4 contacts per page.
- * Matches design specification with subtle border, proper spacing, and page indicators.
+ * Horizontal scrolling carousel for frequent contacts in a card container.
+ * Matches design specification with 4 contacts per page and page indicators.
  */
 @Composable
 fun FrequentSendCarousel(
@@ -43,10 +43,10 @@ fun FrequentSendCarousel(
     onContactClick: (ContactUser) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // State for current page
+    // State for tracking current page based on scroll position
     var currentPage by remember { mutableStateOf(0) }
-    val pageSize = 4
-    val totalPages = if (contacts.isEmpty()) 1 else (contacts.size + pageSize - 1) / pageSize
+    val contactsPerPage = 4
+    val totalPages = if (contacts.isEmpty()) 1 else (contacts.size + contactsPerPage - 1) / contactsPerPage
 
     Card(
         modifier =
@@ -60,75 +60,51 @@ fun FrequentSendCarousel(
             ),
         elevation =
             CardDefaults.cardElevation(
-                defaultElevation = 2.dp,
+                defaultElevation = 1.dp,
             ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
     ) {
         Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(16.dp),
         ) {
-            // Section title with proper typography
+            // Section title
             Text(
                 text = stringResource(Res.string.frequent_send_title),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 20.dp),
+                modifier = Modifier.padding(bottom = 16.dp),
             )
 
-            // Current page contacts in 2x2 grid
-            val startIndex = currentPage * pageSize
-            val endIndex = minOf(startIndex + pageSize, contacts.size)
-            val pageContacts =
-                if (contacts.isNotEmpty()) {
-                    contacts.subList(startIndex, endIndex)
-                } else {
-                    emptyList()
-                }
-
-            // 2x2 Grid layout
-            Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp),
+            // Horizontal scrolling row of contacts
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                // First row (up to 2 contacts)
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    pageContacts.take(2).forEach { contact ->
-                        FrequentContactItem(
-                            contact = contact,
-                            onClick = { onContactClick(contact) },
-                            modifier = Modifier.weight(1f),
-                        )
+                // Show current page contacts (4 per page)
+                val startIndex = currentPage * contactsPerPage
+                val endIndex = minOf(startIndex + contactsPerPage, contacts.size)
+                val pageContacts =
+                    if (contacts.isNotEmpty()) {
+                        contacts.subList(startIndex, endIndex)
+                    } else {
+                        emptyList()
                     }
-                    // Fill empty spaces if less than 2 contacts in first row
-                    repeat(2 - minOf(2, pageContacts.size)) {
-                        Box(modifier = Modifier.weight(1f))
-                    }
+
+                pageContacts.forEach { contact ->
+                    FrequentContactItem(
+                        contact = contact,
+                        onClick = { onContactClick(contact) },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
 
-                // Second row (contacts 3 and 4)
-                if (pageContacts.size > 2) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(20.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        pageContacts.drop(2).take(2).forEach { contact ->
-                            FrequentContactItem(
-                                contact = contact,
-                                onClick = { onContactClick(contact) },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        // Fill empty spaces if less than 2 contacts in second row
-                        repeat(2 - minOf(2, pageContacts.size - 2)) {
-                            Box(modifier = Modifier.weight(1f))
-                        }
-                    }
+                // Fill empty spaces if less than 4 contacts
+                repeat(contactsPerPage - pageContacts.size) {
+                    Box(modifier = Modifier.weight(1f))
                 }
             }
 
@@ -139,12 +115,13 @@ fun FrequentSendCarousel(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .padding(top = 20.dp),
+                            .padding(top = 12.dp),
                 ) {
                     repeat(totalPages) { page ->
                         PageIndicator(
                             isActive = page == currentPage,
                             onClick = { currentPage = page },
+                            modifier = Modifier.padding(horizontal = 3.dp),
                         )
                     }
                 }
@@ -162,25 +139,28 @@ private fun FrequentContactItem(
     Column(
         modifier =
             modifier
-                .clickable(onClick = onClick)
-                .padding(vertical = 8.dp),
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick,
+                ).padding(horizontal = 4.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        // Avatar circle with initials
+        // Avatar circle with initials - matching design size
         ContactAvatar(
             initials = getContactInitials(contact.displayName ?: contact.username),
-            modifier = Modifier.size(56.dp),
+            modifier = Modifier.size(60.dp),
         )
 
-        // Contact name (truncated if too long)
+        // Contact name - matching design typography
         Text(
             text = contact.displayName ?: contact.username,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 4.dp),
         )
     }
 }
@@ -190,22 +170,51 @@ private fun ContactAvatar(
     initials: String,
     modifier: Modifier = Modifier,
 ) {
+    // Generate consistent color based on initials for visual variety
+    val avatarColor = generateAvatarColor(initials)
+
     Box(
         modifier =
             modifier
                 .background(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    color = avatarColor,
                     shape = CircleShape,
                 ).clip(CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = initials,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = androidx.compose.ui.graphics.Color.White,
         )
     }
+}
+
+// Generate consistent avatar colors based on initials
+private fun generateAvatarColor(initials: String): androidx.compose.ui.graphics.Color {
+    val colors =
+        listOf(
+            androidx.compose.ui.graphics
+                .Color(0xFF6366F1), // Indigo
+            androidx.compose.ui.graphics
+                .Color(0xFF8B5CF6), // Violet
+            androidx.compose.ui.graphics
+                .Color(0xFF06B6D4), // Cyan
+            androidx.compose.ui.graphics
+                .Color(0xFF10B981), // Emerald
+            androidx.compose.ui.graphics
+                .Color(0xFFF59E0B), // Amber
+            androidx.compose.ui.graphics
+                .Color(0xFFEF4444), // Red
+            androidx.compose.ui.graphics
+                .Color(0xFF3B82F6), // Blue
+            androidx.compose.ui.graphics
+                .Color(0xFF84CC16), // Lime
+        )
+
+    val hash = initials.hashCode()
+    return colors[kotlin.math.abs(hash) % colors.size]
 }
 
 @Composable
