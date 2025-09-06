@@ -48,14 +48,11 @@ fun AssetTabs(
             modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(16.dp),
-                ).padding(4.dp)
+                .padding(4.dp)
                 .selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        AssetType.values().forEach { tab ->
+        AssetType.entries.forEach { tab ->
             AssetTab(
                 assetType = tab,
                 isSelected = tab == selectedTab,
