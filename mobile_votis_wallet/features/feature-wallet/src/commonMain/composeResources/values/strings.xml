@@ -30,23 +30,55 @@
     <string name="frequent_contacts_empty">No frequent contacts yet</string>
     
     <!-- Asset Tabs -->
-    <string name="tab_tokens">Tokens</string>
-    <string name="tab_nfts">NFTs</string>
-    <string name="tab_approvals">Approvals</string>
+    <string name="tokens_tab">Tokens</string>
+    <string name="nfts_tab">NFTs</string>
+    <string name="approvals_tab">Approvals</string>
     <string name="tab_tokens_count">Tokens (%1$d)</string>
     <string name="tab_nfts_count">NFTs (%1$d)</string>
     <string name="tab_approvals_count">Approvals (%1$d)</string>
     
-    <!-- Asset List -->
+    <!-- Token List -->
     <string name="total_assets_label">Total assets</string>
     <string name="total_assets_amount">$%1$s</string>
     <string name="asset_balance_amount">%1$s %2$s</string>
     <string name="asset_usd_value">$%1$s</string>
     <string name="asset_price_change">%1$s%%</string>
     
+    <!-- Token Names -->
+    <string name="token_bitcoin">Bitcoin</string>
+    <string name="token_ethereum">Ethereum</string>
+    <string name="token_solana">Solana</string>
+    
+    <!-- Token Symbols -->
+    <string name="token_symbol_btc">BTC</string>
+    <string name="token_symbol_eth">ETH</string>
+    <string name="token_symbol_sol">SOL</string>
+    
+    <!-- Mock Token Data -->
+    <string name="mock_btc_amount">0.32586 BTC</string>
+    <string name="mock_btc_value">$21,256.78</string>
+    <string name="mock_btc_change">+2.35%</string>
+    
+    <string name="mock_eth_amount">8.25941 ETH</string>
+    <string name="mock_eth_value">$18,456.32</string>
+    <string name="mock_eth_change">+1.58%</string>
+    
+    <string name="mock_sol_amount">154.672 SOL</string>
+    <string name="mock_sol_value">$12,847.69</string>
+    <string name="mock_sol_change">+4.21%</string>
+    
+    <!-- Total Balance -->
+    <string name="mock_total_balance">$52,560.79</string>
+    
     <!-- Contact Display -->
     <string name="contact_username_format">@%1$s</string>
     <string name="contact_display_name">%1$s</string>
+    
+    <!-- Contact Names (for frequent send) -->
+    <string name="contact_angel_lubin">Angel Lubin</string>
+    <string name="contact_ann_baptista">Ann Baptista</string>
+    <string name="contact_makenna_t">Makenna T</string>
+    <string name="contact_craig_septimus">Craig Septimus</string>
     
     <!-- Empty States -->
     <string name="no_tokens_message">No tokens yet</string>
@@ -78,4 +110,8 @@
     <string name="bottom_nav_transactions">Transactions</string>
     <string name="bottom_nav_browser">Browser</string>
     <string name="bottom_nav_settings">Settings</string>
+    
+    <!-- Header Actions -->
+    <string name="action_qr_scan">Scan QR</string>
+    <string name="action_search">Search</string>
 </resources>

@@ -48,6 +48,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
+            // DateTime for domain models
+            implementation(libs.kotlinx.datetime)
+
             // DI
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
