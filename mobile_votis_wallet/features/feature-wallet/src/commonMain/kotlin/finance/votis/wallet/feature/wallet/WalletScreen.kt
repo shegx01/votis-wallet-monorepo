@@ -138,7 +138,7 @@ private fun WalletContent(username: String?) {
             )
         }
 
-        // Frequent Send Carousel
+        // Frequent Send Carousel - now in card format
         item {
             FrequentSendCarousel(
                 contacts = mockContacts,
@@ -185,27 +185,51 @@ private fun getMockFrequentContactsLocal(): List<ContactUser> =
     listOf(
         ContactUser(
             id = "1",
-            username = "alice",
+            username = "angel.lubin",
             walletAddress = "0x1234...5678",
-            displayName = "Alice",
+            displayName = "Angel Lubin",
         ),
         ContactUser(
             id = "2",
-            username = "bob",
+            username = "ann.baptist",
             walletAddress = "0x2345...6789",
-            displayName = "Bob",
+            displayName = "Ann Baptist",
         ),
         ContactUser(
             id = "3",
-            username = "charlie",
+            username = "makenna.turner",
             walletAddress = "0x3456...7890",
-            displayName = "Charlie",
+            displayName = "Makenna Turner",
         ),
         ContactUser(
             id = "4",
-            username = "diana",
+            username = "craig.septimus",
             walletAddress = "0x4567...8901",
-            displayName = "Diana",
+            displayName = "Craig Septimus",
+        ),
+        ContactUser(
+            id = "5",
+            username = "carter.galileo",
+            walletAddress = "0x5678...9012",
+            displayName = "Carter Galileo",
+        ),
+        ContactUser(
+            id = "6",
+            username = "emilie.lawson",
+            walletAddress = "0x6789...0123",
+            displayName = "Emilie Lawson",
+        ),
+        ContactUser(
+            id = "7",
+            username = "marisa.blake",
+            walletAddress = "0x7890...1234",
+            displayName = "Marisa Blake",
+        ),
+        ContactUser(
+            id = "8",
+            username = "jason.keller",
+            walletAddress = "0x8901...2345",
+            displayName = "Jason Keller",
         ),
     )
 
