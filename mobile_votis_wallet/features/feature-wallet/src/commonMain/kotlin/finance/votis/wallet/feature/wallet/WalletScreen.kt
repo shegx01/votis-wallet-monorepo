@@ -26,16 +26,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import finance.votis.wallet.core.domain.model.AssetType
 import finance.votis.wallet.core.domain.model.ContactUser
+import finance.votis.wallet.core.domain.model.Nft
+import finance.votis.wallet.core.domain.model.NftCollection
+import finance.votis.wallet.core.domain.model.NftSale
+import finance.votis.wallet.core.domain.model.NftTokenStandard
 import finance.votis.wallet.core.domain.model.TimePeriod
+import finance.votis.wallet.core.ui.components.TabCard
 import finance.votis.wallet.feature.wallet.presentation.components.ActionButtonRow
 import finance.votis.wallet.feature.wallet.presentation.components.AssetTabs
 import finance.votis.wallet.feature.wallet.presentation.components.BottomNavTab
 import finance.votis.wallet.feature.wallet.presentation.components.FrequentSendCarousel
+import finance.votis.wallet.feature.wallet.presentation.components.NftGrid
 import finance.votis.wallet.feature.wallet.presentation.components.TimeDropdown
 import finance.votis.wallet.feature.wallet.presentation.components.TokenList
 import finance.votis.wallet.feature.wallet.presentation.components.WalletBottomNavigation
 import finance.votis.wallet.feature.wallet.presentation.components.WalletHeader
 import finance.votis.wallet.feature.wallet.presentation.components.getMockTokenBalances
+import kotlinx.datetime.Clock
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.mock_total_balance
 import org.jetbrains.compose.resources.stringResource
@@ -93,6 +100,7 @@ private fun WalletContent(username: String?) {
     // Mock data for development
     val mockContacts = getMockFrequentContactsLocal() // Use local function without underscores
     val mockTokenBalances = getMockTokenBalances()
+    val mockNfts = getMockNfts()
     val totalBalanceValue = stringResource(Res.string.mock_total_balance)
 
     Column(
@@ -147,34 +155,62 @@ private fun WalletContent(username: String?) {
                     onContactClick = { contact ->
                         // TODO: Navigate to send with pre-filled contact
                     },
-                    modifier = Modifier.padding(vertical = 16.dp),
+                    modifier = Modifier.padding(top = 0.dp, bottom = 16.dp),
                 )
             }
 
-            // Asset Tabs
+            // Asset Tabs (separate from card)
             item {
                 AssetTabs(
                     selectedTab = selectedAssetType,
                     onTabSelected = { selectedAssetType = it },
                     tokenCount = mockTokenBalances.size,
-                    nftCount = 0, // Mock data
+                    nftCount = mockNfts.size,
                     approvalsCount = 0, // Mock data
-                    modifier = Modifier.padding(vertical = 16.dp),
+                    modifier = Modifier.padding(top = 0.dp, bottom = 16.dp),
                 )
             }
 
-            // Token List (only shown when TOKENS tab is selected)
-            if (selectedAssetType == AssetType.TOKENS) {
-                item {
-                    TokenList(
-                        tokenBalances = mockTokenBalances,
-                        totalAssetsValue = totalBalanceValue,
-                        onTokenClick = { tokenBalance ->
-                            // TODO: Navigate to token details
+            // Asset content wrapped in TabCard
+            item {
+                TabCard(
+                    content = {
+                        // Asset content based on selected tab
+                        when (selectedAssetType) {
+                            AssetType.TOKENS -> {
+                                TokenList(
+                                    tokenBalances = mockTokenBalances,
+                                    totalAssetsValue = totalBalanceValue,
+                                    onTokenClick = { tokenBalance ->
+                                        // TODO: Navigate to token details
+                                    },
+                                )
+                            }
+                            AssetType.NFTS -> {
+                                NftGrid(
+                                    nfts = mockNfts,
+                                    onNftClick = { nft ->
+                                        // TODO: Navigate to NFT details
+                                    },
+                                )
+                            }
+                            AssetType.APPROVALS -> {
+                                // TODO: Implement approvals list
+                                PlaceholderContent(
+                                    message = "Approvals coming soon",
+                                    modifier = Modifier.padding(40.dp),
+                                )
+                            }
+                        }
+                    },
+                    contentDescription =
+                        when (selectedAssetType) {
+                            AssetType.TOKENS -> "Token list with balances and values"
+                            AssetType.NFTS -> "NFT collection grid"
+                            AssetType.APPROVALS -> "Token approvals management"
                         },
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                )
             }
         }
     }
@@ -235,6 +271,152 @@ private fun getMockFrequentContactsLocal(): List<ContactUser> =
             displayName = "Jason Keller",
         ),
     )
+
+/**
+ * Creates mock NFT data for UI development matching the design specifications.
+ */
+@Composable
+private fun getMockNfts(): List<Nft> {
+    val now = Clock.System.now()
+
+    return listOf(
+        Nft(
+            id = "nft_1",
+            name = "Distant Galaxy",
+            imageUrl = "https://picsum.photos/400/400?random=1",
+            collection =
+                NftCollection(
+                    id = "collection_1",
+                    name = "Space Collection",
+                    description = "Futuristic space-themed digital art",
+                    imageUrl = "https://picsum.photos/100/100?random=10",
+                    floorPrice = "1 BNB",
+                    totalSupply = 10000,
+                    creatorAddress = "0x1234...5678",
+                ),
+            description = "A mesmerizing view of distant galaxies and cosmic phenomena",
+            contractAddress = "0xabc...def",
+            tokenId = "1001",
+            tokenStandard = NftTokenStandard.ERC721,
+            lastSale =
+                NftSale(
+                    price = "1 BNB",
+                    currency = "BNB",
+                    timestamp = now,
+                    marketplace = "OpenSea",
+                ),
+        ),
+        Nft(
+            id = "nft_2",
+            name = "Thy Art",
+            imageUrl = "https://picsum.photos/400/400?random=2",
+            collection =
+                NftCollection(
+                    id = "collection_2",
+                    name = "Renaissance Digital",
+                    description = "Classic art meets digital innovation",
+                    imageUrl = "https://picsum.photos/100/100?random=11",
+                    floorPrice = "1.63 ETH",
+                    totalSupply = 5000,
+                    creatorAddress = "0x2345...6789",
+                ),
+            description = "A digital masterpiece inspired by classical art",
+            contractAddress = "0xbcd...efa",
+            tokenId = "2001",
+            tokenStandard = NftTokenStandard.ERC721,
+            lastSale =
+                NftSale(
+                    price = "1.63 ETH",
+                    currency = "ETH",
+                    timestamp = now,
+                    marketplace = "OpenSea",
+                ),
+        ),
+        Nft(
+            id = "nft_3",
+            name = "Access",
+            imageUrl = "https://picsum.photos/400/400?random=3",
+            collection =
+                NftCollection(
+                    id = "collection_3",
+                    name = "Urban Stories",
+                    description = "Street photography meets digital art",
+                    imageUrl = "https://picsum.photos/100/100?random=12",
+                    floorPrice = "3 SOL",
+                    totalSupply = 777,
+                    creatorAddress = "0x3456...7890",
+                ),
+            description = "A powerful representation of access and opportunity",
+            contractAddress = "0xcde...fab",
+            tokenId = "4",
+            tokenStandard = NftTokenStandard.ERC721,
+            lastSale =
+                NftSale(
+                    price = "3 SOL",
+                    currency = "SOL",
+                    timestamp = now,
+                    marketplace = "Magic Eden",
+                ),
+        ),
+        Nft(
+            id = "nft_4",
+            name = "Cyberpunk Vision",
+            imageUrl = "https://picsum.photos/400/400?random=4",
+            collection =
+                NftCollection(
+                    id = "collection_4",
+                    name = "Future Tech",
+                    description = "Cyberpunk-inspired digital artworks",
+                    imageUrl = "https://picsum.photos/100/100?random=13",
+                    floorPrice = "0.5 ETH",
+                    totalSupply = 2500,
+                    creatorAddress = "0x4567...8901",
+                ),
+            description = "A glimpse into a cyberpunk future",
+            contractAddress = "0xdef...abc",
+            tokenId = "3001",
+            tokenStandard = NftTokenStandard.ERC721,
+        ),
+        Nft(
+            id = "nft_5",
+            name = "Ocean Depths",
+            imageUrl = "https://picsum.photos/400/400?random=5",
+            collection =
+                NftCollection(
+                    id = "collection_5",
+                    name = "Aquatic Dreams",
+                    description = "Underwater worlds and marine life",
+                    imageUrl = "https://picsum.photos/100/100?random=14",
+                    floorPrice = "0.8 ETH",
+                    totalSupply = 1500,
+                    creatorAddress = "0x5678...9012",
+                ),
+            description = "Deep ocean mysteries captured in digital form",
+            contractAddress = "0xefa...bcd",
+            tokenId = "4001",
+            tokenStandard = NftTokenStandard.ERC721,
+        ),
+        Nft(
+            id = "nft_6",
+            name = "Mountain Peak",
+            imageUrl = "https://picsum.photos/400/400?random=6",
+            collection =
+                NftCollection(
+                    id = "collection_6",
+                    name = "Nature's Majesty",
+                    description = "Breathtaking landscapes and natural wonders",
+                    imageUrl = "https://picsum.photos/100/100?random=15",
+                    floorPrice = "0.3 ETH",
+                    totalSupply = 3333,
+                    creatorAddress = "0x6789...0123",
+                ),
+            description = "Majestic mountain peaks reaching for the sky",
+            contractAddress = "0xfab...cde",
+            tokenId = "5001",
+            tokenStandard = NftTokenStandard.ERC721,
+        ),
+    )
+}
 
 /**
  * Balance display section that matches the exact design from the image.
@@ -354,6 +536,26 @@ private fun PlaceholderScreen(
         Text(
             text = message,
             fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/**
+ * Simple placeholder content for unimplemented features
+ */
+@Composable
+private fun PlaceholderContent(
+    message: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }

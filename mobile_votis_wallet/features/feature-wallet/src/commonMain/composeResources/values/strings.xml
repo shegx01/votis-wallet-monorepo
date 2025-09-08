@@ -81,6 +81,15 @@
     <string name="no_approvals_message">No approvals yet</string>
     <string name="empty_state_subtitle">Your %1$s will appear here</string>
     
+    <!-- NFT Specific -->
+    <string name="nft_collection_label">Collection: %1$s</string>
+    <string name="nft_floor_price">Floor: %1$s</string>
+    <string name="nft_last_sale">Last sale: %1$s</string>
+    <string name="nft_token_id">Token ID: %1$s</string>
+    <string name="nft_loading_error">Failed to load NFTs</string>
+    <string name="nft_grid_content_description">NFT collection grid</string>
+    <string name="nft_item_content_description">NFT: %1$s from %2$s collection</string>
+    
     <!-- Content Descriptions -->
     <string name="balance_dropdown_description">Time period selector</string>
     <string name="contact_avatar_description">Contact avatar</string>

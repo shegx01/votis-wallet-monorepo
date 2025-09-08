@@ -66,6 +66,52 @@ data class Token(
 )
 
 @Serializable
+data class Nft(
+    val id: String,
+    val name: String,
+    val imageUrl: String,
+    val collection: NftCollection,
+    val description: String? = null,
+    val contractAddress: String,
+    val tokenId: String,
+    val tokenStandard: NftTokenStandard = NftTokenStandard.ERC721,
+    val traits: List<NftTrait> = emptyList(),
+    val lastSale: NftSale? = null,
+)
+
+@Serializable
+data class NftCollection(
+    val id: String,
+    val name: String,
+    val description: String? = null,
+    val imageUrl: String? = null,
+    val floorPrice: String? = null,
+    val totalSupply: Long? = null,
+    val creatorAddress: String? = null,
+)
+
+@Serializable
+data class NftTrait(
+    val traitType: String,
+    val value: String,
+    val displayType: String? = null,
+)
+
+@Serializable
+data class NftSale(
+    val price: String,
+    val currency: String,
+    val timestamp: Instant,
+    val marketplace: String? = null,
+)
+
+@Serializable
+enum class NftTokenStandard {
+    ERC721,
+    ERC1155,
+}
+
+@Serializable
 data class Transaction(
     val id: String,
     val type: TransactionType,
