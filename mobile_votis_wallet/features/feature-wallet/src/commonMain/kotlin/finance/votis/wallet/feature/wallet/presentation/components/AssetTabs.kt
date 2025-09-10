@@ -47,8 +47,10 @@ fun AssetTabs(
         modifier =
             modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 20.dp)
+                .background(
+                    MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(12.dp)
+                )
                 .padding(4.dp)
                 .selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -98,7 +100,7 @@ private fun AssetTab(
     val containerColor by animateColorAsState(
         targetValue =
             if (isSelected) {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.20f)
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
             } else {
                 Color.Transparent
             },
