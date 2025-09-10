@@ -33,6 +33,7 @@ import finance.votis.wallet.core.domain.model.NftTokenStandard
 import finance.votis.wallet.core.domain.model.TimePeriod
 import finance.votis.wallet.core.ui.components.TabCard
 import finance.votis.wallet.feature.wallet.presentation.components.ActionButtonRow
+import finance.votis.wallet.feature.wallet.presentation.components.ApprovalsList
 import finance.votis.wallet.feature.wallet.presentation.components.AssetTabs
 import finance.votis.wallet.feature.wallet.presentation.components.BottomNavTab
 import finance.votis.wallet.feature.wallet.presentation.components.FrequentSendCarousel
@@ -41,6 +42,7 @@ import finance.votis.wallet.feature.wallet.presentation.components.TimeDropdown
 import finance.votis.wallet.feature.wallet.presentation.components.TokenList
 import finance.votis.wallet.feature.wallet.presentation.components.WalletBottomNavigation
 import finance.votis.wallet.feature.wallet.presentation.components.WalletHeader
+import finance.votis.wallet.feature.wallet.presentation.components.getMockApprovals
 import finance.votis.wallet.feature.wallet.presentation.components.getMockTokenBalances
 import kotlinx.datetime.Clock
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
@@ -101,6 +103,7 @@ private fun WalletContent(username: String?) {
     val mockContacts = getMockFrequentContactsLocal() // Use local function without underscores
     val mockTokenBalances = getMockTokenBalances()
     val mockNfts = getMockNfts()
+    val mockApprovals = getMockApprovals()
     val totalBalanceValue = stringResource(Res.string.mock_total_balance)
 
     Column(
@@ -166,8 +169,8 @@ private fun WalletContent(username: String?) {
                     onTabSelected = { selectedAssetType = it },
                     tokenCount = mockTokenBalances.size,
                     nftCount = mockNfts.size,
-                    approvalsCount = 0, // Mock data
-                    modifier = Modifier.padding(top = 0.dp, bottom = 16.dp),
+                    approvalsCount = mockApprovals.size,
+                    modifier = Modifier.padding(vertical = 16.dp),
                 )
             }
 
@@ -195,10 +198,9 @@ private fun WalletContent(username: String?) {
                                 )
                             }
                             AssetType.APPROVALS -> {
-                                // TODO: Implement approvals list
-                                PlaceholderContent(
-                                    message = "Approvals coming soon",
-                                    modifier = Modifier.padding(40.dp),
+                                ApprovalsList(
+                                    approvals = mockApprovals,
+                                    onApprovalServiceClick = { /* TODO: Navigate to approval details */ },
                                 )
                             }
                         }

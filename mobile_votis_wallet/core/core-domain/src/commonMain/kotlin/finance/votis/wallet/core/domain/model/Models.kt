@@ -203,6 +203,39 @@ data class AssetTab(
 )
 
 @Serializable
+data class TokenApproval(
+    val id: String,
+    val serviceName: String,
+    val serviceIcon: String? = null,
+    val chainName: String,
+    val chainId: String,
+    val contractAddress: String,
+    val spenderAddress: String,
+    val tokenSymbol: String,
+    val tokenName: String,
+    val approvedAmount: String, // Could be "Unlimited" or specific amount
+    val createdAt: Instant,
+    val lastUsedAt: Instant? = null,
+    val riskLevel: ApprovalRiskLevel = ApprovalRiskLevel.LOW,
+)
+
+@Serializable
+enum class ApprovalRiskLevel {
+    LOW,
+    MEDIUM,
+    HIGH,
+}
+
+@Serializable
+data class ApprovalsByService(
+    val serviceName: String,
+    val serviceIcon: String? = null,
+    val chainName: String,
+    val approvals: List<TokenApproval>,
+    val totalCount: Int = approvals.size,
+)
+
+@Serializable
 enum class AssetType(
     val displayName: String,
 ) {
