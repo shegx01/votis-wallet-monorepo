@@ -141,7 +141,7 @@ private fun NftCard(
                         .fillMaxWidth()
                         .aspectRatio(0.8f) // More square image for better proportions
                         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                        .background(MaterialTheme.colorScheme.surfaceContainerLowest),
                 contentAlignment = Alignment.Center,
             ) {
                 // NFT Image Placeholder (TODO: Replace with actual image loading)
@@ -277,7 +277,7 @@ private fun EmptyNftState(modifier: Modifier = Modifier) {
                 Modifier
                     .size(80.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.surfaceContainerLowest,
                         shape = RoundedCornerShape(16.dp),
                     ),
             contentAlignment = Alignment.Center,

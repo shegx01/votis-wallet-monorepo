@@ -133,7 +133,7 @@ private fun ApprovalServiceItem(
                 modifier =
                     Modifier
                         .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            color = MaterialTheme.colorScheme.surfaceContainerLowest,
                             shape = RoundedCornerShape(12.dp),
                         ).padding(horizontal = 12.dp, vertical = 6.dp),
                 contentAlignment = Alignment.Center,
@@ -201,7 +201,7 @@ private fun EmptyApprovalsState(modifier: Modifier = Modifier) {
                 Modifier
                     .size(80.dp)
                     .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.surfaceContainerLowest,
                         shape = RoundedCornerShape(16.dp),
                     ),
             contentAlignment = Alignment.Center,

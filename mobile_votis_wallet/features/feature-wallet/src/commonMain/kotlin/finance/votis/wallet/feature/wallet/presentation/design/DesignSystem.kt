@@ -14,9 +14,13 @@ object WalletDesignSystem {
      * - Action button backgrounds
      * - Card containers
      * - Secondary surfaces
+     *
+     * Uses Material 3 surfaceContainerLowest token which provides:
+     * - Light mode: Pure white surface (whiter than background)
+     * - Dark mode: Lowest elevated surface (equivalent to previous surfaceVariant + alpha)
      */
     @Composable
-    fun surfaceContainer(): Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+    fun surfaceContainer(): Color = MaterialTheme.colorScheme.surfaceContainerLowest
 
     /**
      * Outline color for borders and dividers with subtle appearance

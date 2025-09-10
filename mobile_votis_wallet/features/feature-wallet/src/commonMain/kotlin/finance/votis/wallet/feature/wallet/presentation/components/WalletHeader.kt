@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import finance.votis.wallet.feature.wallet.presentation.design.WalletDesignSystem
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.action_copy_username
 import mobilevotiswallet.features.feature_wallet.generated.resources.action_qr_scan
@@ -159,7 +160,7 @@ private fun HeaderActionButton(
             modifier
                 .size(40.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                    color = WalletDesignSystem.surfaceContainer(),
                     shape = RoundedCornerShape(20.dp),
                 ).clip(RoundedCornerShape(20.dp))
                 .clickable(
