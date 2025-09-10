@@ -161,7 +161,7 @@ private fun HeaderActionButton(
             modifier
                 .size(40.dp)
                 .background(
-                    color = WalletDesignSystem.surfaceContainer(),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(20.dp),
                 ).clip(RoundedCornerShape(20.dp))
                 .clickable(
@@ -192,7 +192,7 @@ private fun UserAvatar(
         modifier =
             modifier
                 .background(
-                    color = MaterialTheme.votisColors.primarySurface,
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                     shape = CircleShape,
                 ).clip(CircleShape),
         contentAlignment = Alignment.Center,

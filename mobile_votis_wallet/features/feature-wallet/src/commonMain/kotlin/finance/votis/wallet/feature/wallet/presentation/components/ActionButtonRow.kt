@@ -104,7 +104,7 @@ private fun ActionButton(
                 Modifier
                     .size(64.dp)
                     .background(
-                        color = WalletDesignSystem.surfaceContainer(),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                         shape = RoundedCornerShape(16.dp),
                     ).clip(RoundedCornerShape(16.dp)),
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -56,11 +56,6 @@ fun TabCard(
             CardDefaults.cardElevation(
                 defaultElevation = 0.dp,
             ),
-        border =
-            BorderStroke(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-            ),
         shape = RoundedCornerShape(12.dp),
     ) {
         Column(

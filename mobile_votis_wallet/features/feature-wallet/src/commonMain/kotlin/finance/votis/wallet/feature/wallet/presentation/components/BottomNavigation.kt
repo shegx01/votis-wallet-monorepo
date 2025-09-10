@@ -81,7 +81,7 @@ fun WalletBottomNavigation(
                         .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                BottomNavTab.values().forEach { tab ->
+                BottomNavTab.entries.forEach { tab ->
                     BottomNavItem(
                         tab = tab,
                         isSelected = selectedTab == tab,

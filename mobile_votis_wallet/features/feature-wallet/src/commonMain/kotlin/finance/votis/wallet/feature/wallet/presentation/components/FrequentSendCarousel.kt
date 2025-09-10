@@ -58,16 +58,11 @@ fun FrequentSendCarousel(
                 .wrapContentHeight(),
         colors =
             CardDefaults.cardColors(
-                containerColor = WalletDesignSystem.surfaceContainer(),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
             ),
         elevation =
-            CardDefaults.cardElevation(
+            CardDefaults.outlinedCardElevation(
                 defaultElevation = 0.dp,
-            ),
-        border =
-            BorderStroke(
-                width = 1.dp,
-                color = WalletDesignSystem.subtleBorder(),
             ),
         shape = RoundedCornerShape(12.dp),
     ) {
