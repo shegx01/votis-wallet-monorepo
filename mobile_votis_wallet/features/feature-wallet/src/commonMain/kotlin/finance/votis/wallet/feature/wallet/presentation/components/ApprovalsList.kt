@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -17,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,10 +35,7 @@ import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.approval_count
 import mobilevotiswallet.features.feature_wallet.generated.resources.approval_item_content_description
 import mobilevotiswallet.features.feature_wallet.generated.resources.approvals_empty_subtitle
-import mobilevotiswallet.features.feature_wallet.generated.resources.filter_approvals
-import mobilevotiswallet.features.feature_wallet.generated.resources.ic_tune
 import mobilevotiswallet.features.feature_wallet.generated.resources.no_approvals_message
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -60,52 +54,13 @@ fun ApprovalsList(
     } else {
         Column(
             modifier = modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Approvals header with filter
-            ApprovalsHeader()
-
-            // Approvals list
-            Column(
-                modifier = Modifier.padding(top = 8.dp),
-            ) {
-                approvals.forEach { approvalsByService ->
-                    ApprovalServiceItem(
-                        approvalsByService = approvalsByService,
-                        onClick = { onApprovalServiceClick(approvalsByService) },
-                    )
-                }
+            approvals.forEach { approvalsByService ->
+                ApprovalServiceItem(
+                    approvalsByService = approvalsByService,
+                    onClick = { onApprovalServiceClick(approvalsByService) },
+                )
             }
-        }
-    }
-}
-
-@Composable
-private fun ApprovalsHeader(modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column {
-            Text(
-                text = stringResource(Res.string.filter_approvals),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-        }
-
-        IconButton(
-            onClick = { /* TODO: Implement filter */ },
-        ) {
-            Icon(
-                painter = painterResource(Res.drawable.ic_tune),
-                contentDescription = "Filter approvals",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

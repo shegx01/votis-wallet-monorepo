@@ -121,7 +121,6 @@
     <string name="action_copy_username">Copy username</string>
     
     <!-- Approvals Tab -->
-    <string name="filter_approvals">Filter Approvals</string>
     <string name="approvals_empty_subtitle">Your token approvals will appear here</string>
     <string name="approval_item_content_description">%1$s approval on %2$s with %3$d permissions</string>
     <string name="revoke_approval">Revoke</string>
