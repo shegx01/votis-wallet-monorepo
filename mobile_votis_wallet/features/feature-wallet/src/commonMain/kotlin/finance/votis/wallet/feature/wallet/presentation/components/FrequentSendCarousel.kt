@@ -1,6 +1,5 @@
 package finance.votis.wallet.feature.wallet.presentation.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -30,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import finance.votis.wallet.core.domain.model.ContactUser
-import finance.votis.wallet.feature.wallet.presentation.design.WalletDesignSystem
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.frequent_send_title
 import org.jetbrains.compose.resources.stringResource

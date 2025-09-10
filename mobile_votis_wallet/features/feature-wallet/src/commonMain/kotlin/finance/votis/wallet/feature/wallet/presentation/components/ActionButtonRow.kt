@@ -21,7 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import finance.votis.wallet.feature.wallet.presentation.design.WalletDesignSystem
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.action_buy_sell
 import mobilevotiswallet.features.feature_wallet.generated.resources.action_receive
