@@ -162,21 +162,18 @@ private fun WalletContent(username: String?) {
                 )
             }
 
-            // Asset Tabs (separate from card)
-            item {
-                AssetTabs(
-                    selectedTab = selectedAssetType,
-                    onTabSelected = { selectedAssetType = it },
-                    tokenCount = mockTokenBalances.size,
-                    nftCount = mockNfts.size,
-                    approvalsCount = mockApprovals.size,
-                    modifier = Modifier.padding(vertical = 16.dp),
-                )
-            }
-
-            // Asset content wrapped in TabCard
+            // Asset content with tabs integrated into TabCard
             item {
                 TabCard(
+                    header = {
+                        AssetTabs(
+                            selectedTab = selectedAssetType,
+                            onTabSelected = { selectedAssetType = it },
+                            tokenCount = mockTokenBalances.size,
+                            nftCount = mockNfts.size,
+                            approvalsCount = mockApprovals.size,
+                        )
+                    },
                     content = {
                         // Asset content based on selected tab
                         when (selectedAssetType) {
@@ -211,7 +208,7 @@ private fun WalletContent(username: String?) {
                             AssetType.NFTS -> "NFT collection grid"
                             AssetType.APPROVALS -> "Token approvals management"
                         },
-                    modifier = Modifier.padding(horizontal = 20.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                 )
             }
         }

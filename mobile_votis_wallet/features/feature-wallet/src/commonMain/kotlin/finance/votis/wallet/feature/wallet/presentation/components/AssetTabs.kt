@@ -47,6 +47,7 @@ fun AssetTabs(
         modifier =
             modifier
                 .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(horizontal = 20.dp)
                 .padding(4.dp)
                 .selectableGroup(),
