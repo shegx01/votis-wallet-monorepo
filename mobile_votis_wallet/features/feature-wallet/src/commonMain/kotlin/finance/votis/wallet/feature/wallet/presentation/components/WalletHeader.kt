@@ -191,7 +191,7 @@ private fun UserAvatar(
         modifier =
             modifier
                 .background(
-                    color = MaterialTheme.colorScheme.primaryContainer,
+                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
                     shape = CircleShape,
                 ).clip(CircleShape),
         contentAlignment = Alignment.Center,
@@ -200,7 +200,7 @@ private fun UserAvatar(
             text = getInitials(username),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            color = MaterialTheme.colorScheme.primary,
         )
     }
 }
