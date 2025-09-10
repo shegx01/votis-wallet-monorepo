@@ -1,0 +1,8 @@
+<resources>
+    <!-- Approvals Tab -->
+    <string name="approvals_empty_subtitle">您的代币授权将显示在这里</string>
+    <string name="approval_item_content_description">%1$s 在 %2$s 上拥有 %3$d 个权限</string>
+    <string name="revoke_approval">撤销</string>
+    <string name="approval_count">%1$d</string>
+    <string name="no_approvals_message">您暂时没有授权</string>
+</resources>

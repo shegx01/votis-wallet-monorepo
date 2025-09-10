@@ -1,0 +1,8 @@
+<resources>
+    <!-- Approvals Tab -->
+    <string name="approvals_empty_subtitle">Vos approbations de tokens apparaîtront ici</string>
+    <string name="approval_item_content_description">%1$s sur %2$s avec %3$d permissions</string>
+    <string name="revoke_approval">Révoquer</string>
+    <string name="approval_count">%1$d</string>
+    <string name="no_approvals_message">Vous n'avez pas encore d'approbations</string>
+</resources>
