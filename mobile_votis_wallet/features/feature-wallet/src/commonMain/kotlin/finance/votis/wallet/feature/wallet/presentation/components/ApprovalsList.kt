@@ -169,7 +169,7 @@ private fun ServiceAvatar(
         modifier =
             modifier
                 .background(
-                    color = serviceColor.copy(alpha = 0.1f),
+                    color = serviceColor.copy(alpha = 0.15f),
                     shape = CircleShape,
                 ).clip(CircleShape),
         contentAlignment = Alignment.Center,
@@ -177,10 +177,9 @@ private fun ServiceAvatar(
         // Show first two characters of service name as fallback
         Text(
             text = serviceName.take(2).uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
             color = serviceColor,
-            fontSize = 14.sp,
         )
     }
 }

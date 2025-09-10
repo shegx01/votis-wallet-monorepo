@@ -240,7 +240,7 @@ private fun PageIndicator(
                         if (isActive) {
                             MaterialTheme.colorScheme.primary
                         } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            MaterialTheme.colorScheme.outlineVariant
                         },
                 ).clickable(
                     interactionSource = remember { MutableInteractionSource() },
