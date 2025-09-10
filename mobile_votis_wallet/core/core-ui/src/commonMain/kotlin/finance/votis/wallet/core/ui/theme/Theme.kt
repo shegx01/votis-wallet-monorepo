@@ -267,6 +267,7 @@ data class VotisColors(
     val greyText: Color,
     val surface: Color,
     val onSurface: Color,
+    val primarySurface: Color, // Avatar/card background - white in light, primary+alpha in dark
 )
 
 // Light theme colors
@@ -277,6 +278,7 @@ val lightVotisColors =
         greyText = GreyText,
         surface = White,
         onSurface = Black,
+        primarySurface = White, // Pure white for avatars/cards in light mode
     )
 
 // Dark theme colors
@@ -287,6 +289,7 @@ val darkVotisColors =
         greyText = Color(0xFFB0B0B0), // Lighter grey for dark theme
         surface = Color(0xFF121212), // Dark surface
         onSurface = White, // White text on dark surface
+        primarySurface = VotisBrand.copy(alpha = 0.1f), // Original primary+alpha for dark mode
     )
 
 val LocalVotisColors = staticCompositionLocalOf { lightVotisColors }

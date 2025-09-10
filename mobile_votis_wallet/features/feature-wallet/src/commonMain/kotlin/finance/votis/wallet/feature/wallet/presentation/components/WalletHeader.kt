@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import finance.votis.wallet.core.ui.theme.votisColors
 import finance.votis.wallet.feature.wallet.presentation.design.WalletDesignSystem
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.action_copy_username
@@ -191,7 +192,7 @@ private fun UserAvatar(
         modifier =
             modifier
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    color = MaterialTheme.votisColors.primarySurface,
                     shape = CircleShape,
                 ).clip(CircleShape),
         contentAlignment = Alignment.Center,
