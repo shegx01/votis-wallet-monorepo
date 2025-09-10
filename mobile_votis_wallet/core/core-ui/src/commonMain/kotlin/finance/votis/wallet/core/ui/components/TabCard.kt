@@ -1,9 +1,12 @@
 package finance.votis.wallet.core.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -39,39 +42,56 @@ fun TabCard(
     header: (@Composable () -> Unit)? = null,
     contentDescription: String? = null,
 ) {
-    Card(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .semantics {
-                    role = Role.Tab
-                    contentDescription?.let { this.contentDescription = it }
-                },
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            ),
-        elevation =
-            CardDefaults.cardElevation(
-                defaultElevation = 0.dp,
-            ),
-        shape = RoundedCornerShape(12.dp),
+    Box(
+        modifier = modifier.fillMaxWidth(),
     ) {
-        Column(
+        // Shadow layer
+        Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(MaterialTheme.dimensions.spacingMedium),
-        ) {
-            // Optional header section (tabs, titles, filters, etc.)
-            header?.let {
-                it()
-                // Spacer between header and content
-                Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingMedium))
-            }
+                    .offset(x = 2.dp, y = 2.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
+        )
 
-            // Content section (lists, grids, etc.)
-            content()
+        // Main card
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        role = Role.Tab
+                        contentDescription?.let { this.contentDescription = it }
+                    },
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+            elevation =
+                CardDefaults.cardElevation(
+                    defaultElevation = 0.dp,
+                ),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(MaterialTheme.dimensions.spacingMedium),
+            ) {
+                // Optional header section (tabs, titles, filters, etc.)
+                header?.let {
+                    it()
+                    // Spacer between header and content
+                    Spacer(modifier = Modifier.height(MaterialTheme.dimensions.spacingMedium))
+                }
+
+                // Content section (lists, grids, etc.)
+                content()
+            }
         }
     }
 }

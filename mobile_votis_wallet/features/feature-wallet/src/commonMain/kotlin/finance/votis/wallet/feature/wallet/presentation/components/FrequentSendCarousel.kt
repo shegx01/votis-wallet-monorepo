@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -48,81 +49,99 @@ fun FrequentSendCarousel(
     val contactsPerPage = 4
     val totalPages = if (contacts.isEmpty()) 1 else (contacts.size + contactsPerPage - 1) / contactsPerPage
 
-    Card(
+    Box(
         modifier =
             modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .wrapContentHeight(),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            ),
-        elevation =
-            CardDefaults.outlinedCardElevation(
-                defaultElevation = 0.dp,
-            ),
-        shape = RoundedCornerShape(12.dp),
     ) {
-        Column(
+        // Shadow layer
+        Box(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-        ) {
-            // Section title
-            Text(
-                text = stringResource(Res.string.frequent_send_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 16.dp),
-            )
+                    .wrapContentHeight()
+                    .offset(x = 2.dp, y = 2.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f),
+                        shape = RoundedCornerShape(12.dp),
+                    ),
+        )
 
-            // Horizontal scrolling row of contacts
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+        // Main card
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
             ) {
-                // Show current page contacts (4 per page)
-                val startIndex = currentPage * contactsPerPage
-                val endIndex = minOf(startIndex + contactsPerPage, contacts.size)
-                val pageContacts =
-                    if (contacts.isNotEmpty()) {
-                        contacts.subList(startIndex, endIndex)
-                    } else {
-                        emptyList()
+                // Section title
+                Text(
+                    text = stringResource(Res.string.frequent_send_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
+
+                // Horizontal scrolling row of contacts
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    // Show current page contacts (4 per page)
+                    val startIndex = currentPage * contactsPerPage
+                    val endIndex = minOf(startIndex + contactsPerPage, contacts.size)
+                    val pageContacts =
+                        if (contacts.isNotEmpty()) {
+                            contacts.subList(startIndex, endIndex)
+                        } else {
+                            emptyList()
+                        }
+
+                    pageContacts.forEach { contact ->
+                        FrequentContactItem(
+                            contact = contact,
+                            onClick = { onContactClick(contact) },
+                            modifier = Modifier.weight(1f),
+                        )
                     }
 
-                pageContacts.forEach { contact ->
-                    FrequentContactItem(
-                        contact = contact,
-                        onClick = { onContactClick(contact) },
-                        modifier = Modifier.weight(1f),
-                    )
+                    // Fill empty spaces if less than 4 contacts
+                    repeat(contactsPerPage - pageContacts.size) {
+                        Box(modifier = Modifier.weight(1f))
+                    }
                 }
 
-                // Fill empty spaces if less than 4 contacts
-                repeat(contactsPerPage - pageContacts.size) {
-                    Box(modifier = Modifier.weight(1f))
-                }
-            }
-
-            // Page indicators
-            if (totalPages > 1) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp),
-                ) {
-                    repeat(totalPages) { page ->
-                        PageIndicator(
-                            isActive = page == currentPage,
-                            onClick = { currentPage = page },
-                            modifier = Modifier.padding(horizontal = 3.dp),
-                        )
+                // Page indicators
+                if (totalPages > 1) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                    ) {
+                        repeat(totalPages) { page ->
+                            PageIndicator(
+                                isActive = page == currentPage,
+                                onClick = { currentPage = page },
+                                modifier = Modifier.padding(horizontal = 3.dp),
+                            )
+                        }
                     }
                 }
             }
