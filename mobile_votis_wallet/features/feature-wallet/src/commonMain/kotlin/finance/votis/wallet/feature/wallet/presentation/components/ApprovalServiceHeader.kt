@@ -46,7 +46,7 @@ fun ApprovalServiceHeader(
         )
 
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.Start,
         ) {
             Text(
                 text = serviceName,
