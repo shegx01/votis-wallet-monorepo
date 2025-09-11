@@ -41,6 +41,7 @@ import finance.votis.wallet.core.domain.model.ApprovalsByService
 import finance.votis.wallet.core.domain.model.TokenApproval
 import finance.votis.wallet.core.ui.components.ServiceTopBar
 import finance.votis.wallet.core.ui.components.TabCard
+import finance.votis.wallet.feature.wallet.presentation.components.ApprovalServiceHeader
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.approved_amount_title
 import mobilevotiswallet.features.feature_wallet.generated.resources.contract_address_content_description
@@ -73,8 +74,12 @@ fun ApprovalServiceScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             ServiceTopBar(
-                serviceName = approvalsByService.serviceName,
-                serviceSubtitle = approvalsByService.chainName,
+                content = {
+                    ApprovalServiceHeader(
+                        serviceName = approvalsByService.serviceName,
+                        chainName = approvalsByService.chainName,
+                    )
+                },
                 onBackClick = onBackClick,
             )
         },
