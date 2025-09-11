@@ -11,22 +11,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import finance.votis.wallet.core.domain.model.ApprovalsByService
 import finance.votis.wallet.core.domain.model.TokenApproval
+import finance.votis.wallet.core.ui.components.ServiceTopBar
 import finance.votis.wallet.core.ui.components.TabCard
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.approved_amount_title
@@ -69,14 +65,34 @@ fun ApprovalServiceScreen(
     onRevokeApproval: (TokenApproval) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    // State to track which approvals are checked
+    var checkedApprovals by remember { mutableStateOf(setOf<String>()) }
+    val checkedCount = checkedApprovals.size
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            ApprovalServiceTopBar(
+            ServiceTopBar(
                 serviceName = approvalsByService.serviceName,
-                chainName = approvalsByService.chainName,
+                serviceSubtitle = approvalsByService.chainName,
                 onBackClick = onBackClick,
             )
+        },
+        bottomBar = {
+            if (checkedCount > 0) {
+                RevokeBottomBar(
+                    checkedCount = checkedCount,
+                    onRevokeSelected = {
+                        // TODO: Implement bulk revoke functionality
+                        val selectedApprovals =
+                            approvalsByService.approvals.filter {
+                                checkedApprovals.contains(it.id)
+                            }
+                        selectedApprovals.forEach { onRevokeApproval(it) }
+                        checkedApprovals = emptySet() // Clear selections after revoke
+                    },
+                )
+            }
         },
     ) { paddingValues ->
         LazyColumn(
@@ -103,6 +119,15 @@ fun ApprovalServiceScreen(
             item {
                 ApprovedAmountSection(
                     approvals = approvalsByService.approvals,
+                    checkedApprovals = checkedApprovals,
+                    onCheckChanged = { approvalId, isChecked ->
+                        checkedApprovals =
+                            if (isChecked) {
+                                checkedApprovals + approvalId
+                            } else {
+                                checkedApprovals - approvalId
+                            }
+                    },
                     onRevokeApproval = onRevokeApproval,
                 )
             }
@@ -112,80 +137,6 @@ fun ApprovalServiceScreen(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ApprovalServiceTopBar(
-    serviceName: String,
-    chainName: String,
-    onBackClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    TopAppBar(
-        title = {
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .offset(x = (-24).dp),
-                // Compensate for navigation icon space to center content
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Service icon (using dummy colored square for now)
-                Box(
-                    modifier =
-                        Modifier
-                            .size(32.dp)
-                            .background(
-                                color = getServiceColor(serviceName),
-                                shape = RoundedCornerShape(8.dp),
-                            ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = serviceName.take(2).uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.surface,
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = serviceName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = chainName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Navigate back",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        },
-        modifier = modifier,
-    )
 }
 
 @Composable
@@ -260,6 +211,8 @@ private fun ContractAddressSection(
 @Composable
 private fun ApprovedAmountSection(
     approvals: List<TokenApproval>,
+    checkedApprovals: Set<String>,
+    onCheckChanged: (String, Boolean) -> Unit,
     onRevokeApproval: (TokenApproval) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -279,6 +232,8 @@ private fun ApprovedAmountSection(
                 approvals.forEach { approval ->
                     ApprovalItem(
                         approval = approval,
+                        isChecked = checkedApprovals.contains(approval.id),
+                        onCheckChanged = { isChecked -> onCheckChanged(approval.id, isChecked) },
                         onRevoke = { onRevokeApproval(approval) },
                     )
                 }
@@ -292,6 +247,8 @@ private fun ApprovedAmountSection(
 @Composable
 private fun ApprovalItem(
     approval: TokenApproval,
+    isChecked: Boolean,
+    onCheckChanged: (Boolean) -> Unit,
     onRevoke: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -301,8 +258,6 @@ private fun ApprovalItem(
             approval.tokenName,
             approval.approvedAmount,
         )
-
-    var isChecked by remember { mutableStateOf(false) }
 
     Row(
         modifier =
@@ -329,13 +284,10 @@ private fun ApprovalItem(
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.outline
-                                    .copy(
-                                        alpha = 0.3f,
-                                    )
                             },
                         shape = RoundedCornerShape(4.dp),
                     ).clip(RoundedCornerShape(4.dp))
-                    .clickable { isChecked = !isChecked },
+                    .clickable { onCheckChanged(!isChecked) },
             contentAlignment = Alignment.Center,
         ) {
             if (isChecked) {
@@ -377,12 +329,12 @@ private fun ApprovalItem(
             )
         }
 
-        // Revoke button - styled as text button with cyan color
+        // Revoke button - styled as text button with primary color
         Text(
             text = stringResource(Res.string.revoke_button_text),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF00BCD4), // Cyan color like in design
+            color = MaterialTheme.colorScheme.primary,
             modifier =
                 Modifier
                     .clickable { onRevoke() }
@@ -451,32 +403,35 @@ private fun getTokenColor(tokenSymbol: String): Color =
         }
     }
 
-/**
- * Generates consistent colors for service names.
- * Matches the color scheme used in ApprovalsList component.
- */
-private fun getServiceColor(serviceName: String): Color =
-    when (serviceName.lowercase()) {
-        "okx web3", "okx" -> Color(0xFF000000) // Black
-        "jumper exchange", "jumper" -> Color(0xFF6C5CE7) // Purple
-        "metamask swaps", "metamask" -> Color(0xFFFF6B35) // Orange
-        "uniswap" -> Color(0xFFFF007A) // Pink
-        "1inch" -> Color(0xFF1F2937) // Dark gray
-        "pancakeswap" -> Color(0xFF1FC7D4) // Cyan
-        else -> {
-            // Generate consistent color based on service name hash
-            val colors =
-                listOf(
-                    Color(0xFF6366F1), // Indigo
-                    Color(0xFF8B5CF6), // Violet
-                    Color(0xFF06B6D4), // Cyan
-                    Color(0xFF10B981), // Emerald
-                    Color(0xFFF59E0B), // Amber
-                    Color(0xFFEF4444), // Red
-                    Color(0xFF3B82F6), // Blue
-                    Color(0xFF84CC16), // Lime
-                )
-            val hash = serviceName.hashCode()
-            colors[kotlin.math.abs(hash) % colors.size]
+@Composable
+private fun RevokeBottomBar(
+    checkedCount: Int,
+    onRevokeSelected: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+    ) {
+        Button(
+            onClick = onRevokeSelected,
+            modifier = Modifier.fillMaxWidth(),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Text(
+                text = "Revoke ($checkedCount)",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(vertical = 4.dp),
+            )
         }
     }
+}
