@@ -49,9 +49,8 @@ fun AssetTabs(
                 .fillMaxWidth()
                 .background(
                     MaterialTheme.colorScheme.background,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(4.dp)
+                    shape = RoundedCornerShape(12.dp),
+                ).padding(4.dp)
                 .selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {

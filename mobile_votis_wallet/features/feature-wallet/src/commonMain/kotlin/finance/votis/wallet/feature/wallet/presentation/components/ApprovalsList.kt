@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import finance.votis.wallet.core.domain.model.ApprovalsByService
+import finance.votis.wallet.core.domain.model.TokenApproval
 import kotlinx.datetime.Clock
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.approval_count
@@ -146,7 +147,7 @@ private fun ApprovalServiceItem(
                 )
             }
 
-            // Arrow icon
+//             Arrow icon
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
@@ -262,19 +263,97 @@ fun getMockApprovals(): List<ApprovalsByService> {
         ApprovalsByService(
             serviceName = "OKX Web3",
             chainName = "BNB Chain",
-            approvals = emptyList(), // Mock individual approvals if needed for detail view
-            totalCount = 4,
+            approvals =
+                listOf(
+                    TokenApproval(
+                        id = "1",
+                        serviceName = "OKX Web3",
+                        chainName = "BNB Chain",
+                        chainId = "56",
+                        contractAddress = "0x6b1...e618d",
+                        spenderAddress = "0x1234...5678",
+                        tokenSymbol = "BTCB",
+                        tokenName = "Bitcoin BEP20",
+                        approvedAmount = "Unlimited BTCB",
+                        createdAt = now,
+                    ),
+                    TokenApproval(
+                        id = "2",
+                        serviceName = "OKX Web3",
+                        chainName = "BNB Chain",
+                        chainId = "56",
+                        contractAddress = "0x6b1...e618d",
+                        spenderAddress = "0x2345...6789",
+                        tokenSymbol = "USDT",
+                        tokenName = "Tether USD",
+                        approvedAmount = "3200 USDT",
+                        createdAt = now,
+                    ),
+                    TokenApproval(
+                        id = "3",
+                        serviceName = "OKX Web3",
+                        chainName = "BNB Chain",
+                        chainId = "56",
+                        contractAddress = "0x6b1...e618d",
+                        spenderAddress = "0x3456...7890",
+                        tokenSymbol = "USDT",
+                        tokenName = "Tether USD",
+                        approvedAmount = "Unlimited USDT",
+                        createdAt = now,
+                    ),
+                ),
+            totalCount = 3,
         ),
         ApprovalsByService(
             serviceName = "Jumper Exchange",
             chainName = "BNB Chain",
-            approvals = emptyList(),
+            approvals =
+                listOf(
+                    TokenApproval(
+                        id = "4",
+                        serviceName = "Jumper Exchange",
+                        chainName = "BNB Chain",
+                        chainId = "56",
+                        contractAddress = "0x7c2...f912a",
+                        spenderAddress = "0x4567...8901",
+                        tokenSymbol = "ETH",
+                        tokenName = "Ethereum",
+                        approvedAmount = "5.5 ETH",
+                        createdAt = now,
+                    ),
+                    TokenApproval(
+                        id = "5",
+                        serviceName = "Jumper Exchange",
+                        chainName = "BNB Chain",
+                        chainId = "56",
+                        contractAddress = "0x7c2...f912a",
+                        spenderAddress = "0x5678...9012",
+                        tokenSymbol = "BNB",
+                        tokenName = "Binance Coin",
+                        approvedAmount = "Unlimited BNB",
+                        createdAt = now,
+                    ),
+                ),
             totalCount = 2,
         ),
         ApprovalsByService(
             serviceName = "MetaMask Swaps",
             chainName = "ETH Chain",
-            approvals = emptyList(),
+            approvals =
+                listOf(
+                    TokenApproval(
+                        id = "6",
+                        serviceName = "MetaMask Swaps",
+                        chainName = "ETH Chain",
+                        chainId = "1",
+                        contractAddress = "0x8d3...a245b",
+                        spenderAddress = "0x6789...0123",
+                        tokenSymbol = "USDC",
+                        tokenName = "USD Coin",
+                        approvedAmount = "1000 USDC",
+                        createdAt = now,
+                    ),
+                ),
             totalCount = 1,
         ),
     )

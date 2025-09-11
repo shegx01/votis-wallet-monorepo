@@ -91,7 +91,7 @@ fun FrequentSendCarousel(
                 // Section title
                 Text(
                     text = stringResource(Res.string.frequent_send_title),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 16.dp),

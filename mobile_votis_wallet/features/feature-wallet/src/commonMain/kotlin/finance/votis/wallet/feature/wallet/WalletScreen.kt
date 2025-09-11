@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import finance.votis.wallet.core.domain.model.ApprovalsByService
 import finance.votis.wallet.core.domain.model.AssetType
 import finance.votis.wallet.core.domain.model.ContactUser
 import finance.votis.wallet.core.domain.model.Nft
@@ -98,6 +99,7 @@ private fun WalletContent(username: String?) {
     var selectedTimePeriod by remember { mutableStateOf(TimePeriod.TWENTY_FOUR_HOURS) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
     var selectedAssetType by remember { mutableStateOf(AssetType.TOKENS) }
+    var selectedApprovalService by remember { mutableStateOf<ApprovalsByService?>(null) }
 
     // Mock data for development
     val mockContacts = getMockFrequentContactsLocal() // Use local function without underscores
@@ -105,6 +107,23 @@ private fun WalletContent(username: String?) {
     val mockNfts = getMockNfts()
     val mockApprovals = getMockApprovals()
     val totalBalanceValue = stringResource(Res.string.mock_total_balance)
+
+    // Handle navigation to ApprovalServiceScreen
+    selectedApprovalService?.let { approvalsByService ->
+        ApprovalServiceScreen(
+            approvalsByService = approvalsByService,
+            onBackClick = { selectedApprovalService = null },
+            onCopyAddress = { address ->
+                // TODO: Implement copy to clipboard
+                println("Copied address: $address")
+            },
+            onRevokeApproval = { approval ->
+                // TODO: Implement revoke approval
+                println("Revoking approval: ${approval.tokenName}")
+            },
+        )
+        return
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -197,7 +216,9 @@ private fun WalletContent(username: String?) {
                             AssetType.APPROVALS -> {
                                 ApprovalsList(
                                     approvals = mockApprovals,
-                                    onApprovalServiceClick = { /* TODO: Navigate to approval details */ },
+                                    onApprovalServiceClick = { approvalsByService ->
+                                        selectedApprovalService = approvalsByService
+                                    },
                                 )
                             }
                         }

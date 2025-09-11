@@ -126,4 +126,13 @@
     <string name="revoke_approval">Revoke</string>
     <string name="approval_count">%1$d</string>
     
+    <!-- Approval Service Screen -->
+    <string name="approval_service_screen_title">Token Approvals</string>
+    <string name="contract_address_label">Contract address</string>
+    <string name="approved_amount_title">Approved amount</string>
+    <string name="revoke_button_text">Revoke</string>
+    <string name="contract_address_content_description">Contract address: %1$s</string>
+    <string name="copy_address_description">Copy contract address</string>
+    <string name="revoke_approval_content_description">Revoke %1$s approval for %2$s</string>
+    
 </resources>
