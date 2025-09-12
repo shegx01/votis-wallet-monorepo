@@ -243,3 +243,88 @@ enum class AssetType(
     NFTS("NFTs"),
     APPROVALS("Approvals"),
 }
+
+/**
+ * OHLCV (Open, High, Low, Close, Volume) data for candlestick charts
+ */
+@Serializable
+data class OHLCVData(
+    val timestamp: Instant,
+    val open: Double,
+    val high: Double,
+    val low: Double,
+    val close: Double,
+    val volume: Double,
+) {
+    init {
+        require(high >= open && high >= close) {
+            "High price must be >= open and close"
+        }
+        require(low <= open && low <= close) {
+            "Low price must be <= open and close"
+        }
+        require(volume >= 0) {
+            "Volume must be non-negative"
+        }
+    }
+
+    /**
+     * True if the candle is bullish (close > open)
+     */
+    val isBullish: Boolean get() = close > open
+
+    /**
+     * True if the candle is bearish (close < open)
+     */
+    val isBearish: Boolean get() = close < open
+
+    /**
+     * The body size (absolute difference between open and close)
+     */
+    val bodySize: Double get() = kotlin.math.abs(close - open)
+
+    /**
+     * The wick size (high - low)
+     */
+    val wickSize: Double get() = high - low
+
+    companion object {
+        /**
+         * Calculate the price range (min to max) for a series of OHLCV data
+         */
+        fun List<OHLCVData>.priceRange(): Pair<Double, Double> {
+            if (isEmpty()) return 0.0 to 0.0
+            val min = minOf { it.low }
+            val max = maxOf { it.high }
+            return min to max
+        }
+
+        /**
+         * Calculate the volume range for a series of OHLCV data
+         */
+        fun List<OHLCVData>.volumeRange(): Pair<Double, Double> {
+            if (isEmpty()) return 0.0 to 0.0
+            val min = minOf { it.volume }
+            val max = maxOf { it.volume }
+            return min to max
+        }
+
+        /**
+         * Filter OHLCV data by time period
+         */
+        fun List<OHLCVData>.filterByPeriod(
+            period: TimePeriod,
+            currentTime: Instant = Clock.System.now(),
+        ): List<OHLCVData> {
+            val cutoffTime =
+                when (period) {
+                    TimePeriod.ONE_HOUR -> currentTime.minus(kotlin.time.Duration.parse("1h"))
+                    TimePeriod.TWENTY_FOUR_HOURS -> currentTime.minus(kotlin.time.Duration.parse("1d"))
+                    TimePeriod.SEVEN_DAYS -> currentTime.minus(kotlin.time.Duration.parse("7d"))
+                    TimePeriod.THIRTY_DAYS -> currentTime.minus(kotlin.time.Duration.parse("30d"))
+                    TimePeriod.ONE_YEAR -> currentTime.minus(kotlin.time.Duration.parse("365d"))
+                }
+            return filter { it.timestamp >= cutoffTime }
+        }
+    }
+}
