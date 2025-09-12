@@ -32,6 +32,7 @@ import finance.votis.wallet.core.domain.model.NftCollection
 import finance.votis.wallet.core.domain.model.NftSale
 import finance.votis.wallet.core.domain.model.NftTokenStandard
 import finance.votis.wallet.core.domain.model.TimePeriod
+import finance.votis.wallet.core.domain.model.TokenBalance
 import finance.votis.wallet.core.ui.components.TabCard
 import finance.votis.wallet.feature.wallet.presentation.components.ActionButtonRow
 import finance.votis.wallet.feature.wallet.presentation.components.ApprovalsList
@@ -100,6 +101,7 @@ private fun WalletContent(username: String?) {
     var isDropdownExpanded by remember { mutableStateOf(false) }
     var selectedAssetType by remember { mutableStateOf(AssetType.TOKENS) }
     var selectedApprovalService by remember { mutableStateOf<ApprovalsByService?>(null) }
+    var selectedToken by remember { mutableStateOf<TokenBalance?>(null) }
 
     // Mock data for development
     val mockContacts = getMockFrequentContactsLocal() // Use local function without underscores
@@ -107,6 +109,19 @@ private fun WalletContent(username: String?) {
     val mockNfts = getMockNfts()
     val mockApprovals = getMockApprovals()
     val totalBalanceValue = stringResource(Res.string.mock_total_balance)
+
+    // Handle navigation to TokenScreen
+    selectedToken?.let { tokenBalance ->
+        TokenScreen(
+            tokenBalance = tokenBalance,
+            onBackClick = { selectedToken = null },
+            onReceiveClicked = { /* TODO: Navigate to receive */ },
+            onSendClicked = { /* TODO: Navigate to send */ },
+            onSwapClicked = { /* TODO: Navigate to swap */ },
+            onBuySellClicked = { /* TODO: Navigate to buy/sell */ },
+        )
+        return
+    }
 
     // Handle navigation to ApprovalServiceScreen
     selectedApprovalService?.let { approvalsByService ->
@@ -166,7 +181,7 @@ private fun WalletContent(username: String?) {
                     onSendClicked = { /* TODO: Navigate to send */ },
                     onSwapClicked = { /* TODO: Navigate to swap */ },
                     onBuySellClicked = { /* TODO: Navigate to buy/sell */ },
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
                 )
             }
 
@@ -177,7 +192,7 @@ private fun WalletContent(username: String?) {
                     onContactClick = { contact ->
                         // TODO: Navigate to send with pre-filled contact
                     },
-                    modifier = Modifier.padding(top = 0.dp, bottom = 16.dp),
+                    modifier = Modifier.padding(top = 0.dp, bottom = 12.dp),
                 )
             }
 
@@ -201,7 +216,7 @@ private fun WalletContent(username: String?) {
                                     tokenBalances = mockTokenBalances,
                                     totalAssetsValue = totalBalanceValue,
                                     onTokenClick = { tokenBalance ->
-                                        // TODO: Navigate to token details
+                                        selectedToken = tokenBalance
                                     },
                                 )
                             }
@@ -229,7 +244,7 @@ private fun WalletContent(username: String?) {
                             AssetType.NFTS -> "NFT collection grid"
                             AssetType.APPROVALS -> "Token approvals management"
                         },
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
                 )
             }
         }
@@ -461,10 +476,10 @@ private fun BalanceDisplaySection(
         // Large balance amount - matching design typography
         Text(
             text = balanceAmount,
-            fontSize = 48.sp,
+            fontSize = 38.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
-            lineHeight = 50.sp,
+            lineHeight = 38.sp,
         )
 
         Spacer(modifier = Modifier.height(8.dp))

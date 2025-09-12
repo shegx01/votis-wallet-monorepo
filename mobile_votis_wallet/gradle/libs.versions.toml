@@ -24,6 +24,7 @@ kotlinx-datetime = "0.6.1"  # Already compatible
 compose-navigation = "2.8.0-alpha10"  # Last known working alpha version
 lottie-compose = "6.4.1"  # Lottie for Android Compose
 compottie = "2.0.0-beta02"  # Compottie - Lottie for Compose Multiplatform
+koalaplot = "0.6.3"  # Koalaplot - Chart library for Compose Multiplatform
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -55,6 +56,7 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 compose-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "compose-navigation" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie-compose" }
 compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }
+koalaplot-core = { module = "io.github.koalaplot:koalaplot-core", version.ref = "koalaplot" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -51,6 +51,9 @@ kotlin {
             // DateTime for domain models
             implementation(libs.kotlinx.datetime)
 
+            // Charts
+            implementation(libs.koalaplot.core)
+
             // DI
             implementation(libs.koin.core)
             implementation(libs.koin.compose)

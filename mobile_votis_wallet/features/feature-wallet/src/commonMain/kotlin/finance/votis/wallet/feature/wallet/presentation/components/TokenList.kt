@@ -211,6 +211,7 @@ fun getMockTokenBalances(): List<TokenBalance> =
                     symbol = "BTC",
                     name = "Bitcoin",
                     decimals = 8,
+                    contractAddress = "0x6b11...618d", // Mock Bitcoin address
                 ),
             amount = "0.32586 BTC",
             usdValue = "\$21,256.78",
@@ -221,6 +222,7 @@ fun getMockTokenBalances(): List<TokenBalance> =
                     symbol = "ETH",
                     name = "Ethereum",
                     decimals = 18,
+                    contractAddress = "0x7d1a...fa85", // Mock Ethereum address
                 ),
             amount = "8.25941 ETH",
             usdValue = "\$18,456.32",
@@ -231,6 +233,7 @@ fun getMockTokenBalances(): List<TokenBalance> =
                     symbol = "SOL",
                     name = "Solana",
                     decimals = 9,
+                    contractAddress = "9n4n...2b8c", // Mock Solana address
                 ),
             amount = "154.672 SOL",
             usdValue = "\$12,847.69",
