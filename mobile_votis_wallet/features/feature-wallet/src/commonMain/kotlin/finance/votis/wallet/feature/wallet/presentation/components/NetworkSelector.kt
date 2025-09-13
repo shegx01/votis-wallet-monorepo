@@ -101,7 +101,6 @@ fun NetworkSelector(
         val sheetState =
             rememberFlexibleBottomSheetState(
                 isModal = true, // Enable modal behavior with backdrop
-                containSystemBars = true, // Enable edge-to-edge support
             )
 
         FlexibleBottomSheet(
