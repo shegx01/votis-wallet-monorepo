@@ -15,13 +15,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.skydoves.flexible.bottomsheet.material3.FlexibleBottomSheet
+import com.skydoves.flexible.core.rememberFlexibleBottomSheetState
 import finance.votis.wallet.core.domain.model.Network
+import finance.votis.wallet.core.ui.components.TabCard
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.ic_copy
 import mobilevotiswallet.features.feature_wallet.generated.resources.ic_scan
@@ -94,162 +96,165 @@ fun NetworkSelector(
         }
     }
 
-    // Address selector bottom sheet overlay
+    // Address selector using FlexibleBottomSheet with proper state management for edge-to-edge support
     if (showAddressSelector) {
-        AddressSelectorModal(
-            selectedNetwork = selectedNetwork,
-            onNetworkSelected = { network ->
-                onNetworkSelected(network)
-                showAddressSelector = false
-            },
-            onDismiss = { showAddressSelector = false },
-        )
+        val sheetState =
+            rememberFlexibleBottomSheetState(
+                isModal = true, // Enable modal behavior with backdrop
+                containSystemBars = true, // Enable edge-to-edge support
+            )
+
+        FlexibleBottomSheet(
+            onDismissRequest = { showAddressSelector = false },
+            sheetState = sheetState, // Control state with sheetState parameter
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+            windowInsets = WindowInsets(0), // Remove all insets for true edge-to-edge
+            dragHandle = null, // We'll add our own custom handle
+            scrimColor = Color.Black.copy(alpha = 0.2f), // Semi-transparent backdrop
+        ) {
+            TabCard(
+                content = {
+                    AddressSelectorContent(
+                        selectedNetwork = selectedNetwork,
+                        onNetworkSelected = { network ->
+                            onNetworkSelected(network)
+                            showAddressSelector = false
+                        },
+                        onDismiss = { showAddressSelector = false },
+                    )
+                },
+            )
+        }
     }
 }
 
 /**
- * Bottom sheet modal showing the address selector as per design specification.
+ * Bottom sheet content showing the address selector as per design specification.
  */
 @Composable
-private fun AddressSelectorModal(
+private fun AddressSelectorContent(
     selectedNetwork: Network,
     onNetworkSelected: (Network) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, start = 20.dp, end = 20.dp, bottom = 20.dp),
     ) {
-        // Background overlay
+        // Bottom sheet handle
         Box(
             modifier =
                 Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .clickable { onDismiss() },
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        RoundedCornerShape(2.dp),
+                    ).align(Alignment.CenterHorizontally),
         )
 
-        // Bottom sheet content
-        Card(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter),
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Header: "Select address" with close button
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(
-                modifier = Modifier.padding(top = 8.dp, start = 20.dp, end = 20.dp, bottom = 20.dp),
+            Text(
+                text = "Select address",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(32.dp),
             ) {
-                // Bottom sheet handle
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // User section: Avatar, username, "Share wallet username" with copy
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // User avatar (placeholder)
                 Box(
                     modifier =
                         Modifier
-                            .width(40.dp)
-                            .height(4.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                RoundedCornerShape(2.dp),
-                            ).align(Alignment.CenterHorizontally),
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-                // Header: "Select address" with close button
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                            .size(40.dp)
+                            .background(Color(0xFF4A90E2), CircleShape),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "Select address",
-                        style = MaterialTheme.typography.headlineSmall,
+                        text = "👤",
+                        fontSize = 20.sp,
+                    )
+                }
+
+                Column {
+                    Text(
+                        text = "@shegx",
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.size(32.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
+                    Text(
+                        text = "Share wallet username",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            // Copy button
+            IconButton(
+                onClick = { /* TODO: Copy username */ },
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(
+                    painter = painterResource(Res.drawable.ic_copy),
+                    contentDescription = "Copy username",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
 
-                // User section: Avatar, username, "Share wallet username" with copy
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        // User avatar (placeholder)
-                        Box(
-                            modifier =
-                                Modifier
-                                    .size(40.dp)
-                                    .background(Color(0xFF4A90E2), CircleShape),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = "👤",
-                                fontSize = 20.sp,
-                            )
-                        }
+        Spacer(modifier = Modifier.height(24.dp))
 
-                        Column {
-                            Text(
-                                text = "@shegx",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                text = "Share wallet username",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-
-                    // Copy button
-                    IconButton(
-                        onClick = { /* TODO: Copy username */ },
-                        modifier = Modifier.size(32.dp),
-                    ) {
-                        Icon(
-                            painter = painterResource(Res.drawable.ic_copy),
-                            contentDescription = "Copy username",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Network list
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(getNetworkDataList()) { networkData ->
-                        NetworkAddressItem(
-                            networkData = networkData,
-                            isSelected = networkData.network == selectedNetwork,
-                            onNetworkClick = { onNetworkSelected(networkData.network) },
-                            onCopyClick = { /* TODO: Copy address */ },
-                            onQrClick = { /* TODO: Show QR */ },
-                            onCreateClick = { /* TODO: Create address */ },
-                        )
-                    }
-                }
+        // Network list
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(getNetworkDataList()) { networkData ->
+                NetworkAddressItem(
+                    networkData = networkData,
+                    isSelected = networkData.network == selectedNetwork,
+                    onNetworkClick = { onNetworkSelected(networkData.network) },
+                    onCopyClick = { /* TODO: Copy address */ },
+                    onQrClick = { /* TODO: Show QR */ },
+                    onCreateClick = { /* TODO: Create address */ },
+                )
             }
         }
     }
@@ -400,8 +405,7 @@ private fun NetworkIcon(
     Box(
         modifier =
             modifier
-                .background(iconColor, CircleShape)
-                .clip(CircleShape),
+                .background(iconColor, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Text(

@@ -54,6 +54,9 @@ kotlin {
             // Charts
             implementation(libs.koalaplot.core)
 
+            // FlexibleBottomSheet for advanced bottom sheet with edge-to-edge support
+            implementation(libs.flexible.bottomsheet)
+
             // DI
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
