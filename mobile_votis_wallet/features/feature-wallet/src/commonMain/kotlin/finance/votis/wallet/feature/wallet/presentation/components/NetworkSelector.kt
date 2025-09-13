@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skydoves.flexible.bottomsheet.material3.FlexibleBottomSheet
+import com.skydoves.flexible.core.FlexibleSheetSize
 import com.skydoves.flexible.core.rememberFlexibleBottomSheetState
 import finance.votis.wallet.core.domain.model.Network
 import finance.votis.wallet.core.ui.components.TabCard
@@ -100,7 +101,15 @@ fun NetworkSelector(
     if (showAddressSelector) {
         val sheetState =
             rememberFlexibleBottomSheetState(
+                flexibleSheetSize = FlexibleSheetSize(
+                    fullyExpanded = 0.7f,
+                    intermediatelyExpanded = 0.6f,
+                    slightlyExpanded = 0.15f,
+                ),
                 isModal = true, // Enable modal behavior with backdrop
+//                skipIntermediatelyExpanded = true, // Skip intermediately expanded state
+//                skipHiddenState = true, // Skip hidden state
+                skipSlightlyExpanded = true
             )
 
         FlexibleBottomSheet(
@@ -110,23 +119,27 @@ fun NetworkSelector(
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            windowInsets = WindowInsets(0), // Remove all insets for true edge-to-edge
+            windowInsets = WindowInsets(
+                0,
+                right = 0,
+                top = 0
+            ), // Remove all insets for true edge-to-edge
             dragHandle = null, // We'll add our own custom handle
             scrimColor = Color.Black.copy(alpha = 0.2f), // Semi-transparent backdrop
         ) {
-            TabCard(
-                content = {
-                    AddressSelectorContent(
-                        selectedNetwork = selectedNetwork,
-                        onNetworkSelected = { network ->
-                            onNetworkSelected(network)
-                            showAddressSelector = false
-                        },
-                        onDismiss = { showAddressSelector = false },
-                    )
+//            TabCard(
+//                content = {
+            AddressSelectorContent(
+                selectedNetwork = selectedNetwork,
+                onNetworkSelected = { network ->
+                    onNetworkSelected(network)
+                    showAddressSelector = false
                 },
+                onDismiss = { showAddressSelector = false },
             )
         }
+//            )
+//        }
     }
 }
 
