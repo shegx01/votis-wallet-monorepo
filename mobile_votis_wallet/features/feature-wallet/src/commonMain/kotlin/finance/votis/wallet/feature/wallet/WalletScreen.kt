@@ -34,6 +34,7 @@ import finance.votis.wallet.core.domain.model.NftTokenStandard
 import finance.votis.wallet.core.domain.model.TimePeriod
 import finance.votis.wallet.core.domain.model.TokenBalance
 import finance.votis.wallet.core.ui.components.TabCard
+import finance.votis.wallet.feature.wallet.presentation.ReceiveScreen
 import finance.votis.wallet.feature.wallet.presentation.components.ActionButtonRow
 import finance.votis.wallet.feature.wallet.presentation.components.ApprovalsList
 import finance.votis.wallet.feature.wallet.presentation.components.AssetTabs
@@ -46,6 +47,7 @@ import finance.votis.wallet.feature.wallet.presentation.components.WalletBottomN
 import finance.votis.wallet.feature.wallet.presentation.components.WalletHeader
 import finance.votis.wallet.feature.wallet.presentation.components.getMockApprovals
 import finance.votis.wallet.feature.wallet.presentation.components.getMockTokenBalances
+import finance.votis.wallet.feature.wallet.presentation.send.SendScreen
 import kotlinx.datetime.Clock
 import mobilevotiswallet.features.feature_wallet.generated.resources.Res
 import mobilevotiswallet.features.feature_wallet.generated.resources.mock_total_balance
@@ -59,8 +61,17 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun WalletScreen(
     username: String? = null,
+    onNavigateToReceive: () -> Unit = {},
+    onNavigateToSend: () -> Unit = {},
+    onNavigateToSwap: () -> Unit = {},
+    onNavigateToBuySell: () -> Unit = {},
+    onCopyToClipboard: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    // Navigation state
+    var showReceiveScreen by remember { mutableStateOf(false) }
+    var showSendScreen by remember { mutableStateOf(false) }
+
     // Bottom navigation state
     var selectedBottomNavTab by remember { mutableStateOf(BottomNavTab.HOME) }
 
@@ -84,7 +95,31 @@ fun WalletScreen(
                     .padding(paddingValues),
         ) {
             when (selectedBottomNavTab) {
-                BottomNavTab.HOME -> WalletContent(username = username)
+                BottomNavTab.HOME -> {
+                    when {
+                        showReceiveScreen -> {
+                            ReceiveScreen(
+                                onNavigateBack = { showReceiveScreen = false },
+                                onCopyToClipboard = onCopyToClipboard,
+                            )
+                        }
+                        showSendScreen -> {
+                            SendScreen(
+                                onBackClick = { showSendScreen = false },
+                            )
+                        }
+                        else -> {
+                            WalletContent(
+                                username = username,
+                                onNavigateToReceive = { showReceiveScreen = true },
+                                onNavigateToSend = { showSendScreen = true },
+                                onNavigateToSwap = onNavigateToSwap,
+                                onNavigateToBuySell = onNavigateToBuySell,
+                                onCopyToClipboard = onCopyToClipboard,
+                            )
+                        }
+                    }
+                }
                 BottomNavTab.EXCHANGE -> PlaceholderScreen("Exchange", "Exchange features coming soon")
                 BottomNavTab.TRANSACTIONS -> PlaceholderScreen("Transactions", "Transaction history coming soon")
                 BottomNavTab.BROWSER -> PlaceholderScreen("Browser", "DApp browser coming soon")
@@ -95,7 +130,14 @@ fun WalletScreen(
 }
 
 @Composable
-private fun WalletContent(username: String?) {
+private fun WalletContent(
+    username: String?,
+    onNavigateToReceive: () -> Unit = {},
+    onNavigateToSend: () -> Unit = {},
+    onNavigateToSwap: () -> Unit = {},
+    onNavigateToBuySell: () -> Unit = {},
+    onCopyToClipboard: (String) -> Unit = {},
+) {
     // State management for interactive elements
     var selectedTimePeriod by remember { mutableStateOf(TimePeriod.TWENTY_FOUR_HOURS) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
@@ -115,10 +157,10 @@ private fun WalletContent(username: String?) {
         TokenScreen(
             tokenBalance = tokenBalance,
             onBackClick = { selectedToken = null },
-            onReceiveClicked = { /* TODO: Navigate to receive */ },
-            onSendClicked = { /* TODO: Navigate to send */ },
-            onSwapClicked = { /* TODO: Navigate to swap */ },
-            onBuySellClicked = { /* TODO: Navigate to buy/sell */ },
+            onReceiveClicked = onNavigateToReceive,
+            onSendClicked = onNavigateToSend,
+            onSwapClicked = onNavigateToSwap,
+            onBuySellClicked = onNavigateToBuySell,
         )
         return
     }
@@ -177,10 +219,10 @@ private fun WalletContent(username: String?) {
             // Action buttons
             item {
                 ActionButtonRow(
-                    onReceiveClicked = { /* TODO: Navigate to receive */ },
-                    onSendClicked = { /* TODO: Navigate to send */ },
-                    onSwapClicked = { /* TODO: Navigate to swap */ },
-                    onBuySellClicked = { /* TODO: Navigate to buy/sell */ },
+                    onReceiveClicked = onNavigateToReceive,
+                    onSendClicked = onNavigateToSend,
+                    onSwapClicked = onNavigateToSwap,
+                    onBuySellClicked = onNavigateToBuySell,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
                 )
             }

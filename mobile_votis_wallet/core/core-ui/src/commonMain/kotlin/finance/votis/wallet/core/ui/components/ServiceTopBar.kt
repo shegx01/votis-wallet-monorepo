@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Custom reusable top bar component that accepts composable content.
- * Features a centered content area with back navigation without using Material AppBar.
+ * Features a left-aligned content area with back navigation without using Material AppBar.
  *
- * @param content The composable content to display in the center of the top bar
+ * @param content The composable content to display to the left of the back button
  * @param onBackClick Callback when back button is pressed
  * @param modifier Optional modifier for the top bar
  */
@@ -66,16 +66,13 @@ fun ServiceTopBar(
             )
         }
 
-        // Centered content with flex weight to take remaining space
+        // Left-aligned content with flex weight to take remaining space
         Row(
             modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             content()
         }
-
-        // Right space to balance the back button (same width as back button)
-        Box(modifier = Modifier.size(48.dp))
     }
 }

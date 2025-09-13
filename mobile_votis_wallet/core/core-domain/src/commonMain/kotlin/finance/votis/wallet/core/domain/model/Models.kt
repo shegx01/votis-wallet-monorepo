@@ -112,6 +112,51 @@ enum class NftTokenStandard {
 }
 
 @Serializable
+enum class Network(
+    val displayName: String,
+    val chainId: Long,
+    val symbol: String,
+    val explorerUrl: String,
+    val rpcUrl: String,
+) {
+    EVM_CHAINS(
+        displayName = "EVM Chains",
+        chainId = 1L,
+        symbol = "ETH",
+        explorerUrl = "https://etherscan.io",
+        rpcUrl = "https://eth-mainnet.g.alchemy.com/v2",
+    ),
+    BITCOIN(
+        displayName = "Bitcoin",
+        chainId = 137L,
+        symbol = "MATIC",
+        explorerUrl = "https://polygonscan.com",
+        rpcUrl = "https://polygon-rpc.com",
+    ),
+    SOLANA(
+        displayName = "Solana",
+        chainId = 56L,
+        symbol = "BNB",
+        explorerUrl = "https://bscscan.com",
+        rpcUrl = "https://bsc-dataseed.binance.org",
+    ),
+    TRON(
+        displayName = "Tron",
+        chainId = 42L,
+        symbol = "TRX",
+        explorerUrl = "https://tronscan.io",
+        rpcUrl = "https://api.trongrid.io",
+    ),
+    LITECOIN(
+        displayName = "Litecoin",
+        chainId = 2020L,
+        symbol = "LTC",
+        explorerUrl = "https://blockchair.com/litecoin",
+        rpcUrl = "https://litecoin-rpc.vercel.app",
+    ),
+}
+
+@Serializable
 data class Transaction(
     val id: String,
     val type: TransactionType,

@@ -120,6 +120,19 @@
     <string name="action_search">Search</string>
     <string name="action_copy_username">Copy username</string>
     
+    <!-- Send Screen -->
+    <string name="send_screen_title">Send</string>
+    <string name="send_amount_placeholder">0</string>
+    <string name="send_usd_suffix">USD</string>
+    <string name="send_balance_label">Balance: %1$s</string>
+    <string name="send_select_token">Select token</string>
+    <string name="send_recipient_label">Recipient address</string>
+    <string name="send_recipient_placeholder">Enter recipient address</string>
+    <string name="send_cta_button">Send</string>
+    <string name="send_amount_error">Please enter a valid amount</string>
+    <string name="send_address_error">Please enter a valid wallet address</string>
+    <string name="send_transaction_success">Transaction sent successfully!</string>
+    
     <!-- Approvals Tab -->
     <string name="approvals_empty_subtitle">Your token approvals will appear here</string>
     <string name="approval_item_content_description">%1$s approval on %2$s with %3$d permissions</string>
